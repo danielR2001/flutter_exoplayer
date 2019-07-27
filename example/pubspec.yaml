@@ -1,0 +1,14 @@
+name: exoplayer_example
+description: Demonstrates how to use the exoplayer plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  exoplayer:
+    path: ../
+
+flutter:
+  uses-material-design: true
+
+environment:
+  sdk: ">=2.0.0-dev.50.0 <3.0.0"
