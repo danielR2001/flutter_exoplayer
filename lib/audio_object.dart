@@ -1,17 +1,36 @@
+import 'package:flutter/material.dart';
+
+enum NotificationMode {
+  NEXT,
+  PREVIOUS,
+  BOTH,
+}
+
 class AudioObject {
   int smallIcon;
   String title;
   String subTitle;
   String largeIconUrl;
   bool isLocal;
+  NotificationMode notificationMode;
 
-  AudioObject(int smallIcon, String title, String subTitle, String largeIconUrl,
-      bool isLocal) {
+  AudioObject({
+    @required int smallIcon,
+    String title,
+    String subTitle,
+    String largeIconUrl,
+    bool isLocal = false,
+    NotificationMode notificationMode = NotificationMode.BOTH,
+  }) {
+    isLocal ??= false;
+    notificationMode ??= NotificationMode.BOTH;
+
     this.smallIcon = smallIcon;
     this.title = title;
     this.subTitle = subTitle;
     this.largeIconUrl = largeIconUrl;
     this.isLocal = isLocal;
+    this.notificationMode = notificationMode;
   }
 
   int getSmallIcon() {
@@ -32,5 +51,9 @@ class AudioObject {
 
   bool getIsLocal() {
     return isLocal;
+  }
+
+  NotificationMode getNotificationMode() {
+    return notificationMode;
   }
 }

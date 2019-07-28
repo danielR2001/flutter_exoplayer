@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -75,46 +76,92 @@ public class MediaNotificationManager {
             mediaSession = new MediaSessionCompat(this.context, "playback");
             CreateNotificationChannel();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
-                    .setContentTitle(audioObject.getTitle())
-                    .setContentText(audioObject.getSubTitle())
                     .setSmallIcon(audioObject.getSmallIcon())
-                    .setLargeIcon(audioObject.getLargeIcon())
                     .setWhen(System.currentTimeMillis())
-                    .setShowWhen(false)
-                    .addAction(R.drawable.ic_previous, "", pprevIntent)
-                    .addAction(R.drawable.ic_next, "", pnextIntent)
-                    .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
-                            .setShowActionsInCompactView(0, 1, 2).setMediaSession(mediaSession.getSessionToken()));
+                    .setShowWhen(false);
                     //.setContentIntent(pendingIntent);
-            // .build();
-            if(isPlaying){
-                builder.addAction(R.drawable.ic_pause, "", ppauseIntent);
-                builder.setOngoing(true);
+            if(audioObject.getNotificationMode() == NotificationMode.BOTH){
+                builder.addAction(R.drawable.ic_previous, "", pprevIntent);
+                if(isPlaying){
+                    builder.addAction(R.drawable.ic_pause, "", ppauseIntent);
+                    builder.setOngoing(true);
+                }else{
+                    builder.addAction(R.drawable.ic_play, "", pplayIntent);
+                }
+                builder.addAction(R.drawable.ic_next, "", pnextIntent);
             }else{
-                builder.addAction(R.drawable.ic_play, "", pplayIntent);
+                if(audioObject.getNotificationMode() == NotificationMode.PREVIOUS){
+                    builder.addAction(R.drawable.ic_previous, "", pprevIntent);
+                }
+                if(isPlaying){
+                    builder.addAction(R.drawable.ic_pause, "", ppauseIntent);
+                    builder.setOngoing(true);
+                }else{
+                    builder.addAction(R.drawable.ic_play, "", pplayIntent);
+                }
+                if(audioObject.getNotificationMode() == NotificationMode.NEXT){
+                    builder.addAction(R.drawable.ic_next, "", pnextIntent);
+                }
+            }
+            if(audioObject.getNotificationMode() == NotificationMode.NEXT || audioObject.getNotificationMode() == NotificationMode.PREVIOUS){
+                builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+                .setShowActionsInCompactView(0, 1).setMediaSession(mediaSession.getSessionToken()));
+            }else{
+                builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+                .setShowActionsInCompactView(0, 1, 2).setMediaSession(mediaSession.getSessionToken()));
+            }
+
+            if(audioObject.getTitle() != null){
+                builder.setContentTitle(audioObject.getTitle());
+            }
+            if(audioObject.getSubTitle() != null){
+                builder.setContentText(audioObject.getSubTitle());
+            }
+            if(audioObject.getLargeIcon() != null){
+                builder.setLargeIcon(audioObject.getLargeIcon());
             }
             notification = builder.build();
 
         } else {
             notificationManager = (android.app.NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
-                    .setContentTitle(audioObject.getTitle())
-                    .setContentText(audioObject.getSubTitle())
                     .setSmallIcon(audioObject.getSmallIcon())
-                    .setLargeIcon(audioObject.getLargeIcon())
                     .setWhen(System.currentTimeMillis())
-                    .setSound(null)
                     .setShowWhen(false)
-                    .addAction(R.drawable.ic_previous, "", pprevIntent)
-                    .addAction(R.drawable.ic_next, "", pnextIntent);
+                    .setSound(null);
                    // .setContentIntent(pendingIntent);
-
-            if(isPlaying){
-                builder.addAction(R.drawable.ic_pause, "", ppauseIntent);
-                builder.setOngoing(true);
-            }else{
-                builder.addAction(R.drawable.ic_play, "", pplayIntent);
-            }
+                if(audioObject.getNotificationMode() == NotificationMode.BOTH){
+                    builder.addAction(R.drawable.ic_previous, "Previous", pprevIntent);
+                    if(isPlaying){
+                        builder.addAction(R.drawable.ic_pause, "Pause", ppauseIntent);
+                        builder.setOngoing(true);
+                    }else{
+                        builder.addAction(R.drawable.ic_play, "Play", pplayIntent);
+                    }
+                    builder.addAction(R.drawable.ic_next, "Next", pnextIntent);
+                }else{
+                    if(audioObject.getNotificationMode() == NotificationMode.PREVIOUS){
+                        builder.addAction(R.drawable.ic_previous, "Previous", pprevIntent);
+                    }
+                    if(isPlaying){
+                        builder.addAction(R.drawable.ic_pause, "Pause", ppauseIntent);
+                        builder.setOngoing(true);
+                    }else{
+                        builder.addAction(R.drawable.ic_play, "Play", pplayIntent);
+                    }
+                    if(audioObject.getNotificationMode() == NotificationMode.NEXT){
+                        builder.addAction(R.drawable.ic_next, "Next", pnextIntent);
+                    }
+                }
+                if(audioObject.getTitle() != null){
+                    builder.setContentTitle(audioObject.getTitle());
+                }
+                if(audioObject.getSubTitle() != null){
+                    builder.setContentText(audioObject.getSubTitle());
+                }
+                if(audioObject.getLargeIcon() != null){
+                    builder.setLargeIcon(audioObject.getLargeIcon());
+                }                   
             notification = builder.build();
         }
         notificationManager.notify(notificationId, notification);
@@ -132,4 +179,21 @@ public class MediaNotificationManager {
             notificationManager.createNotificationChannel(notificationChannel);
         }
     }
+
+    private void loadImageFromUrl(String imageUrl, boolean isLocal) {
+        try {
+          new LoadImageFromUrl(imageUrl, isLocal, new AsyncResponse() {
+            @Override
+            public void processFinish(Bitmap bitmap) {
+              if (bitmap != null) {
+                  //TODO use bitmap!
+              } else {
+                Log.e("LoadImageFromUrl", "Failed loading image!");
+              }
+            }
+          }).execute();
+        } catch (Exception e) {
+          Log.e("LoadImageFromUrl", "Failed loading image!");
+        }
+      }
 }

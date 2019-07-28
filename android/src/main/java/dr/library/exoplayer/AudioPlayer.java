@@ -2,13 +2,15 @@ package dr.library.exoplayer;
 
 interface AudioPlayer {
 
-    void play(boolean repeatMode, AudioObject audioObject);
+    String getPlayerId();
 
-    void play(boolean repeatMode);
+    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject);
 
-    void playAll(boolean repeatMode, AudioObject[] audioObjects);
+    void play(boolean repeatMode, boolean respectAudioFocus, String url);
 
-    void playAll(boolean repeatMode);
+    void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects);
+
+    void playAll(boolean repeatMode, boolean respectAudioFocus, String[] urls);
 
     void next();
 

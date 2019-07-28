@@ -2,19 +2,30 @@ package dr.library.exoplayer;
 
 import android.graphics.Bitmap;
 
+enum NotificationMode {
+    NEXT,
+    PREVIOUS,
+    BOTH,
+  }
 public class AudioObject {
+    private String url;
     private int smallIcon;
     private String title;
     private String subTitle;
-    private Bitmap largeIcon;
-    private String url;
+    private String largeIcomUrl;
+    private boolean isLocal;
+    private NotificationMode notificationMode;
 
-    AudioObject(int smallIcon, String title, String subTitle, Bitmap largeIcon, String url){
+    private Bitmap largeIcon;
+ 
+    AudioObject(String url, int smallIcon, String title, String subTitle, String largeIcomUrl, boolean isLocal, NotificationMode notificationMode){
+        this.url = url;
         this.smallIcon = smallIcon;
         this.title = title;
         this.subTitle = subTitle;
-        this.largeIcon = largeIcon;
-        this.url = url;
+        this.largeIcomUrl = largeIcomUrl;
+        this.isLocal = isLocal;
+        this.notificationMode = notificationMode;
     }
 
     public int getSmallIcon(){
@@ -33,7 +44,15 @@ public class AudioObject {
         return largeIcon;
     }
 
+    public void setLargeIcon(Bitmap bitmap){
+        this.largeIcon = bitmap;
+    }
+
     public String getUrl(){
         return url;
+    }
+
+    public NotificationMode getNotificationMode(){
+        return notificationMode;
     }
 }

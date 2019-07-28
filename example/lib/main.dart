@@ -1,14 +1,12 @@
 
 import 'package:exoplayer/exoplayer.dart';
 import 'package:flutter/material.dart';
-
 import 'player_widget.dart';
 
-typedef void OnError(Exception exception);
-
-const kUrl1 = 'https://luan.xyz/files/audio/ambient_c_motion.mp3';
+const kUrl1 = 'https://download.xn--41a.wiki/cache/3/29d/474499158_456357512.mp3?filename=Gryffin%2C%20Slander%20feat.%20Calle%20Lehmann-All%20You%20Need%20To%20Know.mp3';
 const kUrl2 = 'https://luan.xyz/files/audio/nasa_on_a_mission.mp3';
-const kUrl3 = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p';
+const kUrl3 = 'https://luan.xyz/files/audio/ambient_c_motion.mp3';
+//const kUrl3 = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p';
 
 void main() {
   runApp(new MaterialApp(home: new ExampleApp()));

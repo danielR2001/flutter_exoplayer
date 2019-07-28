@@ -31,6 +31,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private float volume = 1;
     private boolean repeatMode = false;
+    private boolean respectAudioFocus = false;
 
     private boolean released = true;
     private boolean playing = false;
@@ -39,10 +40,14 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private SimpleExoPlayer player;
     private ExoPlayerPlugin ref;
 
+    private String playerId;
+
     private MediaNotificationManager mediaNotificationManager;
 
     private AudioObject[] audioObjects;
     private AudioObject audioObject;
+
+    private ForegroundExoPlayer foregroundExoPlayer;
 
     public void passPluginRef(ExoPlayerPlugin ref) {
         this.ref = ref;
@@ -57,6 +62,8 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getAction().equals(MediaNotificationManager.SERVICE_STARTED)){
+            this.foregroundExoPlayer = this;
+            this.playerId = intent.getStringExtra("playerId");
             this.mediaNotificationManager= new MediaNotificationManager(this);
         }else if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
             previous();
@@ -85,25 +92,39 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void play(boolean repeatMode, AudioObject audioObject) {
+    public String getPlayerId() {
+        return this.playerId;
+    }
+
+    @Override
+    public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {
         this.released = false;
+        this.repeatMode = repeatMode;
+        this.respectAudioFocus = respectAudioFocus;
         this.audioObject = audioObject;
         this.audioObjects = null;
-        this.repeatMode = repeatMode;
         initExoPlayer();
         initStateChangeListener();
         player.setPlayWhenReady(true);
     }
 
     @Override
-    public void playAll(boolean repeatMode, AudioObject[] audioObjects) {
+    public void play(boolean repeatMode, boolean respectAudioFocus, String url) {}
+
+    @Override
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects) {
         this.released = false;
+        this.repeatMode = repeatMode;
+        this.respectAudioFocus = respectAudioFocus;
         this.audioObjects = audioObjects;
         this.audioObject = null;
         initExoPlayer();
         initStateChangeListener();
         player.setPlayWhenReady(true);
     }
+
+    @Override
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, String[] urls) {}
 
     @Override
     public void next() {
@@ -118,7 +139,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public void pause() {
         if (!this.released && this.playing) {
-            this.playing = false;
             player.setPlayWhenReady(false);
         }
     }
@@ -126,7 +146,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public void resume() {
         if (!this.released && !this.playing) {
-            this.playing = true;
             player.setPlayWhenReady(true);
         }
     }
@@ -134,7 +153,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public void stop() {
         if (!this.released) {
-            this.playing = false;
             player.stop(true);
         }
     }
@@ -143,12 +161,12 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void release() {
         if (!this.released) {
             this.released = true;
-            this.playing = false;
+
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
             player = null;
-            ref.handleStateChange(PlayerState.RELEASED);
+            ref.handleStateChange(this, PlayerState.RELEASED);
         }
     }
 
@@ -172,7 +190,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public long getCurrentPosition() {
         if (!this.released) {
-            return player.getContentPosition();
+            return player.getCurrentPosition();
         } else {
             return -1;
         }
@@ -206,11 +224,13 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             player.prepare(mediaSource);
         }
         //handle audio focus
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.CONTENT_TYPE_MUSIC)
-                .build();
-        player.setAudioAttributes(audioAttributes, true);
+        if(this.respectAudioFocus){
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MUSIC)
+                    .build();
+            player.setAudioAttributes(audioAttributes, true);
+        }
         //set repeat mode
         if (repeatMode) {
             player.setRepeatMode(player.REPEAT_MODE_ALL);
@@ -235,7 +255,9 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                                 }else {
                                     mediaNotificationManager.makeNotification(audioObject, true);
                                 }
-                                ref.handleStateChange(PlayerState.PLAYING);
+                                playing = true;
+                                ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                                ref.handlePositionUpdates();
                             }else{
                                 //paused
                                 if(audioObjects != null) {
@@ -243,7 +265,8 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                                 }else {
                                     mediaNotificationManager.makeNotification(audioObject, false);
                                 }
-                                ref.handleStateChange(PlayerState.PAUSED);
+                                playing = false;
+                                ref.handleStateChange(foregroundExoPlayer, PlayerState.PAUSED);
                             }
                         }else{
                             //play
@@ -252,19 +275,23 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                             }else {
                                 mediaNotificationManager.makeNotification(audioObject, true);
                             }
-                            ref.handleStateChange(PlayerState.PLAYING);
+                            playing = true;
                             buffering = false;
+                            ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                            ref.handlePositionUpdates();
                         }
                         break;
                     }
                     case Player.STATE_ENDED:{
                         //completed
-                        ref.handleStateChange(PlayerState.COMPLETED);
+                        playing = false;
+                        ref.handleStateChange(foregroundExoPlayer, PlayerState.COMPLETED);
                         break;
                     }
                     case Player.STATE_IDLE:{
                         //stopped
-                        ref.handleStateChange(PlayerState.STOPPED);
+                        playing = false;
+                        ref.handleStateChange(foregroundExoPlayer, PlayerState.STOPPED);
                         break;
                     }
                     //handle of released is in release method!

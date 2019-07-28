@@ -1,10 +1,9 @@
 import 'dart:async';
 
+import 'package:exoplayer/audio_object.dart';
 import 'package:exoplayer/exoplayer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-enum PlayerState { stopped, playing, paused }
 
 class PlayerWidget extends StatefulWidget {
   final String url;
@@ -26,15 +25,15 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   Duration _duration;
   Duration _position;
 
-  PlayerState _playerState = PlayerState.stopped;
+  PlayerState _playerState = PlayerState.STOPPED;
   StreamSubscription _durationSubscription;
   StreamSubscription _positionSubscription;
   StreamSubscription _playerCompleteSubscription;
   StreamSubscription _playerErrorSubscription;
   StreamSubscription _playerStateSubscription;
 
-  get _isPlaying => _playerState == PlayerState.playing;
-  get _isPaused => _playerState == PlayerState.paused;
+  get _isPlaying => _playerState == PlayerState.PLAYING;
+  get _isPaused => _playerState == PlayerState.PAUSED;
   get _durationText => _duration?.toString()?.split('.')?.first ?? '';
   get _positionText => _position?.toString()?.split('.')?.first ?? '';
 
@@ -48,7 +47,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   void dispose() {
-    //_audioPlayer.stop();
+    _audioPlayer.release();
     _durationSubscription?.cancel();
     _positionSubscription?.cancel();
     _playerCompleteSubscription?.cancel();
@@ -67,6 +66,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           children: [
             new IconButton(
                 onPressed: _isPlaying ? null : () => _play(),
+                iconSize: 64.0,
+                icon: new Icon(Icons.play_arrow),
+                color: Colors.cyan),
+            new IconButton(
+                onPressed: _isPlaying ? null : () => _resume(),
                 iconSize: 64.0,
                 icon: new Icon(Icons.play_arrow),
                 color: Colors.cyan),
@@ -113,23 +117,42 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             ),
           ],
         ),
+        new Text("State: $_playerState")
       ],
     );
   }
 
   void _initAudioPlayer() {
     _audioPlayer = ExoPlayer();
+    _positionSubscription = _audioPlayer.onAudioPositionChanged.listen((pos) {
+      setState(() {
+        _position = pos;
+      });
+    });
+    _playerStateSubscription =
+        _audioPlayer.onPlayerStateChanged.listen((playerState) {
+      setState(() {
+        _playerState = playerState;
+      });
+    });
   }
 
   Future<int> _play() async {
-    final result = await _audioPlayer.play(url);
-    if (result == 1) setState(() => _playerState = PlayerState.playing);
+    final result = await _audioPlayer.play(url, repeatMode: true);
+    if (result == 1) setState(() => _playerState = PlayerState.PLAYING);
+    return result;
+  }
+
+  Future<int> _resume() async {
+    //AudioObject audioObject = new AudioObject()
+    final result = await _audioPlayer.resume();
+    if (result == 1) setState(() => _playerState = PlayerState.PLAYING);
     return result;
   }
 
   Future<int> _pause() async {
     final result = await _audioPlayer.pause();
-    if (result == 1) setState(() => _playerState = PlayerState.paused);
+    if (result == 1) setState(() => _playerState = PlayerState.PAUSED);
     return result;
   }
 
@@ -137,7 +160,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     final result = await _audioPlayer.stop();
     if (result == 1) {
       setState(() {
-        _playerState = PlayerState.stopped;
+        _playerState = PlayerState.STOPPED;
         _position = Duration();
       });
     }

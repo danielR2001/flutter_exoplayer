@@ -1,35 +1,34 @@
 import 'dart:async';
 import 'package:exoplayer/audio_object.dart';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
 
 enum PlayerState {
   STOPPED,
   PLAYING,
   PAUSED,
   COMPLETED,
+  RELEASED,
 }
-enum PlayerMode { FOREGROUND, BACKGROUND }
+enum PlayerMode {
+  FOREGROUND,
+  BACKGROUND,
+}
 
 class ExoPlayer {
-  static final MethodChannel _channel =
-      const MethodChannel('com.daniel/exoplayer')
-        ..setMethodCallHandler(platformCallHandler);
+  static MethodChannel _channel = const MethodChannel('danielr2001/exoplayer')
+    ..setMethodCallHandler(platformCallHandler);
+  static final _uuid = Uuid();
   static bool logEnabled = false;
+  static final players = Map<String, ExoPlayer>();
 
-  PlayerState _audioPlayerState;
-
-  PlayerState get state => _audioPlayerState;
-
-  set state(PlayerState state) {
-    _playerStateController.add(state);
-    _audioPlayerState = state;
-  }
+  String playerId;
+  PlayerState playerState;
 
   final StreamController<PlayerState> _playerStateController =
       StreamController<PlayerState>.broadcast();
 
-  final StreamController<Duration> _positionController =
-      StreamController<Duration>.broadcast();
+  final StreamController _positionController = StreamController();
 
   final StreamController<void> _completionController =
       StreamController<void>.broadcast();
@@ -37,10 +36,40 @@ class ExoPlayer {
   final StreamController<String> _errorController =
       StreamController<String>.broadcast();
 
+  /// Stream of changes on player playerState.
+  Stream<PlayerState> get onPlayerStateChanged => _playerStateController.stream;
+
+  /// Stream of changes on audio position.
+  ///
+  /// Roughly fires every 200 milliseconds. Will continuously update the
+  /// position of the playback if the status is [AudioPlayerState.PLAYING].
+  ///
+  /// You can use it on a progress bar, for instance.
+  Stream get onAudioPositionChanged => _positionController.stream;
+
+  /// Stream of player completions.
+  ///
+  /// Events are sent every time an audio is finished, therefore no event is
+  /// sent when an audio is paused or stopped.
+  ///
+  /// [ReleaseMode.LOOP] also sends events to this stream.
+  Stream<void> get onPlayerCompletion => _completionController.stream;
+
+  /// Stream of player errors.
+  ///
+  /// Events are sent when an unexpected error is thrown in the native code.
+  Stream<String> get onPlayerError => _errorController.stream;
+
+  PlayerState _audioPlayerState;
+
+  PlayerState get state => _audioPlayerState;
+
   /// Initializes ExoPlayer
   ///
   ExoPlayer() {
-    state = PlayerState.STOPPED;
+    playerState = PlayerState.STOPPED;
+    playerId = _uuid.v4();
+    players[playerId] = this;
   }
 
   /// Plays an audio.
@@ -51,12 +80,14 @@ class ExoPlayer {
     String url, {
     double volume = 1.0,
     bool repeatMode = false,
+    bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioObject audioObject,
   }) async {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
+    respectAudioFocus ??= false;
 
     bool isBackground = true;
     int smallIcon;
@@ -64,12 +95,21 @@ class ExoPlayer {
     String subTitle;
     String largeIconUrl;
     bool isLocal;
+    int notificationMode;
     if (playerMode == PlayerMode.FOREGROUND) {
       smallIcon = audioObject.getSmallIcon();
       title = audioObject.getTitle();
       subTitle = audioObject.getSubTitle();
       largeIconUrl = audioObject.getLargeIconUrl();
       isLocal = audioObject.getIsLocal();
+      if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+        notificationMode = 1;
+      } else if (audioObject.getNotificationMode() ==
+          NotificationMode.PREVIOUS) {
+        notificationMode = 2;
+      } else {
+        notificationMode = 3;
+      }
 
       isBackground = false;
     }
@@ -79,15 +119,17 @@ class ExoPlayer {
       'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
+      'respectAudioFocus': respectAudioFocus,
       'smallIcon': smallIcon,
       'title': title,
       'subTitle': subTitle,
       'largeIconUrl': largeIconUrl,
       'isLocal': isLocal,
+      'notificationMode': notificationMode,
     });
 
     if (result == 1) {
-      state = PlayerState.PLAYING;
+      playerState = PlayerState.PLAYING;
     }
 
     return result;
@@ -102,12 +144,14 @@ class ExoPlayer {
     List<String> urls, {
     double volume = 1.0,
     bool repeatMode = false,
+    bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioObject> audioObjects,
   }) async {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
+    respectAudioFocus ??= false;
 
     bool isBackground = true;
     final List<int> smallIcons = List();
@@ -115,6 +159,7 @@ class ExoPlayer {
     final List<String> subTitles = List();
     final List<String> largeIconUrls = List();
     final List<bool> isLocals = List();
+    final List<int> notificationModes = List();
     if (playerMode == PlayerMode.FOREGROUND) {
       for (AudioObject audioObject in audioObjects) {
         smallIcons.add(audioObject.getSmallIcon());
@@ -122,6 +167,14 @@ class ExoPlayer {
         subTitles.add(audioObject.getSubTitle());
         largeIconUrls.add(audioObject.getLargeIconUrl());
         isLocals.add(audioObject.getIsLocal());
+        if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+          notificationModes.add(1);
+        } else if (audioObject.getNotificationMode() ==
+            NotificationMode.PREVIOUS) {
+          notificationModes.add(2);
+        } else {
+          notificationModes.add(3);
+        }
       }
 
       isBackground = false;
@@ -132,16 +185,14 @@ class ExoPlayer {
       'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
+      'respectAudioFocus': respectAudioFocus,
       'smallIcons': smallIcons,
       'titles': titles,
       'subTitles': subTitles,
       'largeIconUrls': largeIconUrls,
       'isLocals': isLocals,
+      'notificationModes': notificationModes,
     });
-
-    if (result == 1) {
-      state = PlayerState.PLAYING;
-    }
 
     return result;
   }
@@ -153,10 +204,6 @@ class ExoPlayer {
   Future<int> pause() async {
     final int result = await _invokeMethod('pause');
 
-    if (result == 1) {
-      state = PlayerState.PAUSED;
-    }
-
     return result;
   }
 
@@ -167,20 +214,12 @@ class ExoPlayer {
   Future<int> stop() async {
     final int result = await _invokeMethod('stop');
 
-    if (result == 1) {
-      state = PlayerState.STOPPED;
-    }
-
     return result;
   }
 
   /// Resumes the audio that has been paused.
   Future<int> resume() async {
     final int result = await _invokeMethod('resume');
-
-    if (result == 1) {
-      state = PlayerState.PLAYING;
-    }
 
     return result;
   }
@@ -189,10 +228,6 @@ class ExoPlayer {
   ///
   Future<int> release() async {
     final int result = await _invokeMethod('release');
-
-    if (result == 1) {
-      state = PlayerState.STOPPED;
-    }
 
     return result;
   }
@@ -237,34 +272,65 @@ class ExoPlayer {
   ]) {
     arguments ??= const {};
 
+    final Map<String, dynamic> withPlayerId = Map.of(arguments)
+      ..['playerId'] = playerId;
+
     return _channel
-        .invokeMethod(method, arguments)
+        .invokeMethod(method, withPlayerId)
         .then((result) => (result as int));
   }
-
   static Future<void> _doHandlePlatformCall(MethodCall call) async {
     final Map<dynamic, dynamic> callArgs = call.arguments as Map;
     _log('_platformCallHandler call ${call.method} $callArgs');
 
+    final playerId = callArgs['playerId'] as String;
+    final ExoPlayer player = players[playerId];
+    final value = callArgs['value'];
+
     switch (call.method) {
-      // case 'audio.onCurrentPosition':
-      //   Duration newDuration = Duration(milliseconds: value);
-      //   player._positionController.add(newDuration);
-      //   // ignore: deprecated_member_use_from_same_package
-      //   player.positionHandler?.call(newDuration);
-      //   break;
-      // case 'audio.onComplete':
-      //   exoPlayerState = ExoPlayerState.COMPLETED;
-      //   player._completionController.add(null);
-      //   // ignore: deprecated_member_use_from_same_package
-      //   player.completionHandler?.call();
-      //   break;
-      // case 'audio.onError':
-      //   exoPlayerState = ExoPlayerState.STOPPED;
-      //   player._errorController.add(value);
-      //   // ignore: deprecated_member_use_from_same_package
-      //   player.errorHandler?.call(value);
-      //   break;
+      case 'audio.onCurrentPosition':
+        Duration newDuration = Duration(milliseconds: value);
+        player._positionController.sink.add(newDuration);
+        break;
+      case 'audio.onStateChanged':
+        switch (value) {
+          case 3:
+            {
+              player.playerState = PlayerState.PLAYING;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+          case 2:
+            {
+              player.playerState = PlayerState.PAUSED;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+          case 1:
+            {
+              player.playerState = PlayerState.COMPLETED;
+              player._playerStateController.add(player.playerState);
+              player._completionController.add(null);
+              break;
+            }
+          case 0:
+            {
+              player.playerState = PlayerState.STOPPED;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+          case -1:
+            {
+              player.playerState = PlayerState.RELEASED;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+        }
+        break;
+      case 'audio.onError':
+        player.playerState = PlayerState.STOPPED;
+        player._errorController.add(value);
+        break;
       default:
         _log('Unknown method ${call.method} ');
     }
@@ -278,7 +344,7 @@ class ExoPlayer {
 
   Future<void> dispose() async {
     List<Future> futures = [];
-
+    await _invokeMethod('dispose');
     if (!_playerStateController.isClosed) {
       futures.add(_playerStateController.close());
     }

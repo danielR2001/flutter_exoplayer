@@ -27,31 +27,31 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
 
     @Override
     protected Bitmap doInBackground(String... strings) {
-        try {
-            if (isLocal) {
-                if (new File(localPath).exists()) {
-                    return BitmapFactory.decodeFile(this.imageUrl);
-                } else {
-                    Log.e("LoadImageFromUrl", "Local image doesnt exist!");
-                }
+        if (isLocal) {
+            if (new File(this.imageUrl).exists()) {
+                return BitmapFactory.decodeFile(this.imageUrl);
             } else {
-
-                return getImageBitmapFromNetworkUrl();
-
+                Log.e("LoadImageFromUrl", "Local image doesnt exist!");
             }
-        } catch (Exception e) {
-            Log.e("LoadImageFromUrl", "Failed loading image!");
+        } else {
+            return getImageBitmapFromNetworkUrl();
         }
+
         return null;
     }
 
     private Bitmap getImageBitmapFromNetworkUrl() {
-        URL url = new URL(this.imageUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoInput(true);
-        connection.connect();
-        InputStream in = connection.getInputStream();
-        return BitmapFactory.decodeStream(in);
+        try {
+            URL url = new URL(this.imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream in = connection.getInputStream();
+            return BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            Log.e("LoadImageFromUrl", "Failed loading image!");
+            return null;
+        }
     }
 
     @Override
