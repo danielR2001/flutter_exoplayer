@@ -1,4 +1,4 @@
-package dr.library.exoplayer_example;
+package danielr2001.exoplayer_example;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

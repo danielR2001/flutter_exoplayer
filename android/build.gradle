@@ -1,4 +1,4 @@
-group 'dr.library.exoplayer'
+group 'danielr2001.exoplayer'
 version '1.0-SNAPSHOT'
 
 buildscript {

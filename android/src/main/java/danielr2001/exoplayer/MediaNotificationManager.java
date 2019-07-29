@@ -1,4 +1,4 @@
-package dr.library.exoplayer;
+package danielr2001.exoplayer;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
