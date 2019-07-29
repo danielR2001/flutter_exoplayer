@@ -1,4 +1,9 @@
-package danielr2001.exoplayer;
+package danielr2001.exoplayer.notifications;
+
+import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
+import danielr2001.exoplayer.enums.NotificationMode;
+import danielr2001.exoplayer.interfaces.AsyncResponse;
+import danielr2001.exoplayer.R;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -42,7 +47,7 @@ public class MediaNotificationManager {
     private PendingIntent pnextIntent;
     private PendingIntent pendingIntent;
 
-    MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context){
+    public MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context){
         this.context = context;
         this.foregroundExoPlayer = foregroundExoPlayer;
 
@@ -74,7 +79,7 @@ public class MediaNotificationManager {
     public void makeNotification(AudioObject audioObject, boolean isPlaying){
         Notification notification;
         Resources res = this.context.getResources();
-        int icon = res.getIdentifier("ic_launcher", "drawable", "dr.library.exoplayer_example");
+        int icon = res.getIdentifier("ic_launcher", "drawable", "danielr2001.exoplayer_example");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mediaSession = new MediaSessionCompat(this.context, "playback");
             CreateNotificationChannel();

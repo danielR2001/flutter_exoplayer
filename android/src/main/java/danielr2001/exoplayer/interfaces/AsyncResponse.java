@@ -1,4 +1,4 @@
-package danielr2001.exoplayer;
+package danielr2001.exoplayer.interfaces;
 
 import android.graphics.Bitmap;
 

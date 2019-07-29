@@ -1,13 +1,9 @@
-package danielr2001.exoplayer;
+package danielr2001.exoplayer.notifications;
+
+import danielr2001.exoplayer.enums.NotificationMode;
 
 import android.graphics.Bitmap;
 
-enum NotificationMode {
-    NONE,
-    NEXT,
-    PREVIOUS,
-    BOTH,
-  }
 public class AudioObject {
     private String url;
     private int smallIcon;
@@ -19,7 +15,7 @@ public class AudioObject {
 
     private Bitmap largeIcon;
  
-    AudioObject(String url, int smallIcon, String title, String subTitle, String largeIcomUrl, boolean isLocal, NotificationMode notificationMode){
+    public AudioObject(String url, int smallIcon, String title, String subTitle, String largeIcomUrl, boolean isLocal, NotificationMode notificationMode){
         this.url = url;
         this.smallIcon = smallIcon;
         this.title = title;

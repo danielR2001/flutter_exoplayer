@@ -1,5 +1,12 @@
 package danielr2001.exoplayer;
 
+import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
+import danielr2001.exoplayer.audioplayers.BackgroundExoPlayer;
+import danielr2001.exoplayer.interfaces.AudioPlayer;
+import danielr2001.exoplayer.notifications.AudioObject;
+import danielr2001.exoplayer.enums.NotificationMode;
+import danielr2001.exoplayer.enums.PlayerState;
+
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Build;
@@ -28,9 +35,6 @@ enum PlayerMode {
   SINGLE,
 }
 
-enum PlayerState {
-  PLAYING, PAUSED, COMPLETED, STOPPED, RELEASED,
-}
 
 public class ExoPlayerPlugin implements MethodCallHandler {
 
@@ -115,7 +119,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
         this.audioObject = new AudioObject(url, smallIcon, title, subTitle, largeIconUrl, isLocal, notificationMode);
         // init player as ForegroundExoPlayer service
-        startForegroundService(playerId);
+        startForegroundPlayer();
       }
       break;
     }
@@ -152,7 +156,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
           this.audioObjects[i] = new AudioObject(urls.get(i), smallIcons.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode);
         }
         // init player as ForegroundExoPlayer service
-        startForegroundService(playerId);
+        startForegroundPlayer();
       }
       break;
     }
@@ -289,8 +293,8 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     this.context.unbindService(connection);
   }
 
-  private void startForegroundService(String playerId){
-    ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class).putExtra("playerId", playerId));
+  private void startForegroundPlayer(){
+    ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
     context.bindService(new Intent(this.context, AudioPlayer.class), connection, Context.BIND_AUTO_CREATE);
   }
 

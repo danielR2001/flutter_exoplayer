@@ -1,4 +1,6 @@
-package danielr2001.exoplayer;
+package danielr2001.exoplayer.notifications;
+
+import danielr2001.exoplayer.interfaces.AsyncResponse;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
