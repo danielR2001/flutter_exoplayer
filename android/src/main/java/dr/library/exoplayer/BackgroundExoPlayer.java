@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -19,7 +20,8 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import android.util.Log;
+
+import java.util.ArrayList;
 public class BackgroundExoPlayer implements AudioPlayer {
 
     private Context context;
@@ -39,10 +41,11 @@ public class BackgroundExoPlayer implements AudioPlayer {
 
     private BackgroundExoPlayer backgroundExoPlayer;
 
-    private String[] urls;
+    private ArrayList<String> urls;
     private String url;
 
-    public BackgroundExoPlayer (ExoPlayerPlugin ref, Context context, String playerId) {
+    @Override
+    public void initAudioPlayer (ExoPlayerPlugin ref, Context context, String playerId) {
         this.ref = ref;
         this.context = context;
         this.playerId = playerId;
@@ -70,7 +73,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
     public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {}
 
     @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, String[] urls) {
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls) {
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -197,6 +200,14 @@ public class BackgroundExoPlayer implements AudioPlayer {
     private void initStateChangeListener() {
         player.addListener(new Player.EventListener() {
             @Override
+            public void onTimelineChanged(Timeline timeline, @Nullable Object manifest, int reason) {
+                if(reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC){
+                    ref.handlePositionUpdates();
+                    ref.handleDurationUpdates();
+                }
+            }
+
+            @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState){
                     case Player.STATE_BUFFERING:{
@@ -220,7 +231,6 @@ public class BackgroundExoPlayer implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
-                            ref.handlePositionUpdates();
                         }
                         break;
                     }

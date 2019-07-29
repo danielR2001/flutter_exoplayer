@@ -12,6 +12,7 @@ import android.content.ComponentName;
 import androidx.core.content.ContextCompat;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,8 +24,8 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 enum PlayerMode {
-  PLAYLIST, SINGLE,
-
+  PLAYLIST,
+  SINGLE,
 }
 
 enum PlayerState {
@@ -52,6 +53,8 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private String playerId;
   private AudioPlayer player;
 
+  private ExoPlayerPlugin exoPlayerPlugin;
+
   public static void registerWith(final Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/exoplayer");
     channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity()));
@@ -61,6 +64,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     this.channel = channel;
     this.channel.setMethodCallHandler(this);
     this.context = activity.getApplicationContext();
+    this.exoPlayerPlugin = this;
   }
 
   @Override
@@ -88,7 +92,8 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       this.respectAudioFocus = call.argument("respectAudioFocus");
       if (isBackground) {
         // init player as BackgroundExoPlayer instance
-        player = new BackgroundExoPlayer(this, this.context, playerId);
+        player = new BackgroundExoPlayer();
+        player.initAudioPlayer(this, this.context, playerId);
         audioPlayers.put(playerId, player);
         player.play(this.repeatMode, this.respectAudioFocus, url);
         
@@ -115,34 +120,36 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       break;
     }
     case "playAll": {
-      final String[] urls = call.argument("urls");
-      this.volume = (float) call.argument("volume");
+      final ArrayList<String> urls = call.argument("urls");
+      final double vol = call.argument("volume");
+      this.volume = (float) vol;
       this.repeatMode = call.argument("repeatMode");
       final boolean isBackground = call.argument("isBackground");
       this.respectAudioFocus = call.argument("respectAudioFocus");
       if (isBackground) {
         // init player as BackgroundExoPlayer instance
-        player = new BackgroundExoPlayer(this, this.context, playerId);
+        player = new BackgroundExoPlayer();
+        player.initAudioPlayer(this, this.context, playerId);
         audioPlayers.put(playerId, player);
         player.playAll(this.repeatMode, this.respectAudioFocus, urls);
       } else {
-        final int[] smallIcons = call.argument("smallIcons");
-        final String[] titles = call.argument("titles");
-        final String[] subTitles = call.argument("subTitle");
-        final String[] largeIconUrls = call.argument("largeIconUrl");
-        final boolean[] isLocals = call.argument("isLocal");
-        final int[] notificationModeInts = call.argument("notificationModes");
+        final ArrayList<Integer> smallIcons = call.argument("smallIcons");
+        final ArrayList<String> titles = call.argument("titles");
+        final ArrayList<String> subTitles = call.argument("subTitle");
+        final ArrayList<String> largeIconUrls = call.argument("largeIconUrl");
+        final ArrayList<Boolean> isLocals = call.argument("isLocal");
+        final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
 
-        for(int i = 0; i < urls.length; i++ ){
+        for(int i = 0; i < urls.size(); i++ ){
           NotificationMode notificationMode;
-          if (notificationModeInts[i] == 1) {
+          if (notificationModeInts.get(i) == 1) {
             notificationMode = NotificationMode.NEXT;
-          } else if (notificationModeInts[i] == 2) {
+          } else if (notificationModeInts.get(i) == 2) {
             notificationMode = NotificationMode.PREVIOUS;
           } else {
             notificationMode = NotificationMode.BOTH;
           }
-          this.audioObjects[i] = new AudioObject(urls[i], smallIcons[i], titles[i], subTitles[i], largeIconUrls[i], isLocals[i], notificationMode);
+          this.audioObjects[i] = new AudioObject(urls.get(i), smallIcons.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode);
         }
         // init player as ForegroundExoPlayer service
         startForegroundService(playerId);
@@ -232,6 +239,10 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     startPositionUpdates();
   }
 
+  public void handleDurationUpdates() {
+    channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
+  }
+
   private void startPositionUpdates() {
     if (positionUpdates != null) {
       return;
@@ -258,6 +269,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     public void onServiceConnected(ComponentName className, IBinder service) {
       ForegroundExoPlayer.LocalBinder binder = (ForegroundExoPlayer.LocalBinder) service;
       player = binder.getService();
+      player.initAudioPlayer(exoPlayerPlugin, context, playerId);
       audioPlayers.put(playerId, player);
       // AudioObject audioObject = new AudioObject(); init object
       if (playerMode == PlayerMode.PLAYLIST) {
@@ -310,6 +322,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
         }
         return;
       }
+      
       boolean nonePlaying = true;
       for (AudioPlayer player : audioPlayers.values()) {
           if (!player.isPlaying()) {
@@ -319,9 +332,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
               nonePlaying = false;
               final String key = player.getPlayerId();
               final long position = player.getCurrentPosition();
-              if(position != 0){
-                channel.invokeMethod("audio.onCurrentPosition", buildArguments(key, position));
-              }
+              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position));
           } catch(UnsupportedOperationException e) {
 
           }

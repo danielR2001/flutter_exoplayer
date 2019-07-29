@@ -2,23 +2,24 @@ import 'dart:async';
 
 import 'package:exoplayer/audio_object.dart';
 import 'package:exoplayer/exoplayer.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PlayerWidget extends StatefulWidget {
   final String url;
+  final List<String> urls;
   final bool isLocal;
 
-  PlayerWidget({@required this.url, this.isLocal = false});
+  PlayerWidget({this.url, this.urls, this.isLocal = false});
 
   @override
   State<StatefulWidget> createState() {
-    return new _PlayerWidgetState(url, isLocal);
+    return new _PlayerWidgetState(url, urls, isLocal);
   }
 }
 
 class _PlayerWidgetState extends State<PlayerWidget> {
   String url;
+  List<String> urls;
   bool isLocal;
 
   ExoPlayer _audioPlayer;
@@ -37,7 +38,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   get _durationText => _duration?.toString()?.split('.')?.first ?? '';
   get _positionText => _position?.toString()?.split('.')?.first ?? '';
 
-  _PlayerWidgetState(this.url, this.isLocal);
+  _PlayerWidgetState(this.url, this.urls, this.isLocal);
 
   @override
   void initState() {
@@ -129,6 +130,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         _position = pos;
       });
     });
+    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
+      setState(() {
+        _duration = duration;
+      });
+    });
     _playerStateSubscription =
         _audioPlayer.onPlayerStateChanged.listen((playerState) {
       setState(() {
@@ -137,33 +143,24 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     });
   }
 
-  Future<int> _play() async {
-    final result = await _audioPlayer.play(url, repeatMode: true);
-    if (result == 1) setState(() => _playerState = PlayerState.PLAYING);
-    return result;
-  }
-
-  Future<int> _resume() async {
-    //AudioObject audioObject = new AudioObject()
-    final result = await _audioPlayer.resume();
-    if (result == 1) setState(() => _playerState = PlayerState.PLAYING);
-    return result;
-  }
-
-  Future<int> _pause() async {
-    final result = await _audioPlayer.pause();
-    if (result == 1) setState(() => _playerState = PlayerState.PAUSED);
-    return result;
-  }
-
-  Future<int> _stop() async {
-    final result = await _audioPlayer.stop();
-    if (result == 1) {
-      setState(() {
-        _playerState = PlayerState.STOPPED;
-        _position = Duration();
-      });
+  Future<void> _play() async {
+    AudioObject audioObject = new AudioObject(smallIcon: 0,title: "title",subTitle: "artist", largeIconUrl: "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg", isLocal: false);
+    if (url != null) {
+      await _audioPlayer.play(url, repeatMode: true, playerMode: PlayerMode.FOREGROUND, audioObject: audioObject);
+    } else {
+      await _audioPlayer.playAll(urls, repeatMode: true);
     }
-    return result;
+  }
+
+  Future<void> _resume() async {
+    await _audioPlayer.resume();
+  }
+
+  Future<void> _pause() async {
+    await _audioPlayer.pause();
+  }
+
+  Future<void> _stop() async {
+    await _audioPlayer.stop();
   }
 }

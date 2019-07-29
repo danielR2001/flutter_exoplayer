@@ -7,6 +7,7 @@ const kUrl1 = 'https://download.xn--41a.wiki/cache/3/29d/474499158_456357512.mp3
 const kUrl2 = 'https://luan.xyz/files/audio/nasa_on_a_mission.mp3';
 const kUrl3 = 'https://luan.xyz/files/audio/ambient_c_motion.mp3';
 //const kUrl3 = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p';
+final List<String> urls = [kUrl1, kUrl2, kUrl3];
 
 void main() {
   runApp(new MaterialApp(home: new ExampleApp()));
@@ -52,9 +53,10 @@ class _ExampleAppState extends State<ExampleApp> {
         ),
         PlayerWidget(url: kUrl3),
         Text(
-          'Sample 4 (Low Latency mode) ($kUrl1)',
+          'Sample 4 playlist',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        PlayerWidget(urls: urls),
       ]),
     );
   }

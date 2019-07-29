@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum NotificationMode {
+  NONE,
   NEXT,
   PREVIOUS,
   BOTH,

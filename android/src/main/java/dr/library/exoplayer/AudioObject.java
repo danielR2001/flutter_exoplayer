@@ -3,6 +3,7 @@ package dr.library.exoplayer;
 import android.graphics.Bitmap;
 
 enum NotificationMode {
+    NONE,
     NEXT,
     PREVIOUS,
     BOTH,

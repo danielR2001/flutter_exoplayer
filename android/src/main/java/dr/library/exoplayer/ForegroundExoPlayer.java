@@ -2,6 +2,7 @@ package dr.library.exoplayer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
@@ -12,6 +13,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -19,6 +21,8 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+
+import java.util.ArrayList;
 
 public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
@@ -49,8 +53,15 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private ForegroundExoPlayer foregroundExoPlayer;
 
-    public void passPluginRef(ExoPlayerPlugin ref) {
+    private Context context;
+    
+    @Override
+    public void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId) {
         this.ref = ref;
+        this.context = context;
+        this.playerId = playerId;
+        this.mediaNotificationManager= new MediaNotificationManager(this, this.context);
+        this.foregroundExoPlayer = this;
     }
 
     @Nullable
@@ -61,11 +72,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(intent.getAction().equals(MediaNotificationManager.SERVICE_STARTED)){
-            this.foregroundExoPlayer = this;
-            this.playerId = intent.getStringExtra("playerId");
-            this.mediaNotificationManager= new MediaNotificationManager(this);
-        }else if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
+        if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
             previous();
         } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
             resume();
@@ -124,7 +131,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, String[] urls) {}
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls) {}
 
     @Override
     public void next() {
@@ -239,6 +246,15 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private void initStateChangeListener() {
         player.addListener(new Player.EventListener() {
+
+            @Override
+            public void onTimelineChanged(Timeline timeline, @Nullable Object manifest, int reason) {
+                if(reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC){
+                    ref.handlePositionUpdates();
+                    ref.handleDurationUpdates();
+                }
+            }
+
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState){
@@ -278,7 +294,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
-                            ref.handlePositionUpdates();
                         }
                         break;
                     }

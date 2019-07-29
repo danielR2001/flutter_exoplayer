@@ -1,6 +1,12 @@
 package dr.library.exoplayer;
 
+import android.content.Context;
+
+import java.util.ArrayList;
+
 interface AudioPlayer {
+
+    void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId);
 
     String getPlayerId();
 
@@ -10,7 +16,7 @@ interface AudioPlayer {
 
     void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects);
 
-    void playAll(boolean repeatMode, boolean respectAudioFocus, String[] urls);
+    void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls);
 
     void next();
 

@@ -28,7 +28,11 @@ class ExoPlayer {
   final StreamController<PlayerState> _playerStateController =
       StreamController<PlayerState>.broadcast();
 
-  final StreamController _positionController = StreamController();
+  final StreamController<Duration> _positionController =
+      StreamController<Duration>.broadcast();
+
+  final StreamController<Duration> _durationController =
+      StreamController<Duration>.broadcast();
 
   final StreamController<void> _completionController =
       StreamController<void>.broadcast();
@@ -46,6 +50,12 @@ class ExoPlayer {
   ///
   /// You can use it on a progress bar, for instance.
   Stream get onAudioPositionChanged => _positionController.stream;
+
+  /// Stream of changes on audio duration.
+  ///
+  /// An event is going to be sent as soon as the audio duration is available
+  /// (it might take a while to download or buffer it).
+  Stream<Duration> get onDurationChanged => _durationController.stream;
 
   /// Stream of player completions.
   ///
@@ -249,8 +259,9 @@ class ExoPlayer {
   ///
   /// It will be available as soon as the audio duration is available
   /// (it might take a while to download or buffer it if file is not local).
-  Future<int> getDuration() {
-    return _invokeMethod('getDuration');
+  Future<Duration> getDuration() async {
+    int milliseconds = await _invokeMethod('getDuration');
+    return Duration(milliseconds: milliseconds);
   }
 
   /// Gets audio current playing position
@@ -279,6 +290,7 @@ class ExoPlayer {
         .invokeMethod(method, withPlayerId)
         .then((result) => (result as int));
   }
+
   static Future<void> _doHandlePlatformCall(MethodCall call) async {
     final Map<dynamic, dynamic> callArgs = call.arguments as Map;
     _log('_platformCallHandler call ${call.method} $callArgs');
@@ -288,9 +300,13 @@ class ExoPlayer {
     final value = callArgs['value'];
 
     switch (call.method) {
-      case 'audio.onCurrentPosition':
+      case 'audio.onDurationChanged':
         Duration newDuration = Duration(milliseconds: value);
-        player._positionController.sink.add(newDuration);
+        player._durationController.add(newDuration);
+        break;
+      case 'audio.onCurrentPositionChanged':
+        Duration newDuration = Duration(milliseconds: value);
+        player._positionController.add(newDuration);
         break;
       case 'audio.onStateChanged':
         switch (value) {
@@ -350,6 +366,9 @@ class ExoPlayer {
     }
     if (!_positionController.isClosed) {
       futures.add(_positionController.close());
+    }
+    if (!_durationController.isClosed) {
+      futures.add(_durationController.close());
     }
     if (!_completionController.isClosed) {
       futures.add(_completionController.close());
