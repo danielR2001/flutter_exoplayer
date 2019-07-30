@@ -15,11 +15,7 @@ public interface AudioPlayer {
 
     void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject); //! TODO make optional variables!
 
-    void play(boolean repeatMode, boolean respectAudioFocus, String url);
-
-    void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects);
-
-    void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls);
+    void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects);
 
     void next();
 
@@ -42,4 +38,6 @@ public interface AudioPlayer {
     void seek(int position);
 
     boolean isPlaying();
+
+    boolean isBackground();
 }

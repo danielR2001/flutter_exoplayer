@@ -81,7 +81,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                 icon: new Icon(Icons.pause),
                 color: Colors.cyan),
             new IconButton(
-                onPressed: _isPlaying || _isPaused ? () => _stop() : null,
+                onPressed: _isPlaying || _isPaused ? () => _release() : null,
                 iconSize: 64.0,
                 icon: new Icon(Icons.stop),
                 color: Colors.cyan),
@@ -144,11 +144,53 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   }
 
   Future<void> _play() async {
-    AudioObject audioObject = new AudioObject(smallIconFileName: "ic_launcher",title: "title",subTitle: "artist", largeIconUrl: "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg", isLocal: true, notificationMode: NotificationMode.NONE);
+    AudioObject audioObject = AudioObject(
+        smallIconFileName: "ic_launcher",
+        title: "title",
+        subTitle: "artist",
+        largeIconUrl:
+            "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg",
+        isLocal: false,
+        notificationMode: NotificationMode.BOTH);
     if (url != null) {
-      await _audioPlayer.play(url, repeatMode: true, playerMode: PlayerMode.FOREGROUND, audioObject: audioObject);
+      await _audioPlayer.play(url,
+          repeatMode: true,
+          respectAudioFocus: true,
+          playerMode: PlayerMode.FOREGROUND,
+          audioObject: audioObject);
     } else {
-      await _audioPlayer.playAll(urls, repeatMode: true);
+      List<AudioObject> audioObjects = [
+        AudioObject(
+            smallIconFileName: "ic_launcher",
+            title: "title1",
+            subTitle: "artist1",
+            largeIconUrl:
+                "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg",
+            isLocal: false,
+            notificationMode: NotificationMode.BOTH),
+        AudioObject(
+            smallIconFileName: "ic_launcher",
+            title: "title2",
+            subTitle: "artist2",
+            largeIconUrl:
+                "https://specials-images.forbesimg.com/imageserve/5be1e2a3a7ea437059163919/960x0.jpg?cropX1=0&cropX2=1999&cropY1=0&cropY2=1999",
+            isLocal: false,
+            notificationMode: NotificationMode.BOTH),
+        AudioObject(
+            smallIconFileName: "ic_launcher",
+            title: "title3",
+            subTitle: "artist3",
+            largeIconUrl:
+                "https://mixmag.net/assets/uploads/images/_full/aviciiobit.jpg",
+            isLocal: false,
+            notificationMode: NotificationMode.BOTH),
+      ];
+
+      await _audioPlayer.playAll(urls,
+          repeatMode: true,
+          respectAudioFocus: true,
+          playerMode: PlayerMode.FOREGROUND,
+          audioObjects: audioObjects);
     }
   }
 
@@ -160,7 +202,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     await _audioPlayer.pause();
   }
 
-  Future<void> _stop() async {
-    await _audioPlayer.stop();
+  Future<void> _release() async {
+    await _audioPlayer.release();
   }
 }

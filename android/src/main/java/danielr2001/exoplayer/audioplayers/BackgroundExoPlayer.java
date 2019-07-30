@@ -45,8 +45,8 @@ public class BackgroundExoPlayer implements AudioPlayer {
 
     private String playerId;
     private SimpleExoPlayer player;
-    private ArrayList<String> urls;
-    private String url;
+    private ArrayList<AudioObject> audioObjects = new ArrayList<>();
+    private AudioObject audioObject;
 
     @Override
     public void initAudioPlayer (ExoPlayerPlugin ref, Context context, String playerId) {
@@ -62,34 +62,28 @@ public class BackgroundExoPlayer implements AudioPlayer {
     }
 
     @Override
-    public void play(boolean repeatMode, boolean respectAudioFocus, String url) {
+    public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
-        this.url = url;
-        this.urls = null;
+        this.audioObject = audioObject;
+        this.audioObjects = null;
         initExoPlayer();
         initStateChangeListener();
         player.setPlayWhenReady(true);
     }
 
     @Override
-    public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {}
-
-    @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls) {
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects) {
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
-        this.urls = urls;
-        this.url = null;
+        this.audioObjects = audioObjects;
+        this.audioObject = null;
         initExoPlayer();
         initStateChangeListener();
         player.setPlayWhenReady(true);
     }
-
-    @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects) {}
 
     @Override
     public void next() {
@@ -125,9 +119,10 @@ public class BackgroundExoPlayer implements AudioPlayer {
     @Override
     public void release() {
         if (!this.released) {
+            this.playing = false;
             this.released = true;
-            this.url = null;
-            this.urls = null;
+            this.audioObject = null;
+            this.audioObjects = null;
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
@@ -172,19 +167,24 @@ public class BackgroundExoPlayer implements AudioPlayer {
         return this.playing;
     }
 
+    @Override
+    public boolean isBackground(){
+        return true;
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
         // playlist/single audio load
-        if(urls != null){
+        if(audioObjects != null){
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
-            for (String url : urls) {
-                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(url));
+            for (AudioObject audioObject : audioObjects) {
+                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
                 concatenatingMediaSource.addMediaSource(mediaSource);
             }
             player.prepare(concatenatingMediaSource);
         }else{
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
             player.prepare(mediaSource);
         }
         //handle audio focus

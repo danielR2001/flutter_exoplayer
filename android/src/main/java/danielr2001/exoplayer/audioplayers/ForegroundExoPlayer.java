@@ -29,7 +29,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-
+import android.util.Log;
 public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
 
@@ -55,7 +55,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private String playerId;
     private SimpleExoPlayer player;
-    private AudioObject[] audioObjects;
+    private ArrayList<AudioObject> audioObjects;
     private AudioObject audioObject;
 
     @Nullable
@@ -84,14 +84,12 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void onDestroy() {
         super.onDestroy();
         this.release();
-        stopForeground(true);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         this.release();
-        stopForeground(true);
     }
 
     
@@ -123,10 +121,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void play(boolean repeatMode, boolean respectAudioFocus, String url) {}
-
-    @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, AudioObject[] audioObjects) {
+    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects) {
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -136,9 +131,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         initStateChangeListener();
         player.setPlayWhenReady(true);
     }
-
-    @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<String> urls) {}
 
     @Override
     public void next() {
@@ -181,12 +173,14 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void release() {
         if (!this.released) {
             this.released = true;
-
+            this.playing = false;
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
+            stopForeground(true);
+            stopSelf();
         }
     }
 
@@ -228,11 +222,17 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         return this.playing;
     }
 
+    @Override
+    public boolean isBackground(){
+        return false;
+    }
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
+        player.setForegroundMode(true);
         // playlist/single audio load
-        if(audioObjects != null){
+        if(this.audioObjects != null){
+            Log.d("hii", "playlist!");
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
             for (AudioObject audioObject : audioObjects) {
                 MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
@@ -240,11 +240,12 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             }
             player.prepare(concatenatingMediaSource);
         }else{
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
+            Log.d("hii", "single!");
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.audioObject.getUrl()));
             player.prepare(mediaSource);
         }
         //handle audio focus
-        if(this.respectAudioFocus){
+        if(this.respectAudioFocus){ //! TODO catch duck pause!
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.CONTENT_TYPE_MUSIC)
@@ -269,7 +270,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             }
 
             @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) { 
                 switch (playbackState){
                     case Player.STATE_BUFFERING:{
                         //play first time
@@ -280,9 +281,9 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                             if (playWhenReady) {
                                 //resumed
                                 if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(audioObjects[player.getCurrentWindowIndex()], true);
+                                    mediaNotificationManager.makeNotification(true);
                                 }else {
-                                    mediaNotificationManager.makeNotification(audioObject, true);
+                                    mediaNotificationManager.makeNotification(true);
                                 }
                                 playing = true;
                                 ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
@@ -290,9 +291,9 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                             }else{
                                 //paused
                                 if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(audioObjects[player.getCurrentWindowIndex()], false);
+                                    mediaNotificationManager.makeNotification(false);
                                 }else {
-                                    mediaNotificationManager.makeNotification(audioObject, false);
+                                    mediaNotificationManager.makeNotification(false);
                                 }
                                 playing = false;
                                 ref.handleStateChange(foregroundExoPlayer, PlayerState.PAUSED);
@@ -300,7 +301,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                         }else{
                             //play
                             if(audioObjects != null) {
-                                mediaNotificationManager.makeNotification(audioObjects[player.getCurrentWindowIndex()], true);
+                                mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
                             }else {
                                 mediaNotificationManager.makeNotification(audioObject, true);
                             }

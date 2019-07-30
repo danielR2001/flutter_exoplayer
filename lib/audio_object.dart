@@ -14,7 +14,8 @@ class AudioObject {
   String largeIconUrl;
   bool isLocal;
   NotificationMode notificationMode;
-  //!TODO add background color customization!
+  //! TODO add background color customization!
+  //! TODO notification importance!
 
   AudioObject({
     @required String smallIconFileName,

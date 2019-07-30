@@ -8,6 +8,7 @@ import danielr2001.exoplayer.enums.NotificationMode;
 import danielr2001.exoplayer.enums.PlayerState;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.os.Handler;
 import android.os.Build;
 import android.os.IBinder;
@@ -15,6 +16,7 @@ import android.content.ServiceConnection;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ComponentName;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -53,12 +55,13 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private boolean respectAudioFocus;
   private float volume;
   private AudioObject audioObject;
-  private AudioObject[] audioObjects;
+  private final ArrayList<AudioObject> audioObjects = new ArrayList<>();
 
   private String playerId;
   private AudioPlayer player;
 
   private ExoPlayerPlugin exoPlayerPlugin;
+  private boolean isServiceConnected = false;
 
   public static void registerWith(final Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/exoplayer");
@@ -97,10 +100,11 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       this.respectAudioFocus = call.argument("respectAudioFocus");
       if (isBackground) {
         // init player as BackgroundExoPlayer instance
+        this.audioObject = new AudioObject(url);
         player = new BackgroundExoPlayer();
         player.initAudioPlayer(this, this.context, playerId);
         audioPlayers.put(playerId, player);
-        player.play(this.repeatMode, this.respectAudioFocus, url);
+        player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
         
       } else {
         final String smallIconFileName = call.argument("smallIconFileName");
@@ -135,16 +139,19 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       this.respectAudioFocus = call.argument("respectAudioFocus");
       if (isBackground) {
         // init player as BackgroundExoPlayer instance
+        for(String url : urls){
+          this.audioObjects.add(new AudioObject(url));
+        }
         player = new BackgroundExoPlayer();
         player.initAudioPlayer(this, this.context, playerId);
         audioPlayers.put(playerId, player);
-        player.playAll(this.repeatMode, this.respectAudioFocus, urls);
+        player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
       } else {
         final ArrayList<String> smallIconFileNames = call.argument("smallIconFileNames");
         final ArrayList<String> titles = call.argument("titles");
-        final ArrayList<String> subTitles = call.argument("subTitle");
-        final ArrayList<String> largeIconUrls = call.argument("largeIconUrl");
-        final ArrayList<Boolean> isLocals = call.argument("isLocal");
+        final ArrayList<String> subTitles = call.argument("subTitles");
+        final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
+        final ArrayList<Boolean> isLocals = call.argument("isLocals");
         final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
 
         for(int i = 0; i < urls.size(); i++ ){
@@ -158,7 +165,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
           }else{
             notificationMode = NotificationMode.BOTH;
           }
-          this.audioObjects[i] = new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode);
+          this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode));
         }
         // init player as ForegroundExoPlayer service
         startForegroundPlayer();
@@ -187,6 +194,9 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     }
     case "release": {
       player.release();
+      if(isServiceConnected && !player.isBackground()){
+        this.context.unbindService(connection);
+      }
       break;
     }
     case "seek": {
@@ -254,8 +264,12 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   }
 
   private void startForegroundPlayer(){
-    ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
-    this.context.bindService(new Intent(this.context, ForegroundExoPlayer.class), connection, Context.BIND_AUTO_CREATE);
+    if(!isMyServiceRunning(ForegroundExoPlayer.class)){
+      ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
+      this.context.bindService(new Intent(this.context, ForegroundExoPlayer.class), connection, Context.BIND_AUTO_CREATE);
+    }else{
+      Log.e("ExoPlayerPlugin", "Can't start more than 1 service at a time");
+    }
   }
   
   private void startPositionUpdates() {
@@ -282,6 +296,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
+      isServiceConnected = true;
       ForegroundExoPlayer.LocalBinder binder = (ForegroundExoPlayer.LocalBinder) service;
       player = binder.getService();
       player.initAudioPlayer(exoPlayerPlugin, context, playerId);
@@ -297,13 +312,29 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
     @Override
     public void onServiceDisconnected(ComponentName arg0) {
+      isServiceConnected = false;
     }
   };
 
   private void dispose() {
-    this.context.unbindService(connection);
+    for (AudioPlayer player : audioPlayers.values()) {
+      player.release();
+      if(isServiceConnected && !player.isBackground()){
+        this.context.unbindService(connection);
+      }
+    }
+    stopPositionUpdates();
   }
 
+  private boolean isMyServiceRunning(Class<?> serviceClass) {
+    ActivityManager manager = (ActivityManager) this.context.getSystemService(Context.ACTIVITY_SERVICE);
+    for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+        if (serviceClass.getName().equals(service.service.getClassName())) {
+            return true;
+        }
+    }
+    return false;
+}
   private static final class UpdateCallback implements Runnable {
 
     private final WeakReference<Map<String, AudioPlayer>> audioPlayers;

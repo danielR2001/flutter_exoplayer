@@ -33,7 +33,7 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
             if (new File(this.imageUrl).exists()) {
                 return BitmapFactory.decodeFile(this.imageUrl);
             } else {
-                Log.e("LoadImageFromUrl", "Local image doesnt exist!");
+                Log.e("ExoPlayerPlugin", "Local image doesnt exist!");
             }
         } else {
             return getImageBitmapFromNetworkUrl();
@@ -51,7 +51,7 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
             InputStream in = connection.getInputStream();
             return BitmapFactory.decodeStream(in);
         } catch (Exception e) {
-            Log.e("LoadImageFromUrl", "Failed loading image!");
+            Log.e("ExoPlayerPlugin", "Failed loading image!");
             return null;
         }
     }

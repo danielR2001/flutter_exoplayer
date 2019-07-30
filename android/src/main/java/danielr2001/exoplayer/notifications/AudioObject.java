@@ -25,6 +25,10 @@ public class AudioObject {
         this.notificationMode = notificationMode;
     }
 
+    public AudioObject(String url){
+        this.url = url;
+    }
+
     public String getSmallIconFileName(){
         return smallIconFileName;
     }

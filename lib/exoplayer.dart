@@ -132,6 +132,7 @@ class ExoPlayer {
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
+      
       'smallIconFileName': smallIconFileName,
       'title': title,
       'subTitle': subTitle,
@@ -152,7 +153,6 @@ class ExoPlayer {
   /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
   /// [audioObjects] for providing the foreground notification.
   Future<int> playAll(
-    //! maybe raname to playPlaylist
     List<String> urls, {
     double volume = 1.0,
     bool repeatMode = false,
@@ -195,12 +195,13 @@ class ExoPlayer {
       isBackground = false;
     }
 
-    final int result = await _invokeMethod('playAll', {
+    final int result = await _invokeMethod('playAll', { //! TODO handle results!
       'urls': urls,
       'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
+
       'smallIconFileNames': smallIconFileNames,
       'titles': titles,
       'subTitles': subTitles,
