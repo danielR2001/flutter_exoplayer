@@ -40,6 +40,11 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         }
     }
 
+    private ForegroundExoPlayer foregroundExoPlayer;
+    private MediaNotificationManager mediaNotificationManager;
+    private Context context;
+    private ExoPlayerPlugin ref;
+
     private float volume = 1;
     private boolean repeatMode = false;
     private boolean respectAudioFocus = false;
@@ -48,28 +53,10 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private boolean playing = false;
     private boolean buffering = false;
 
-    private SimpleExoPlayer player;
-    private ExoPlayerPlugin ref;
-
     private String playerId;
-
-    private MediaNotificationManager mediaNotificationManager;
-
+    private SimpleExoPlayer player;
     private AudioObject[] audioObjects;
     private AudioObject audioObject;
-
-    private ForegroundExoPlayer foregroundExoPlayer;
-
-    private Context context;
-    
-    @Override
-    public void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId) {
-        this.ref = ref;
-        this.context = context;
-        this.playerId = playerId;
-        this.mediaNotificationManager= new MediaNotificationManager(this, this.context);
-        this.foregroundExoPlayer = this;
-    }
 
     @Nullable
     @Override
@@ -79,14 +66,16 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
-            previous();
-        } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
-            resume();
-        } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
-            pause();
-        }else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
-            next();
+        if(intent.getAction() != null){
+            if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
+                previous();
+            } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
+                resume();
+            } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
+                pause();
+            }else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
+                next();
+            }
         }
         return START_STICKY;
     }
@@ -103,6 +92,17 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         super.onTaskRemoved(rootIntent);
         this.release();
         stopForeground(true);
+    }
+
+    
+
+    @Override
+    public void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId) {
+        this.ref = ref;
+        this.context = context;
+        this.playerId = playerId;
+        this.mediaNotificationManager = new MediaNotificationManager(this, this.context);
+        this.foregroundExoPlayer = this;
     }
 
     @Override
@@ -142,12 +142,18 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     @Override
     public void next() {
-        player.next();
+        if (!this.released) {
+            player.next();
+            this.resume();
+        }
     }
 
     @Override
-    public void previous() {
-        player.previous();
+    public void previous() { //!TODO first time go to previous (maybe make counter for 3 sec)
+        if (!this.released) {
+            player.previous();
+            this.resume();
+        }
     }
 
     @Override
@@ -223,8 +229,8 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     }
 
     private void initExoPlayer() {
-        player = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector());
-        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this, Util.getUserAgent(this, "exoPlayerLibrary"));
+        player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
+        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
         // playlist/single audio load
         if(audioObjects != null){
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();

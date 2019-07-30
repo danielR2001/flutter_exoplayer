@@ -100,26 +100,28 @@ class ExoPlayer {
     respectAudioFocus ??= false;
 
     bool isBackground = true;
-    int smallIcon;
+    String smallIconFileName;
     String title;
     String subTitle;
     String largeIconUrl;
     bool isLocal;
     int notificationMode;
     if (playerMode == PlayerMode.FOREGROUND) {
-      smallIcon = audioObject.getSmallIcon();
+      smallIconFileName = audioObject.getSmallIconFileName();
       title = audioObject.getTitle();
       subTitle = audioObject.getSubTitle();
       largeIconUrl = audioObject.getLargeIconUrl();
       isLocal = audioObject.getIsLocal();
-      if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
-        notificationMode = 1;
-      } else if (audioObject.getNotificationMode() ==
-          NotificationMode.PREVIOUS) {
-        notificationMode = 2;
-      } else {
-        notificationMode = 3;
-      }
+        if (audioObject.getNotificationMode() == NotificationMode.NONE) {
+          notificationMode = 0;
+        } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+          notificationMode = 1;
+        } else if (audioObject.getNotificationMode() ==
+            NotificationMode.PREVIOUS) {
+          notificationMode = 2;
+        } else {
+          notificationMode = 3;
+        }
 
       isBackground = false;
     }
@@ -130,7 +132,7 @@ class ExoPlayer {
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
-      'smallIcon': smallIcon,
+      'smallIconFileName': smallIconFileName,
       'title': title,
       'subTitle': subTitle,
       'largeIconUrl': largeIconUrl,
@@ -164,7 +166,7 @@ class ExoPlayer {
     respectAudioFocus ??= false;
 
     bool isBackground = true;
-    final List<int> smallIcons = List();
+    final List<String> smallIconFileNames = List();
     final List<String> titles = List();
     final List<String> subTitles = List();
     final List<String> largeIconUrls = List();
@@ -172,12 +174,15 @@ class ExoPlayer {
     final List<int> notificationModes = List();
     if (playerMode == PlayerMode.FOREGROUND) {
       for (AudioObject audioObject in audioObjects) {
-        smallIcons.add(audioObject.getSmallIcon());
+        smallIconFileNames.add(audioObject.getSmallIconFileName());
         titles.add(audioObject.getTitle());
         subTitles.add(audioObject.getSubTitle());
         largeIconUrls.add(audioObject.getLargeIconUrl());
         isLocals.add(audioObject.getIsLocal());
-        if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+
+        if (audioObject.getNotificationMode() == NotificationMode.NONE) {
+          notificationModes.add(0);
+        } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
           notificationModes.add(1);
         } else if (audioObject.getNotificationMode() ==
             NotificationMode.PREVIOUS) {
@@ -196,7 +201,7 @@ class ExoPlayer {
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
-      'smallIcons': smallIcons,
+      'smallIconFileNames': smallIconFileNames,
       'titles': titles,
       'subTitles': subTitles,
       'largeIconUrls': largeIconUrls,

@@ -6,27 +6,27 @@ import android.graphics.Bitmap;
 
 public class AudioObject {
     private String url;
-    private int smallIcon;
+    private String smallIconFileName;
     private String title;
     private String subTitle;
-    private String largeIcomUrl;
+    private String largeIconUrl;
     private boolean isLocal;
     private NotificationMode notificationMode;
 
     private Bitmap largeIcon;
  
-    public AudioObject(String url, int smallIcon, String title, String subTitle, String largeIcomUrl, boolean isLocal, NotificationMode notificationMode){
+    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationMode notificationMode){
         this.url = url;
-        this.smallIcon = smallIcon;
+        this.smallIconFileName = smallIconFileName;
         this.title = title;
         this.subTitle = subTitle;
-        this.largeIcomUrl = largeIcomUrl;
+        this.largeIconUrl = largeIconUrl;
         this.isLocal = isLocal;
         this.notificationMode = notificationMode;
     }
 
-    public int getSmallIcon(){
-        return smallIcon;
+    public String getSmallIconFileName(){
+        return smallIconFileName;
     }
 
     public String getTitle(){
@@ -35,6 +35,10 @@ public class AudioObject {
 
     public String getSubTitle(){
         return subTitle;
+    }
+
+    public String getLargeIcomUrl(){
+        return largeIconUrl;
     }
 
     public Bitmap getLargeIcon(){
@@ -47,6 +51,10 @@ public class AudioObject {
 
     public String getUrl(){
         return url;
+    }
+
+    public boolean getIsLocal(){
+        return isLocal;
     }
 
     public NotificationMode getNotificationMode(){

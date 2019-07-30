@@ -32,6 +32,8 @@ import java.util.ArrayList;
 public class BackgroundExoPlayer implements AudioPlayer {
 
     private Context context;
+    private ExoPlayerPlugin ref;
+    private BackgroundExoPlayer backgroundExoPlayer;
 
     private float volume = 1;
     private boolean repeatMode = false;
@@ -42,12 +44,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
     private boolean buffering = false;
 
     private String playerId;
-
     private SimpleExoPlayer player;
-    private ExoPlayerPlugin ref;
-
-    private BackgroundExoPlayer backgroundExoPlayer;
-
     private ArrayList<String> urls;
     private String url;
 

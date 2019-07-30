@@ -13,7 +13,7 @@ public interface AudioPlayer {
 
     String getPlayerId();
 
-    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject);
+    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject); //! TODO make optional variables!
 
     void play(boolean repeatMode, boolean respectAudioFocus, String url);
 

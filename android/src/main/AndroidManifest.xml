@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="danielr2001.exoplayer">
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  
+  <application>
+    <service android:name="danielr2001.exoplayer.audioplayers.ForegroundExoPlayer" />
+  </application>
 </manifest>
 

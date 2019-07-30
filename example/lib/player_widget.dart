@@ -144,7 +144,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   }
 
   Future<void> _play() async {
-    AudioObject audioObject = new AudioObject(smallIcon: 0,title: "title",subTitle: "artist", largeIconUrl: "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg", isLocal: false);
+    AudioObject audioObject = new AudioObject(smallIconFileName: "ic_launcher",title: "title",subTitle: "artist", largeIconUrl: "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg", isLocal: true, notificationMode: NotificationMode.NONE);
     if (url != null) {
       await _audioPlayer.play(url, repeatMode: true, playerMode: PlayerMode.FOREGROUND, audioObject: audioObject);
     } else {

@@ -47,6 +47,9 @@ public class MediaNotificationManager {
     private PendingIntent pnextIntent;
     private PendingIntent pendingIntent;
 
+    private AudioObject audioObject;
+    private boolean isPlaying;
+
     public MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context){
         this.context = context;
         this.foregroundExoPlayer = foregroundExoPlayer;
@@ -60,35 +63,38 @@ public class MediaNotificationManager {
 
         playIntent = new Intent(this.context, ForegroundExoPlayer.class);
         playIntent.setAction(PLAY_ACTION);
-        pplayIntent = PendingIntent.getBroadcast(this.context, 1, playIntent, 0);
+        pplayIntent = PendingIntent.getService(this.context, 1, playIntent, 0);
 
         pauseIntent = new Intent(this.context, ForegroundExoPlayer.class);
         pauseIntent.setAction(PAUSE_ACTION);
-        ppauseIntent = PendingIntent.getBroadcast(this.context, 1, pauseIntent, 0);
+        ppauseIntent = PendingIntent.getService(this.context, 1, pauseIntent, 0);
 
         prevIntent = new Intent(this.context, ForegroundExoPlayer.class);
         prevIntent.setAction(PREVIOUS_ACTION);
-        pprevIntent = PendingIntent.getBroadcast(this.context, 1, prevIntent, 0);
+        pprevIntent = PendingIntent.getService(this.context, 1, prevIntent, 0);
 
         nextIntent = new Intent(this.context, ForegroundExoPlayer.class);
         nextIntent.setAction(NEXT_ACTION);
-        pnextIntent = PendingIntent.getBroadcast(this.context, 1, nextIntent, 0);
+        pnextIntent = PendingIntent.getService(this.context, 1, nextIntent, 0);
 
     }
 
-    public void makeNotification(AudioObject audioObject, boolean isPlaying){
+    private void showNotification(){
         Notification notification;
         Resources res = this.context.getResources();
-        int icon = res.getIdentifier("ic_launcher", "drawable", "danielr2001.exoplayer_example");
+        int icon = res.getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mediaSession = new MediaSessionCompat(this.context, "playback");
             CreateNotificationChannel();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
                     .setSmallIcon(icon)
                     .setWhen(System.currentTimeMillis())
+                    .setColorized(true)
                     .setShowWhen(false);
                     //.setContentIntent(pendingIntent);
-
+            if(this.audioObject.getLargeIcon() != null){
+                builder.setLargeIcon(this.audioObject.getLargeIcon());
+            }
             if(audioObject.getNotificationMode() != NotificationMode.NONE){
                 if(audioObject.getNotificationMode() == NotificationMode.BOTH){
                     builder.addAction(R.drawable.ic_previous, "", pprevIntent);
@@ -152,6 +158,9 @@ public class MediaNotificationManager {
                     .setShowWhen(false)
                     .setSound(null);
                    // .setContentIntent(pendingIntent);
+                if(this.audioObject.getLargeIcon() != null){
+                    builder.setLargeIcon(this.audioObject.getLargeIcon());
+                }
                 if(audioObject.getNotificationMode() != NotificationMode.NONE){
                     if(audioObject.getNotificationMode() == NotificationMode.BOTH){
                         builder.addAction(R.drawable.ic_previous, "Previous", pprevIntent);
@@ -199,6 +208,16 @@ public class MediaNotificationManager {
         foregroundExoPlayer.startForeground(notificationId,notification);
     }
 
+    public void makeNotification(AudioObject audioObject, boolean isPlaying){
+        this.audioObject = audioObject;
+        this.isPlaying = isPlaying;
+        if(audioObject.getLargeIcomUrl() != null){
+            loadImageFromUrl(audioObject.getLargeIcomUrl(), audioObject.getIsLocal());
+        }else{
+            showNotification();
+        }
+    }
+
 
     private void CreateNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -217,7 +236,8 @@ public class MediaNotificationManager {
             @Override
             public void processFinish(Bitmap bitmap) {
               if (bitmap != null) {
-                  //TODO use bitmap!
+                audioObject.setLargeIcon(bitmap);
+                showNotification();
               } else {
                 Log.e("LoadImageFromUrl", "Failed loading image!");
               }

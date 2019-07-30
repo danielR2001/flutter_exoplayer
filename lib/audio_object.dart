@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 
 enum NotificationMode {
-  NONE,
-  NEXT,
-  PREVIOUS,
-  BOTH,
+  NONE, //0
+  NEXT, //1
+  PREVIOUS, //2
+  BOTH, //3
 }
 
 class AudioObject {
-  int smallIcon;
+  String smallIconFileName;
   String title;
   String subTitle;
   String largeIconUrl;
   bool isLocal;
   NotificationMode notificationMode;
+  //!TODO add background color customization!
 
   AudioObject({
-    @required int smallIcon,
+    @required String smallIconFileName,
     String title,
     String subTitle,
     String largeIconUrl,
@@ -26,7 +27,7 @@ class AudioObject {
     isLocal ??= false;
     notificationMode ??= NotificationMode.BOTH;
 
-    this.smallIcon = smallIcon;
+    this.smallIconFileName = smallIconFileName;
     this.title = title;
     this.subTitle = subTitle;
     this.largeIconUrl = largeIconUrl;
@@ -34,8 +35,8 @@ class AudioObject {
     this.notificationMode = notificationMode;
   }
 
-  int getSmallIcon() {
-    return smallIcon;
+  String getSmallIconFileName() {
+    return smallIconFileName;
   }
 
   String getTitle() {

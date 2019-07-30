@@ -30,6 +30,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
+
 enum PlayerMode {
   PLAYLIST,
   SINGLE,
@@ -61,14 +62,14 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   public static void registerWith(final Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/exoplayer");
-    channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity()));
+    channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity().getApplicationContext()));
   }
 
-  private ExoPlayerPlugin(final MethodChannel channel, Activity activity) {
+  private ExoPlayerPlugin(final MethodChannel channel, Context context) {
     this.channel = channel;
-    this.channel.setMethodCallHandler(this);
-    this.context = activity.getApplicationContext();
+    this.context = context;
     this.exoPlayerPlugin = this;
+    this.channel.setMethodCallHandler(this);
   }
 
   @Override
@@ -102,22 +103,24 @@ public class ExoPlayerPlugin implements MethodCallHandler {
         player.play(this.repeatMode, this.respectAudioFocus, url);
         
       } else {
-        final int smallIcon = call.argument("smallIcon");
+        final String smallIconFileName = call.argument("smallIconFileName");
         final String title = call.argument("title");
         final String subTitle = call.argument("subTitle");
         final String largeIconUrl = call.argument("largeIconUrl");
         final boolean isLocal = call.argument("isLocal");
         final int notificationModeInt = call.argument("notificationMode");
         NotificationMode notificationMode;
-        if (notificationModeInt == 1) {
+        if (notificationModeInt == 0) {
+          notificationMode = NotificationMode.NONE;
+        } else if (notificationModeInt == 1) {
           notificationMode = NotificationMode.NEXT;
-        } else if (notificationModeInt == 2) {
+        } else if (notificationModeInt == 2){
           notificationMode = NotificationMode.PREVIOUS;
-        } else {
+        }else{
           notificationMode = NotificationMode.BOTH;
         }
 
-        this.audioObject = new AudioObject(url, smallIcon, title, subTitle, largeIconUrl, isLocal, notificationMode);
+        this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationMode);
         // init player as ForegroundExoPlayer service
         startForegroundPlayer();
       }
@@ -137,7 +140,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
         audioPlayers.put(playerId, player);
         player.playAll(this.repeatMode, this.respectAudioFocus, urls);
       } else {
-        final ArrayList<Integer> smallIcons = call.argument("smallIcons");
+        final ArrayList<String> smallIconFileNames = call.argument("smallIconFileNames");
         final ArrayList<String> titles = call.argument("titles");
         final ArrayList<String> subTitles = call.argument("subTitle");
         final ArrayList<String> largeIconUrls = call.argument("largeIconUrl");
@@ -146,14 +149,16 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
         for(int i = 0; i < urls.size(); i++ ){
           NotificationMode notificationMode;
-          if (notificationModeInts.get(i) == 1) {
+          if (notificationModeInts.get(i) == 0) {
+            notificationMode = NotificationMode.NONE;
+          } else if (notificationModeInts.get(i) == 1) {
             notificationMode = NotificationMode.NEXT;
-          } else if (notificationModeInts.get(i) == 2) {
+          } else if (notificationModeInts.get(i) == 2){
             notificationMode = NotificationMode.PREVIOUS;
-          } else {
+          }else{
             notificationMode = NotificationMode.BOTH;
           }
-          this.audioObjects[i] = new AudioObject(urls.get(i), smallIcons.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode);
+          this.audioObjects[i] = new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode);
         }
         // init player as ForegroundExoPlayer service
         startForegroundPlayer();
@@ -210,9 +215,6 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     response.success(1);
   }
 
-  private AudioPlayer getPlayer(String playerId) {
-    return audioPlayers.get(playerId);
-}
 
   public void handleStateChange(AudioPlayer player, PlayerState playerState) {
     switch (playerState) {
@@ -247,6 +249,15 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
   }
 
+  private AudioPlayer getPlayer(String playerId) {
+    return audioPlayers.get(playerId);
+  }
+
+  private void startForegroundPlayer(){
+    ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
+    this.context.bindService(new Intent(this.context, ForegroundExoPlayer.class), connection, Context.BIND_AUTO_CREATE);
+  }
+  
   private void startPositionUpdates() {
     if (positionUpdates != null) {
       return;
@@ -275,7 +286,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       player = binder.getService();
       player.initAudioPlayer(exoPlayerPlugin, context, playerId);
       audioPlayers.put(playerId, player);
-      // AudioObject audioObject = new AudioObject(); init object
+
       if (playerMode == PlayerMode.PLAYLIST) {
         player.playAll(repeatMode, respectAudioFocus, audioObjects);
       } else {
@@ -291,11 +302,6 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   private void dispose() {
     this.context.unbindService(connection);
-  }
-
-  private void startForegroundPlayer(){
-    ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
-    context.bindService(new Intent(this.context, AudioPlayer.class), connection, Context.BIND_AUTO_CREATE);
   }
 
   private static final class UpdateCallback implements Runnable {
