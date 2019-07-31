@@ -9,6 +9,7 @@ enum PlayerState {
   PAUSED,
   COMPLETED,
   RELEASED,
+  BUFFERING,
 }
 enum PlayerMode {
   FOREGROUND,
@@ -316,23 +317,10 @@ class ExoPlayer {
         break;
       case 'audio.onStateChanged':
         switch (value) {
-          case 3:
+          case -1:
             {
-              player.playerState = PlayerState.PLAYING;
+              player.playerState = PlayerState.RELEASED;
               player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 2:
-            {
-              player.playerState = PlayerState.PAUSED;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 1:
-            {
-              player.playerState = PlayerState.COMPLETED;
-              player._playerStateController.add(player.playerState);
-              player._completionController.add(null);
               break;
             }
           case 0:
@@ -341,16 +329,35 @@ class ExoPlayer {
               player._playerStateController.add(player.playerState);
               break;
             }
-          case -1:
+          case 1:
             {
-              player.playerState = PlayerState.RELEASED;
+              player.playerState = PlayerState.BUFFERING;
+              player._playerStateController.add(player.playerState);
+              player._completionController.add(null);
+              break;
+            }
+          case 2:
+            {
+              player.playerState = PlayerState.PLAYING;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+          case 3:
+            {
+              player.playerState = PlayerState.PAUSED;
+              player._playerStateController.add(player.playerState);
+              break;
+            }
+          case 4:
+            {
+              player.playerState = PlayerState.COMPLETED;
               player._playerStateController.add(player.playerState);
               break;
             }
         }
         break;
       case 'audio.onError':
-        player.playerState = PlayerState.STOPPED;
+        player.playerState = PlayerState.STOPPED;  //! maybe released?
         player._errorController.add(value);
         break;
       default:

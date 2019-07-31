@@ -137,6 +137,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       this.repeatMode = call.argument("repeatMode");
       final boolean isBackground = call.argument("isBackground");
       this.respectAudioFocus = call.argument("respectAudioFocus");
+      playerMode = PlayerMode.PLAYLIST;
       if (isBackground) {
         // init player as BackgroundExoPlayer instance
         for(String url : urls){
@@ -228,24 +229,28 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   public void handleStateChange(AudioPlayer player, PlayerState playerState) {
     switch (playerState) {
-      case PLAYING: { // 3
-        channel.invokeMethod("audio.onStateChanged", buildArguments(player.getPlayerId(), 3));
-        break;
-      }
-      case PAUSED: { // 2
-        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), 2));
-        break;
-      }
-      case COMPLETED: { // 1
-        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), 1));
+      case RELEASED: { // -1
+        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), -1));
         break;
       }
       case STOPPED: { // 0
         channel.invokeMethod("audio.onStateChanged", buildArguments(player.getPlayerId(), 0));
         break;
       }
-      case RELEASED: { // -1
-        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), -1));
+      case BUFFERING: { // 1
+        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), 1));
+        break;
+      }
+      case PLAYING: { // 2
+        channel.invokeMethod("audio.onStateChanged", buildArguments(player.getPlayerId(), 2));
+        break;
+      }
+      case PAUSED: { // 3
+        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), 3));
+        break;
+      }
+      case COMPLETED: { // 4
+        channel.invokeMethod("audio.onStateChanged",buildArguments(player.getPlayerId(), 4));
         break;
       }
     }
@@ -326,6 +331,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     stopPositionUpdates();
   }
 
+  @SuppressWarnings( "deprecation" )
   private boolean isMyServiceRunning(Class<?> serviceClass) {
     ActivityManager manager = (ActivityManager) this.context.getSystemService(Context.ACTIVITY_SERVICE);
     for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {

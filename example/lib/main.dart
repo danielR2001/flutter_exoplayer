@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'player_widget.dart';
 
 const kUrl1 = 'https://download.xn--41a.wiki/cache/3/29d/474499158_456357512.mp3?filename=Gryffin%2C%20Slander%20feat.%20Calle%20Lehmann-All%20You%20Need%20To%20Know.mp3';
-const kUrl2 = 'https://luan.xyz/files/audio/nasa_on_a_mission.mp3';
-const kUrl3 = 'https://luan.xyz/files/audio/ambient_c_motion.mp3';
+const kUrl2 = 'https://download.xn--41a.wiki/cache/2/8b4/474499287_456278861.mp3?filename=Marshmello%2C%20Bastille-Happier.mp3';
+const kUrl3 = 'https://download.xn--41a.wiki/cache/2/e4c/474499265_456325543.mp3?filename=Avicii-Wake%20Me%20Up.mp3';
 //const kUrl3 = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p';
 final List<String> urls = [kUrl1, kUrl2, kUrl3];
 

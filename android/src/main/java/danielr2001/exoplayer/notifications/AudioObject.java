@@ -41,7 +41,7 @@ public class AudioObject {
         return subTitle;
     }
 
-    public String getLargeIcomUrl(){
+    public String getLargeIconUrl(){
         return largeIconUrl;
     }
 

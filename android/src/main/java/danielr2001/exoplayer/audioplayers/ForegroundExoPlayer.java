@@ -13,7 +13,10 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 
+import android.support.v4.media.session.MediaSessionCompat;
+
 import androidx.annotation.Nullable;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -44,6 +47,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private MediaNotificationManager mediaNotificationManager;
     private Context context;
     private ExoPlayerPlugin ref;
+    private MediaSessionCompat mediaSession;
 
     private float volume = 1;
     private boolean repeatMode = false;
@@ -66,6 +70,10 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        this.context = getApplicationContext();
+        mediaSession = new MediaSessionCompat(this.context, "playback");
+        //MediaButtonReceiver.handleIntent(mediaSession, intent);
+        //mediaSession.setCallback(mediaSessionCallback);
         if(intent.getAction() != null){
             if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
                 previous();
@@ -97,9 +105,8 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     @Override
     public void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId) {
         this.ref = ref;
-        this.context = context;
         this.playerId = playerId;
-        this.mediaNotificationManager = new MediaNotificationManager(this, this.context);
+        this.mediaNotificationManager = new MediaNotificationManager(this, this.context, this.mediaSession);
         this.foregroundExoPlayer = this;
     }
 
@@ -117,6 +124,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         this.audioObjects = null;
         initExoPlayer();
         initStateChangeListener();
+        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
@@ -129,6 +137,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         this.audioObject = null;
         initExoPlayer();
         initStateChangeListener();
+        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
@@ -136,6 +145,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void next() {
         if (!this.released) {
             player.next();
+            loadNewAudioNotification();
             this.resume();
         }
     }
@@ -144,6 +154,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void previous() { //!TODO first time go to previous (maybe make counter for 3 sec)
         if (!this.released) {
             player.previous();
+            loadNewAudioNotification();
             this.resume();
         }
     }
@@ -152,6 +163,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void pause() {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
+            stopForeground(false);
         }
     }
 
@@ -166,6 +178,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void stop() {
         if (!this.released) {
             player.stop(true);
+            stopForeground(true);
         }
     }
 
@@ -273,13 +286,19 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) { 
                 switch (playbackState){
                     case Player.STATE_BUFFERING:{
-                        //play first time
+                        //buffering
                         buffering = true;
+                        ref.handleStateChange(foregroundExoPlayer, PlayerState.BUFFERING);
                     }
                     case Player.STATE_READY:{
-                        if(!buffering){
+                        if(buffering){
+                            //play
+                            playing = true;
+                            buffering = false;
+                            ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                        }else{
                             if (playWhenReady) {
-                                //resumed
+                                //resumed                            
                                 if(audioObjects != null) {
                                     mediaNotificationManager.makeNotification(true);
                                 }else {
@@ -298,16 +317,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                                 playing = false;
                                 ref.handleStateChange(foregroundExoPlayer, PlayerState.PAUSED);
                             }
-                        }else{
-                            //play
-                            if(audioObjects != null) {
-                                mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
-                            }else {
-                                mediaNotificationManager.makeNotification(audioObject, true);
-                            }
-                            playing = true;
-                            buffering = false;
-                            ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
                         }
                         break;
                     }
@@ -323,9 +332,34 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                         ref.handleStateChange(foregroundExoPlayer, PlayerState.STOPPED);
                         break;
                     }
+                    default:{
+                        Log.e("ExoPlayerPlugin", "SomeState");
+                    }
+
                     //handle of released is in release method!
                 }
             }
         });
     }
+
+    private void loadNewAudioNotification(){
+        if(audioObjects != null) {
+            mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), false);
+        }else {
+            mediaNotificationManager.makeNotification(audioObject, false);
+        }
+    }
+    // private MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
+    //     @Override
+    //     public void onPlay() {
+    //         Log.d("hii","play!");
+    //         super.onPlay();
+    //     }
+
+    //     @Override
+    //     public void onPause() {
+    //         Log.d("hii","pause!");
+    //         super.onPause();
+    //     }
+    // };
 }

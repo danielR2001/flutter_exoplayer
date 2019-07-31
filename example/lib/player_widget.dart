@@ -183,7 +183,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             largeIconUrl:
                 "https://mixmag.net/assets/uploads/images/_full/aviciiobit.jpg",
             isLocal: false,
-            notificationMode: NotificationMode.BOTH),
+            notificationMode: NotificationMode.NONE),
       ];
 
       await _audioPlayer.playAll(urls,

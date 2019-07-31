@@ -9,12 +9,14 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
+public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String,Bitmap>> {
 
     private String imageUrl;
     private boolean isLocal;
@@ -28,15 +30,18 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
     }
 
     @Override
-    protected Bitmap doInBackground(String... strings) {
+    protected Map<String, Bitmap> doInBackground(String... strings) {
+        Map<String, Bitmap> bitmap = new HashMap();
         if (isLocal) {
             if (new File(this.imageUrl).exists()) {
-                return BitmapFactory.decodeFile(this.imageUrl);
+                bitmap.put(this.imageUrl, BitmapFactory.decodeFile(this.imageUrl));
+                return bitmap;
             } else {
                 Log.e("ExoPlayerPlugin", "Local image doesnt exist!");
             }
         } else {
-            return getImageBitmapFromNetworkUrl();
+            bitmap.put(this.imageUrl, getImageBitmapFromNetworkUrl());
+            return bitmap;
         }
 
         return null;
@@ -57,7 +62,7 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Bitmap> {
     }
 
     @Override
-    protected void onPostExecute(Bitmap bitmap) {
+    protected void onPostExecute(Map<String, Bitmap> bitmap) {
         super.onPostExecute(bitmap);
         delegate.processFinish(bitmap);
     }
