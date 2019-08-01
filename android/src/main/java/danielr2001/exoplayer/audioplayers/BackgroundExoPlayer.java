@@ -41,6 +41,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
     private boolean repeatMode = false;
     private boolean respectAudioFocus = false;
 
+    private boolean initialized = false;
     private boolean released = true;
     private boolean playing = false;
     private boolean buffering = false;
@@ -56,6 +57,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
         this.context = activity.getApplicationContext();
         this.playerId = playerId;
         this.backgroundExoPlayer = this;
+        this.initialized = true;
     }
 
     @Override
@@ -176,6 +178,11 @@ public class BackgroundExoPlayer implements AudioPlayer {
         return true;
     }
 
+    @Override
+    public boolean isPlayerInitialized(){
+        return this.initialized;
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -207,38 +214,36 @@ public class BackgroundExoPlayer implements AudioPlayer {
 
     private void initStateChangeListener() {
         player.addListener(new Player.EventListener() {
-            @Override
-            public void onTimelineChanged(Timeline timeline, @Nullable Object manifest, int reason) {
-                if(reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC){
-                    ref.handlePositionUpdates();
-                    ref.handleDurationUpdates();
-                }
-            }
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState){
                     case Player.STATE_BUFFERING:{
-                        //play first time
+                        //buffering
                         buffering = true;
+                        ref.handleStateChange(backgroundExoPlayer, PlayerState.BUFFERING);
                     }
                     case Player.STATE_READY:{
-                        if(!buffering){
-                            if (playWhenReady) {
-                                //resumed
-                                playing = true;
-                                ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
+                        if(buffering){
+                            //play
+                            playing = true;
+                            buffering = false;
+                            ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
+                        }else{
+                            if(playWhenReady && playing){
+                                //first play
                                 ref.handlePositionUpdates();
-                            }else{
+                            }else if (playWhenReady && !playing) {
+                                //resumed   
+                                playing = true;                         
+                                ref.handlePositionUpdates();
+                                ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
+                                
+                            }else if(!playWhenReady && playing){
                                 //paused
                                 playing = false;
                                 ref.handleStateChange(backgroundExoPlayer, PlayerState.PAUSED);
                             }
-                        }else{
-                            //playing
-                            playing = true;
-                            buffering = false;
-                            ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
                         }
                         break;
                     }

@@ -33,7 +33,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-import android.util.Log;
 public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
 
@@ -54,6 +53,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private boolean repeatMode = false;
     private boolean respectAudioFocus = false;
 
+    private boolean initialized = false;
     private boolean released = true;
     private boolean playing = false;
     private boolean buffering = false;
@@ -104,6 +104,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         this.playerId = playerId;
         this.mediaNotificationManager = new MediaNotificationManager(this, this.context, this.mediaSession, activity);
         this.foregroundExoPlayer = this;
+        this.initialized = true;
     }
 
     @Override
@@ -238,13 +239,17 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         return false;
     }
     
+    @Override
+    public boolean isPlayerInitialized(){
+        return this.initialized;
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
         player.setForegroundMode(true);
         // playlist/single audio load
         if(this.audioObjects != null){
-            Log.d("hii", "playlist!");
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
             for (AudioObject audioObject : audioObjects) {
                 MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
@@ -252,7 +257,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             }
             player.prepare(concatenatingMediaSource);
         }else{
-            Log.d("hii", "single!");
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.audioObject.getUrl()));
             player.prepare(mediaSource);
         }
@@ -272,14 +276,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private void initStateChangeListener() {
         player.addListener(new Player.EventListener() {
-
-            @Override
-            public void onTimelineChanged(Timeline timeline, @Nullable Object manifest, int reason) {
-                if(reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC){
-                    ref.handlePositionUpdates();
-                    ref.handleDurationUpdates();
-                }
-            }
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) { 
@@ -303,6 +299,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                                 }else {
                                     mediaNotificationManager.makeNotification(true);
                                 }
+                                ref.handlePositionUpdates();
                             }else if (playWhenReady && !playing) {
                                 //resumed   
                                 playing = true;                         
@@ -338,12 +335,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                         playing = false;
                         ref.handleStateChange(foregroundExoPlayer, PlayerState.STOPPED);
                         break;
-                    }
-                    default:{
-                        Log.e("ExoPlayerPlugin", "SomeState");
-                    }
-
-                    //handle of released is in release method!
+                    }  //handle of released is in release method!
                 }
             }
         });

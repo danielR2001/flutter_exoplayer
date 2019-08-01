@@ -62,13 +62,11 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private AudioPlayer player;
 
   private ExoPlayerPlugin exoPlayerPlugin;
-  private boolean isServiceConnected = false;
 
   private ServiceConnection connection = new ServiceConnection() {
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
-      isServiceConnected = true;
       ForegroundExoPlayer.LocalBinder binder = (ForegroundExoPlayer.LocalBinder) service;
       player = binder.getService();
       player.initAudioPlayer(exoPlayerPlugin, activity, playerId);
@@ -84,7 +82,6 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
     @Override
     public void onServiceDisconnected(ComponentName arg0) {
-      isServiceConnected = false;
     }
   };
 
@@ -221,7 +218,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       }
       case "release": {
         player.release();
-        if(isServiceConnected && !player.isBackground()){
+        if(!player.isBackground()){
           this.context.unbindService(connection);
         }
         break;
@@ -286,10 +283,6 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     startPositionUpdates();
   }
 
-  public void handleDurationUpdates() {
-    channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
-  }
-
   private AudioPlayer getPlayer(String playerId) {
     return audioPlayers.get(playerId);
   }
@@ -325,11 +318,14 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   private void dispose() {
     for (AudioPlayer player : audioPlayers.values()) {
-      player.release();
-      if(isServiceConnected && !player.isBackground()){
-        this.context.unbindService(connection);
+      if(player.isPlayerInitialized()){
+        player.release();
+        if(!player.isBackground()){
+          this.context.unbindService(connection);
+        }
       }
     }
+    audioPlayers.clear();
   }
 
   @SuppressWarnings( "deprecation" )
@@ -381,6 +377,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
               final String key = player.getPlayerId();
               final long position = player.getCurrentPosition();
               channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position));
+              channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
           } catch(UnsupportedOperationException e) {
 
           }

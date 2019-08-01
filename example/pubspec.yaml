@@ -4,6 +4,8 @@ description: Demonstrates how to use the exoplayer plugin.
 dependencies:
   flutter:
     sdk: flutter
+  http: ^0.11.3+17
+  path_provider: ^1.1.0
   exoplayer:
     path: ../
 

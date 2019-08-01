@@ -212,6 +212,20 @@ class ExoPlayer {
     return _invokeMethod('pause');
   }
 
+  /// Plays the next song.
+  ///
+  /// If playing only single audio it will restart the current.
+  Future<int> next() {
+    return _invokeMethod('next');
+  }
+
+  /// Plays the previous song.
+  ///
+  /// If playing only single audio it will restart the current.
+  Future<int> previous() {
+    return _invokeMethod('previous');
+  }
+
   /// Stops the audio that is currently playing.
   ///
   /// The position is going to be reset and you will no longer be able to resume
