@@ -238,15 +238,14 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   }
 
   Future<void> _play() async {
-    AudioObject audioObject = AudioObject(
-        smallIconFileName: "ic_launcher",
-        title: "title",
-        subTitle: "artist",
-        largeIconUrl:
-            "https://www.clashmusic.com/sites/default/files/field/image/BobMarley_0.jpg",
-        isLocal: false,
-        notificationMode: NotificationMode.BOTH);
     if (url != null) {
+      AudioObject audioObject = AudioObject(
+          smallIconFileName: "ic_launcher",
+          title: "title",
+          subTitle: "artist",
+          largeIconUrl: "https://www.bensound.com/bensound-img/buddy.jpg",
+          isLocal: false,
+          notificationMode: NotificationMode.BOTH);
       await _audioPlayer.play(url,
           repeatMode: true,
           respectAudioFocus: true,
@@ -257,25 +256,22 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title1",
-            subTitle: "artist1",
-            largeIconUrl:
-                "https://d3vhc53cl8e8km.cloudfront.net/hello-staging/wp-content/uploads/2016/01/07185911/lyENmGPExUMOmaMngcMplWHy64QeAr0PxWpJHDwA-972x597.jpeg",
+            subTitle: "artist2",
+            largeIconUrl: "https://www.bensound.com/bensound-img/buddy.jpg",
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title2",
-            subTitle: "artist2",
-            largeIconUrl:
-                "https://specials-images.forbesimg.com/imageserve/5be1e2a3a7ea437059163919/960x0.jpg?cropX1=0&cropX2=1999&cropY1=0&cropY2=1999",
+            subTitle: "artist3",
+            largeIconUrl: "https://www.bensound.com/bensound-img/epic.jpg",
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title3",
             subTitle: "artist3",
-            largeIconUrl:
-                "https://mixmag.net/assets/uploads/images/_full/aviciiobit.jpg",
+            largeIconUrl: "https://www.bensound.com/bensound-img/onceagain.jpg",
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
       ];
@@ -289,26 +285,44 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   }
 
   Future<void> _resume() async {
-    await _audioPlayer.resume();
+    final int result = await _audioPlayer.resume();
+    if (result != 1) {
+      print("something went wrong in resume method :(");
+    }
   }
 
   Future<void> _pause() async {
-    await _audioPlayer.pause();
+    final int result = await _audioPlayer.pause();
+    if (result != 1) {
+      print("something went wrong in pause method :(");
+    }
   }
 
   Future<void> _stop() async {
-    await _audioPlayer.stop();
+    final int result = await _audioPlayer.stop();
+    if (result != 1) {
+      print("something went wrong in stop method :(");
+    }
   }
 
   Future<void> _release() async {
-    await _audioPlayer.release();
+    final int result = await _audioPlayer.release();
+    if (result != 1) {
+      print("something went wrong in release method :(");
+    }
   }
 
   Future<void> _next() async {
-    await _audioPlayer.next();
+    final int result = await _audioPlayer.next();
+    if (result != 1) {
+      print("something went wrong in resume next :(");
+    }
   }
 
   Future<void> _previous() async {
-    await _audioPlayer.previous();
+    final int result = await _audioPlayer.previous();
+    if (result != 1) {
+      print("something went wrong in previous method :(");
+    }
   }
 }

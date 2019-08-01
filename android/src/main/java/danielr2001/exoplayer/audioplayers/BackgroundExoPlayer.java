@@ -183,6 +183,11 @@ public class BackgroundExoPlayer implements AudioPlayer {
         return this.initialized;
     }
 
+    @Override
+    public boolean isPlayerReleased(){
+        return this.released;
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));

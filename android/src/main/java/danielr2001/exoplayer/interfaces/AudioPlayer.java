@@ -43,4 +43,6 @@ public interface AudioPlayer {
     boolean isBackground();
 
     boolean isPlayerInitialized();
+
+    boolean isPlayerReleased();
 }

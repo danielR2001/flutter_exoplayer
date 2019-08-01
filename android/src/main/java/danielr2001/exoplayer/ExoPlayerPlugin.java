@@ -217,10 +217,10 @@ public class ExoPlayerPlugin implements MethodCallHandler {
         break;
       }
       case "release": {
-        player.release();
-        if(!player.isBackground()){
+        if(!player.isBackground() && !player.isPlayerReleased()){
           this.context.unbindService(connection);
         }
+        player.release();
         break;
       }
       case "seek": {
@@ -283,6 +283,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     startPositionUpdates();
   }
 
+  
   private AudioPlayer getPlayer(String playerId) {
     return audioPlayers.get(playerId);
   }
@@ -319,10 +320,10 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private void dispose() {
     for (AudioPlayer player : audioPlayers.values()) {
       if(player.isPlayerInitialized()){
-        player.release();
-        if(!player.isBackground()){
+        if(!player.isBackground() && !player.isPlayerReleased()){
           this.context.unbindService(connection);
         }
+        player.release();
       }
     }
     audioPlayers.clear();

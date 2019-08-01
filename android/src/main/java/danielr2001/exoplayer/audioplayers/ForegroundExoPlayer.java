@@ -243,6 +243,11 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public boolean isPlayerInitialized(){
         return this.initialized;
     }
+    
+    @Override
+    public boolean isPlayerReleased(){
+        return this.released;
+    }
 
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());

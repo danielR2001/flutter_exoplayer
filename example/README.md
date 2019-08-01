@@ -1,16 +1,11 @@
 # exoplayer_example
 
-Demonstrates how to use the exoplayer plugin.
+This is an example usage of audioplayers plugin.
 
-## Getting Started
+It's a simple app with three tabs.
 
-This project is a starting point for a Flutter application.
+ - Remote Url: Plays audio from a remote url from the Internet.
+ - Local File: Downloads a file to your device in order to play it from your device.
+ - Remote Url and Local File: plays downloaded and not downloaded audio mix.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This example bundles a `PlayerWidget` that could be used as a very simple audio player interface.

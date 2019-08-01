@@ -7,12 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'player_widget.dart';
 import 'package:http/http.dart';
 
-const kUrl1 =
-    'https://download.xn--41a.wiki/cache/3/29d/474499158_456357512.mp3?filename=Gryffin%2C%20Slander%20feat.%20Calle%20Lehmann-All%20You%20Need%20To%20Know.mp3';
-const kUrl2 =
-    'https://download.xn--41a.wiki/cache/2/8b4/474499287_456278861.mp3?filename=Marshmello%2C%20Bastille-Happier.mp3';
-const kUrl3 =
-    'https://download.xn--41a.wiki/cache/2/e4c/474499265_456325543.mp3?filename=Avicii-Wake%20Me%20Up.mp3';
+const kUrl1 = 'https://www.bensound.org/bensound-music/bensound-buddy.mp3';
+const kUrl2 = 'https://www.bensound.org/bensound-music/bensound-epic.mp3';
+const kUrl3 = 'https://www.bensound.org/bensound-music/bensound-onceagain.mp3';
 //const kUrl3 = 'http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p';
 final List<String> urls = [kUrl1, kUrl2, kUrl3];
 
@@ -65,6 +62,13 @@ class _ExampleAppState extends State<ExampleApp> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         PlayerWidget(urls: urls),
+        Text(
+          "Credit to www.bensound.com for the music and images",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
       ]),
     );
   }
@@ -74,9 +78,14 @@ class _ExampleAppState extends State<ExampleApp> {
       Text('File: $kUrl1'),
       _btn('Download File to your Device', () => _loadFile()),
       Text('Current local file path: $localFilePath'),
-      localFilePath == null
-          ? Container()
-          : PlayerWidget(url: localFilePath),
+      localFilePath == null ? Container() : PlayerWidget(url: localFilePath),
+      Text(
+        "Credit to www.bensound.com for the music and images",
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 12,
+        ),
+      ),
     ]);
   }
 
@@ -86,7 +95,14 @@ class _ExampleAppState extends State<ExampleApp> {
       _btn('Download File to your Device', () => _loadFile()),
       localFilePath == null
           ? Container()
-          : PlayerWidget(urls: [localFilePath,kUrl2,kUrl3]),
+          : PlayerWidget(urls: [localFilePath, kUrl2, kUrl3]),
+      Text(
+        "Credit to www.bensound.com for the music and images",
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 12,
+        ),
+      ),
     ]);
   }
 
@@ -130,7 +146,11 @@ class _ExampleAppState extends State<ExampleApp> {
           title: Text('audioplayers Example'),
         ),
         body: TabBarView(
-          children: [remoteUrl(), localFile(), localAndRemote()],
+          children: [
+            remoteUrl(),
+            localFile(),
+            localAndRemote(),
+          ],
         ),
       ),
     );
