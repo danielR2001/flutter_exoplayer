@@ -1,7 +1,7 @@
 package danielr2001.exoplayer.interfaces;
 
 import danielr2001.exoplayer.ExoPlayerPlugin;
-import danielr2001.exoplayer.notifications.AudioObject;
+import danielr2001.exoplayer.AudioObject;
 
 import android.content.Context;
 

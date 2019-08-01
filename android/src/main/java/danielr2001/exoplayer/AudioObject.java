@@ -1,4 +1,4 @@
-package danielr2001.exoplayer.notifications;
+package danielr2001.exoplayer;
 
 import danielr2001.exoplayer.enums.NotificationMode;
 

@@ -13,3 +13,4 @@ packages
 .settings
 .vscode
 testing
+local.properties

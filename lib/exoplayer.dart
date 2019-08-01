@@ -78,7 +78,7 @@ class ExoPlayer {
   /// Initializes ExoPlayer
   ///
   ExoPlayer() {
-    playerState = PlayerState.STOPPED;
+    playerState = PlayerState.RELEASED;
     playerId = _uuid.v4();
     players[playerId] = this;
   }
@@ -94,7 +94,7 @@ class ExoPlayer {
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioObject audioObject,
-  }) async {
+  }) {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -113,27 +113,26 @@ class ExoPlayer {
       subTitle = audioObject.getSubTitle();
       largeIconUrl = audioObject.getLargeIconUrl();
       isLocal = audioObject.getIsLocal();
-        if (audioObject.getNotificationMode() == NotificationMode.NONE) {
-          notificationMode = 0;
-        } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
-          notificationMode = 1;
-        } else if (audioObject.getNotificationMode() ==
-            NotificationMode.PREVIOUS) {
-          notificationMode = 2;
-        } else {
-          notificationMode = 3;
-        }
+      if (audioObject.getNotificationMode() == NotificationMode.NONE) {
+        notificationMode = 0;
+      } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+        notificationMode = 1;
+      } else if (audioObject.getNotificationMode() ==
+          NotificationMode.PREVIOUS) {
+        notificationMode = 2;
+      } else {
+        notificationMode = 3;
+      }
 
       isBackground = false;
     }
 
-    final int result = await _invokeMethod('play', {
+    return _invokeMethod('play', {
       'url': url,
       'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
-      
       'smallIconFileName': smallIconFileName,
       'title': title,
       'subTitle': subTitle,
@@ -141,12 +140,6 @@ class ExoPlayer {
       'isLocal': isLocal,
       'notificationMode': notificationMode,
     });
-
-    if (result == 1) {
-      playerState = PlayerState.PLAYING;
-    }
-
-    return result;
   }
 
   /// Plays your playlist.
@@ -160,7 +153,7 @@ class ExoPlayer {
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioObject> audioObjects,
-  }) async {
+  }) {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -196,13 +189,12 @@ class ExoPlayer {
       isBackground = false;
     }
 
-    final int result = await _invokeMethod('playAll', { //! TODO handle results!
+    return _invokeMethod('playAll', {
       'urls': urls,
       'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
-
       'smallIconFileNames': smallIconFileNames,
       'titles': titles,
       'subTitles': subTitles,
@@ -210,43 +202,33 @@ class ExoPlayer {
       'isLocals': isLocals,
       'notificationModes': notificationModes,
     });
-
-    return result;
   }
 
   /// Pauses the audio that is currently playing.
   ///
   /// If you call [resume] later, the audio will resume from the point that it
   /// has been paused.
-  Future<int> pause() async {
-    final int result = await _invokeMethod('pause');
-
-    return result;
+  Future<int> pause() {
+    return _invokeMethod('pause');
   }
 
   /// Stops the audio that is currently playing.
   ///
   /// The position is going to be reset and you will no longer be able to resume
   /// from the last point.
-  Future<int> stop() async {
-    final int result = await _invokeMethod('stop');
-
-    return result;
+  Future<int> stop() {
+    return _invokeMethod('stop');
   }
 
   /// Resumes the audio that has been paused.
-  Future<int> resume() async {
-    final int result = await _invokeMethod('resume');
-
-    return result;
+  Future<int> resume() {
+    return _invokeMethod('resume');
   }
 
   /// Releases the resources associated with this audio player.
   ///
-  Future<int> release() async {
-    final int result = await _invokeMethod('release');
-
-    return result;
+  Future<int> release() {
+    return _invokeMethod('release');
   }
 
   /// Moves the cursor to the desired position.
@@ -357,7 +339,7 @@ class ExoPlayer {
         }
         break;
       case 'audio.onError':
-        player.playerState = PlayerState.STOPPED;  //! maybe released?
+        player.playerState = PlayerState.STOPPED; //! maybe released?
         player._errorController.add(value);
         break;
       default:

@@ -4,6 +4,7 @@ import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
 import danielr2001.exoplayer.enums.NotificationMode;
 import danielr2001.exoplayer.interfaces.AsyncResponse;
 import danielr2001.exoplayer.R;
+import danielr2001.exoplayer.AudioObject;
 
 import android.app.Notification;
 import android.app.NotificationChannel;

@@ -3,7 +3,7 @@ package danielr2001.exoplayer.audioplayers;
 import danielr2001.exoplayer.interfaces.AudioPlayer;
 import danielr2001.exoplayer.notifications.MediaNotificationManager;
 import danielr2001.exoplayer.ExoPlayerPlugin;
-import danielr2001.exoplayer.notifications.AudioObject;
+import danielr2001.exoplayer.AudioObject;
 import danielr2001.exoplayer.enums.PlayerState;
 
 import android.content.Intent;
@@ -88,11 +88,13 @@ public class BackgroundExoPlayer implements AudioPlayer {
     @Override
     public void next() {
         player.next();
+        this.resume();
     }
 
     @Override
     public void previous() {
         player.previous();
+        this.resume();
     }
 
     @Override

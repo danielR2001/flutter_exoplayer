@@ -26,7 +26,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   Duration _duration;
   Duration _position;
 
-  PlayerState _playerState = PlayerState.STOPPED;
+  PlayerState _playerState = PlayerState.RELEASED;
   StreamSubscription _durationSubscription;
   StreamSubscription _positionSubscription;
   StreamSubscription _playerCompleteSubscription;
