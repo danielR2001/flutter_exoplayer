@@ -30,8 +30,8 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String,Bitmap>
     }
 
     @Override
-    protected Map<String, Bitmap> doInBackground(String... strings) {
-        Map<String, Bitmap> bitmap = new HashMap();
+    protected Map<String, Bitmap> doInBackground(String... strings) {//! TODO check unsafe
+        Map<String, Bitmap> bitmap = new HashMap(); 
         if (isLocal) {
             if (new File(this.imageUrl).exists()) {
                 bitmap.put(this.imageUrl, BitmapFactory.decodeFile(this.imageUrl));

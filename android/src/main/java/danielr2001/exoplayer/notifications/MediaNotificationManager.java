@@ -4,8 +4,9 @@ import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
 import danielr2001.exoplayer.enums.NotificationMode;
 import danielr2001.exoplayer.interfaces.AsyncResponse;
 import danielr2001.exoplayer.R;
-import danielr2001.exoplayer.AudioObject;
+import danielr2001.exoplayer.models.AudioObject;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -32,6 +33,7 @@ public class MediaNotificationManager {
 
     private ForegroundExoPlayer foregroundExoPlayer;
     private Context context;
+    private Activity activity;
 
     private NotificationManager notificationManager;
     private MediaSessionCompat mediaSession;
@@ -52,18 +54,19 @@ public class MediaNotificationManager {
     private AudioObject audioObject;
     private boolean isPlaying;
 
-    public MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession) {
+    public MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
         this.context = context;
         this.foregroundExoPlayer = foregroundExoPlayer;
         this.mediaSession = mediaSession;
+        this.activity = activity;
 
         initIntents();
     }
 
     private void initIntents() {
-        // notificationIntent = new Intent(this.context, MainActivity.class);
-        // pendingIntent = PendingIntent.getActivity(this.context, 0,
-        // notificationIntent, 0);
+        notificationIntent = new Intent(this.context, activity.getClass());
+        pendingIntent = PendingIntent.getActivity(this.context, 0,
+        notificationIntent, 0);
 
         playIntent = new Intent(this.context, ForegroundExoPlayer.class);
         playIntent.setAction(PLAY_ACTION);
@@ -83,6 +86,7 @@ public class MediaNotificationManager {
 
     }
 
+    //make new notification
     public void makeNotification(AudioObject audioObject, boolean isPlaying) {
         this.audioObject = audioObject;
         this.isPlaying = isPlaying;
@@ -92,7 +96,8 @@ public class MediaNotificationManager {
             showNotification();
         }
     }
-
+    
+    //update current notification
     public void makeNotification(boolean isPlaying) {
         this.isPlaying = isPlaying;
         showNotification();
@@ -107,12 +112,11 @@ public class MediaNotificationManager {
                 notificationManager = initNotificationManager();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
                 .setSmallIcon(icon)
-                //.setOngoing(this.isPlaying)
                 .setWhen(System.currentTimeMillis())
                 .setShowWhen(false)
                 .setColorized(true)
-                .setSound(null);
-                //.setContentIntent(pendingIntent);
+                .setSound(null)
+                .setContentIntent(pendingIntent);
 
         if (audioObject.getTitle() != null) {
             builder.setContentTitle(audioObject.getTitle());

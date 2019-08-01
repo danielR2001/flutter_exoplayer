@@ -1,4 +1,4 @@
-package danielr2001.exoplayer;
+package danielr2001.exoplayer.models;
 
 import danielr2001.exoplayer.enums.NotificationMode;
 
@@ -14,7 +14,8 @@ public class AudioObject {
     private NotificationMode notificationMode;
 
     private Bitmap largeIcon;
- 
+    
+    //for foreground player
     public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationMode notificationMode){
         this.url = url;
         this.smallIconFileName = smallIconFileName;
@@ -25,6 +26,7 @@ public class AudioObject {
         this.notificationMode = notificationMode;
     }
 
+    //for background player
     public AudioObject(String url){
         this.url = url;
     }
@@ -49,10 +51,6 @@ public class AudioObject {
         return largeIcon;
     }
 
-    public void setLargeIcon(Bitmap bitmap){
-        this.largeIcon = bitmap;
-    }
-
     public String getUrl(){
         return url;
     }
@@ -63,5 +61,9 @@ public class AudioObject {
 
     public NotificationMode getNotificationMode(){
         return notificationMode;
+    }
+
+    public void setLargeIcon(Bitmap bitmap){
+        this.largeIcon = bitmap;
     }
 }

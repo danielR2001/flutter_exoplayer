@@ -3,7 +3,7 @@ package danielr2001.exoplayer;
 import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
 import danielr2001.exoplayer.audioplayers.BackgroundExoPlayer;
 import danielr2001.exoplayer.interfaces.AudioPlayer;
-import danielr2001.exoplayer.AudioObject;
+import danielr2001.exoplayer.models.AudioObject;
 import danielr2001.exoplayer.enums.NotificationMode;
 import danielr2001.exoplayer.enums.PlayerState;
 
@@ -49,6 +49,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   private final Map<String, AudioPlayer> audioPlayers = new HashMap<>();
   private Context context;
+  private Activity activity;
 
   private PlayerMode playerMode;
   private boolean repeatMode;
@@ -70,7 +71,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       isServiceConnected = true;
       ForegroundExoPlayer.LocalBinder binder = (ForegroundExoPlayer.LocalBinder) service;
       player = binder.getService();
-      player.initAudioPlayer(exoPlayerPlugin, context, playerId);
+      player.initAudioPlayer(exoPlayerPlugin, activity, playerId);
       audioPlayers.put(playerId, player);
 
       if (playerMode == PlayerMode.PLAYLIST) {
@@ -89,12 +90,13 @@ public class ExoPlayerPlugin implements MethodCallHandler {
 
   public static void registerWith(final Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/exoplayer");
-    channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity().getApplicationContext()));
+    channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity()));
   }
 
-  private ExoPlayerPlugin(final MethodChannel channel, Context context) {
+  private ExoPlayerPlugin(final MethodChannel channel, Activity activity) {
     this.channel = channel;
-    this.context = context;
+    this.activity = activity;
+    this.context = activity.getApplicationContext();
     this.exoPlayerPlugin = this;
     this.channel.setMethodCallHandler(this);
   }
@@ -126,7 +128,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
           // init player as BackgroundExoPlayer instance
           this.audioObject = new AudioObject(url);
           player = new BackgroundExoPlayer();
-          player.initAudioPlayer(this, this.context, playerId);
+          player.initAudioPlayer(this, this.activity, playerId);
           audioPlayers.put(playerId, player);
           player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
           
@@ -168,7 +170,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
             this.audioObjects.add(new AudioObject(url));
           }
           player = new BackgroundExoPlayer();
-          player.initAudioPlayer(this, this.context, playerId);
+          player.initAudioPlayer(this, this.activity, playerId);
           audioPlayers.put(playerId, player);
           player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
         } else {
@@ -328,7 +330,6 @@ public class ExoPlayerPlugin implements MethodCallHandler {
         this.context.unbindService(connection);
       }
     }
-    stopPositionUpdates();
   }
 
   @SuppressWarnings( "deprecation" )

@@ -1,15 +1,16 @@
 package danielr2001.exoplayer.interfaces;
 
 import danielr2001.exoplayer.ExoPlayerPlugin;
-import danielr2001.exoplayer.AudioObject;
+import danielr2001.exoplayer.models.AudioObject;
 
+import android.app.Activity;
 import android.content.Context;
 
 import java.util.ArrayList;
 
 public interface AudioPlayer {
 
-    void initAudioPlayer(ExoPlayerPlugin ref, Context context, String playerId);
+    void initAudioPlayer(ExoPlayerPlugin ref, Activity activity, String playerId);
 
     String getPlayerId();
 

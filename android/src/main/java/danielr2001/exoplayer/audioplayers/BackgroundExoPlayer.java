@@ -3,9 +3,11 @@ package danielr2001.exoplayer.audioplayers;
 import danielr2001.exoplayer.interfaces.AudioPlayer;
 import danielr2001.exoplayer.notifications.MediaNotificationManager;
 import danielr2001.exoplayer.ExoPlayerPlugin;
-import danielr2001.exoplayer.AudioObject;
+import danielr2001.exoplayer.models.AudioObject;
 import danielr2001.exoplayer.enums.PlayerState;
 
+
+import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
 import android.net.Uri;
@@ -49,9 +51,9 @@ public class BackgroundExoPlayer implements AudioPlayer {
     private AudioObject audioObject;
 
     @Override
-    public void initAudioPlayer (ExoPlayerPlugin ref, Context context, String playerId) {
+    public void initAudioPlayer (ExoPlayerPlugin ref, Activity activity, String playerId) {
         this.ref = ref;
-        this.context = context;
+        this.context = activity.getApplicationContext();
         this.playerId = playerId;
         this.backgroundExoPlayer = this;
     }
@@ -233,7 +235,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
                                 ref.handleStateChange(backgroundExoPlayer, PlayerState.PAUSED);
                             }
                         }else{
-                            //play
+                            //playing
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
@@ -252,7 +254,6 @@ public class BackgroundExoPlayer implements AudioPlayer {
                         ref.handleStateChange(backgroundExoPlayer, PlayerState.STOPPED);
                         break;
                     }
-                    //handle of released is in release method!
                 }
             }
         });
