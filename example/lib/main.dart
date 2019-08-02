@@ -143,7 +143,7 @@ class _ExampleAppState extends State<ExampleApp> {
               Tab(text: 'Local & Remote Mix'),
             ],
           ),
-          title: Text('audioplayers Example'),
+          title: Text('exoplayer Example'),
         ),
         body: TabBarView(
           children: [

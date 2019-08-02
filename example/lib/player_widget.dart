@@ -181,8 +181,12 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               min: 0.0,
               max:
                   _duration != null ? _duration.inMilliseconds.toDouble() : 0.0,
-              onChanged: (double value) {
-                _audioPlayer.seek(Duration(milliseconds: value.toInt()));
+              onChanged: (double value) async {
+                final int result = await _audioPlayer
+                    .seek(Duration(milliseconds: value.toInt()));
+                if (result != 1) {
+                  print("something went wrong in resume method :(");
+                }
               },
             ),
           ),
@@ -246,11 +250,14 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           largeIconUrl: "https://www.bensound.com/bensound-img/buddy.jpg",
           isLocal: false,
           notificationMode: NotificationMode.BOTH);
-      await _audioPlayer.play(url,
+      final int result = await _audioPlayer.play(url,
           repeatMode: true,
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
           audioObject: audioObject);
+      if (result != 1) {
+        print("something went wrong in resume method :(");
+      }
     } else {
       List<AudioObject> audioObjects = [
         AudioObject(
@@ -276,11 +283,14 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             notificationMode: NotificationMode.BOTH),
       ];
 
-      await _audioPlayer.playAll(urls,
+      final int result = await _audioPlayer.playAll(urls,
           repeatMode: true,
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
           audioObjects: audioObjects);
+      if (result != 1) {
+        print("something went wrong in resume method :(");
+      }
     }
   }
 
