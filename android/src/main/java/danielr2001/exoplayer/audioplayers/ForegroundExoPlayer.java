@@ -161,6 +161,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
             stopForeground(false);
+            this.playing = false;
         }
     }
 
@@ -176,6 +177,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         if (!this.released) {
             player.stop(true);
             stopForeground(true);
+            this.playing = false;
         }
     }
 
@@ -249,6 +251,11 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         return this.released;
     }
 
+    @Override
+    public int getCurrentPlayingAudioIndex(){
+        return player.getCurrentWindowIndex();
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -296,6 +303,7 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                            ref.handlePlayerIndex();
                         }else{
                             if(playWhenReady && playing){
                                 //first play

@@ -2,7 +2,12 @@ import 'dart:async';
 
 import 'package:exoplayer/audio_object.dart';
 import 'package:exoplayer/exoplayer.dart';
+import 'package:exoplayer_example/main.dart';
 import 'package:flutter/material.dart';
+
+const imageUrl1 = "https://www.bensound.com/bensound-img/buddy.jpg";
+const imageUrl2 = "https://www.bensound.com/bensound-img/epic.jpg";
+const imageUrl3 = "https://www.bensound.com/bensound-img/onceagain.jpg";
 
 class PlayerWidget extends StatefulWidget {
   final String url;
@@ -23,6 +28,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   ExoPlayer _audioPlayer;
   Duration _duration;
   Duration _position;
+  int _currentIndex = 0;
 
   PlayerState _playerState = PlayerState.RELEASED;
   StreamSubscription _durationSubscription;
@@ -30,6 +36,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   StreamSubscription _playerCompleteSubscription;
   StreamSubscription _playerErrorSubscription;
   StreamSubscription _playerStateSubscription;
+  StreamSubscription _playerIndexSubscription;
 
   get _isPlaying => _playerState == PlayerState.PLAYING;
   get _durationText => _duration?.toString()?.split('.')?.first ?? '';
@@ -51,6 +58,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     _playerCompleteSubscription?.cancel();
     _playerErrorSubscription?.cancel();
     _playerStateSubscription?.cancel();
+    _playerIndexSubscription?.cancel();
     super.dispose();
   }
 
@@ -83,7 +91,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                         ),
                       ),
                     ),
-                    onTap: _isPlaying ? null : () => _play(),
+                    onTap: () => _play(),
                   ),
                 ),
               ),
@@ -146,7 +154,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                  onPressed: () => _next(),
+                  onPressed: () => _previous(),
                   iconSize: 45.0,
                   icon: Icon(Icons.skip_previous),
                   color: Colors.pink),
@@ -156,7 +164,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                   icon: _isPlaying ? Icon(Icons.pause) : Icon(Icons.play_arrow),
                   color: Colors.pink),
               IconButton(
-                  onPressed: () => _previous(),
+                  onPressed: () => _next(),
                   iconSize: 45.0,
                   icon: Icon(Icons.skip_next),
                   color: Colors.pink),
@@ -184,9 +192,13 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               onChanged: (double value) async {
                 final int result = await _audioPlayer
                     .seek(Duration(milliseconds: value.toInt()));
-                if (result != 1) {
-                  print("something went wrong in resume method :(");
+                if (result == 0) {
+                  print(
+                      "you tried to call audio conrolling methods on released audio player :(");
+                } else {
+                  print("something went wrong in seek :(");
                 }
+                _position = Duration(milliseconds: value.toInt());
               },
             ),
           ),
@@ -203,6 +215,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           ],
         ),
         Text("State: $_playerState"),
+        Text("index: $_currentIndex"),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
           child: Container(
@@ -223,20 +236,26 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   void _initAudioPlayer() {
     _audioPlayer = ExoPlayer();
-    _positionSubscription = _audioPlayer.onAudioPositionChanged.listen((pos) {
-      setState(() {
-        _position = pos;
-      });
-    });
     _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
       setState(() {
         _duration = duration;
+      });
+    });
+    _positionSubscription = _audioPlayer.onAudioPositionChanged.listen((pos) {
+      setState(() {
+        _position = pos;
       });
     });
     _playerStateSubscription =
         _audioPlayer.onPlayerStateChanged.listen((playerState) {
       setState(() {
         _playerState = playerState;
+      });
+    });
+    _playerIndexSubscription =
+        _audioPlayer.onPlayerIndexChanged.listen((index) {
+      setState(() {
+        _currentIndex = index;
       });
     });
   }
@@ -247,7 +266,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           smallIconFileName: "ic_launcher",
           title: "title",
           subTitle: "artist",
-          largeIconUrl: "https://www.bensound.com/bensound-img/buddy.jpg",
+          largeIconUrl: getUrlMatchingImage(),
           isLocal: false,
           notificationMode: NotificationMode.BOTH);
       final int result = await _audioPlayer.play(url,
@@ -256,29 +275,29 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           playerMode: PlayerMode.FOREGROUND,
           audioObject: audioObject);
       if (result != 1) {
-        print("something went wrong in resume method :(");
+        print("something went wrong in play method :(");
       }
     } else {
       List<AudioObject> audioObjects = [
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title1",
-            subTitle: "artist2",
-            largeIconUrl: "https://www.bensound.com/bensound-img/buddy.jpg",
+            subTitle: "artist1",
+            largeIconUrl: imageUrl1,
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title2",
-            subTitle: "artist3",
-            largeIconUrl: "https://www.bensound.com/bensound-img/epic.jpg",
+            subTitle: "artist2",
+            largeIconUrl: imageUrl2,
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
         AudioObject(
             smallIconFileName: "ic_launcher",
             title: "title3",
             subTitle: "artist3",
-            largeIconUrl: "https://www.bensound.com/bensound-img/onceagain.jpg",
+            largeIconUrl: imageUrl3,
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
       ];
@@ -289,50 +308,78 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           playerMode: PlayerMode.FOREGROUND,
           audioObjects: audioObjects);
       if (result != 1) {
-        print("something went wrong in resume method :(");
+        print("something went wrong in playAll method :(");
       }
     }
   }
 
   Future<void> _resume() async {
     final int result = await _audioPlayer.resume();
-    if (result != 1) {
-      print("something went wrong in resume method :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in resume :(");
     }
   }
 
   Future<void> _pause() async {
     final int result = await _audioPlayer.pause();
-    if (result != 1) {
-      print("something went wrong in pause method :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in pause :(");
     }
   }
 
   Future<void> _stop() async {
     final int result = await _audioPlayer.stop();
-    if (result != 1) {
-      print("something went wrong in stop method :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in stop :(");
     }
   }
 
   Future<void> _release() async {
     final int result = await _audioPlayer.release();
-    if (result != 1) {
-      print("something went wrong in release method :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in release :(");
     }
   }
 
   Future<void> _next() async {
     final int result = await _audioPlayer.next();
-    if (result != 1) {
-      print("something went wrong in resume next :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in next :(");
     }
   }
 
   Future<void> _previous() async {
     final int result = await _audioPlayer.previous();
-    if (result != 1) {
-      print("something went wrong in previous method :(");
+    if (result == 0) {
+      print(
+          "you tried to call audio conrolling methods on released audio player :(");
+    } else {
+      print("something went wrong in previous :(");
+    }
+  }
+
+  String getUrlMatchingImage() {
+    if (url == kUrl1) {
+      return imageUrl1;
+    } else if (url == kUrl2) {
+      return imageUrl2;
+    } else {
+      return imageUrl3;
     }
   }
 }

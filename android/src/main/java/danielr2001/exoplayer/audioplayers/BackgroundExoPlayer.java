@@ -105,6 +105,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
     public void pause() {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
+            this.playing = false;
         }
     }
 
@@ -119,6 +120,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
     public void stop() {
         if (!this.released) {
             player.stop(true);
+            this.playing = false;
         }
     }
 
@@ -188,6 +190,11 @@ public class BackgroundExoPlayer implements AudioPlayer {
         return this.released;
     }
 
+    @Override
+    public int getCurrentPlayingAudioIndex(){
+        return player.getCurrentWindowIndex();
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -234,6 +241,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(backgroundExoPlayer, PlayerState.PLAYING);
+                            ref.handlePlayerIndex();
                         }else{
                             if(playWhenReady && playing){
                                 //first play

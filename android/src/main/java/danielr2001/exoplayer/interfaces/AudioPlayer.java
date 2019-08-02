@@ -14,7 +14,7 @@ public interface AudioPlayer {
 
     String getPlayerId();
 
-    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject); //! TODO make optional variables!
+    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject); 
 
     void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects);
 
@@ -45,4 +45,6 @@ public interface AudioPlayer {
     boolean isPlayerInitialized();
 
     boolean isPlayerReleased();
+
+    int getCurrentPlayingAudioIndex();
 }

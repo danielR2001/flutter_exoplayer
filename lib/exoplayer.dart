@@ -41,6 +41,9 @@ class ExoPlayer {
   final StreamController<String> _errorController =
       StreamController<String>.broadcast();
 
+  final StreamController<int> _currentPlayingIndexController =
+      StreamController<int>.broadcast();
+
   /// Stream of changes on player playerState.
   Stream<PlayerState> get onPlayerStateChanged => _playerStateController.stream;
 
@@ -70,6 +73,11 @@ class ExoPlayer {
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
   Stream<String> get onPlayerError => _errorController.stream;
+
+    /// Stream of player errors.
+  ///
+  /// Events are sent when an unexpected error is thrown in the native code.
+  Stream<int> get onPlayerIndexChanged => _currentPlayingIndexController.stream;
 
   PlayerState _audioPlayerState;
 
@@ -268,8 +276,15 @@ class ExoPlayer {
   }
 
   /// Gets audio current playing position
+  /// 
+  /// the position starts from 0.
   Future<int> getCurrentPosition() async {
     return _invokeMethod('getCurrentPosition');
+  }
+
+  /// Gets current playing audio index
+  Future<int> getCurrentPlayingAudioIndex() async {
+    return _invokeMethod('getCurrentPlayingAudioIndex');
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {
@@ -352,6 +367,9 @@ class ExoPlayer {
             }
         }
         break;
+      case 'audio.onCurrentPlayingAudioIndex':
+        player._currentPlayingIndexController.add(value);
+        break;
       case 'audio.onError':
         player.playerState = PlayerState.STOPPED; //! maybe released?
         player._errorController.add(value);
@@ -384,6 +402,9 @@ class ExoPlayer {
     }
     if (!_errorController.isClosed) {
       futures.add(_errorController.close());
+    }
+    if(!_currentPlayingIndexController.isClosed){
+      futures.add(_currentPlayingIndexController.close());
     }
     await Future.wait(futures);
   }

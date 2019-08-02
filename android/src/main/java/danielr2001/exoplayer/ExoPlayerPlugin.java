@@ -55,7 +55,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private boolean repeatMode;
   private boolean respectAudioFocus;
   private float volume;
-  private AudioObject audioObject;
+  private AudioObject audioObject;  //! TODO set cleanup for player and audioObjects
   private final ArrayList<AudioObject> audioObjects = new ArrayList<>();
 
   private String playerId;
@@ -77,6 +77,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       } else {
         player.play(repeatMode, respectAudioFocus, audioObject);
       }
+
       player.setVolume(volume);
     }
 
@@ -109,146 +110,173 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   }
 
   private void handleMethodCall(final MethodCall call, final MethodChannel.Result response) {
+    this.player = null; //cleaning up the player
     this.playerId = call.argument("playerId");
     if(audioPlayers.containsKey(playerId)){
       this.player = getPlayer(playerId);
     }
-    switch (call.method) {
-      case "play": {
-        final String url = call.argument("url");
-        final double vol = call.argument("volume");
-        this.volume = (float) vol;
-        this.repeatMode = call.argument("repeatMode");
-        final boolean isBackground = call.argument("isBackground");
-        this.respectAudioFocus = call.argument("respectAudioFocus");
-        if (isBackground) {
-          // init player as BackgroundExoPlayer instance
-          this.audioObject = new AudioObject(url);
-          player = new BackgroundExoPlayer();
-          player.initAudioPlayer(this, this.activity, playerId);
-          audioPlayers.put(playerId, player);
-          player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
-          
-        } else {
-          final String smallIconFileName = call.argument("smallIconFileName");
-          final String title = call.argument("title");
-          final String subTitle = call.argument("subTitle");
-          final String largeIconUrl = call.argument("largeIconUrl");
-          final boolean isLocal = call.argument("isLocal");
-          final int notificationModeInt = call.argument("notificationMode");
-          NotificationMode notificationMode;
-          if (notificationModeInt == 0) {
-            notificationMode = NotificationMode.NONE;
-          } else if (notificationModeInt == 1) {
-            notificationMode = NotificationMode.NEXT;
-          } else if (notificationModeInt == 2){
-            notificationMode = NotificationMode.PREVIOUS;
-          }else{
-            notificationMode = NotificationMode.BOTH;
-          }
-
-          this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationMode);
-          // init player as ForegroundExoPlayer service
-          startForegroundPlayer();
-        }
-        break;
-      }
-      case "playAll": {
-        final ArrayList<String> urls = call.argument("urls");
-        final double vol = call.argument("volume");
-        this.volume = (float) vol;
-        this.repeatMode = call.argument("repeatMode");
-        final boolean isBackground = call.argument("isBackground");
-        this.respectAudioFocus = call.argument("respectAudioFocus");
-        playerMode = PlayerMode.PLAYLIST;
-        if (isBackground) {
-          // init player as BackgroundExoPlayer instance
-          for(String url : urls){
-            this.audioObjects.add(new AudioObject(url));
-          }
-          player = new BackgroundExoPlayer();
-          player.initAudioPlayer(this, this.activity, playerId);
-          audioPlayers.put(playerId, player);
-          player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
-        } else {
-          final ArrayList<String> smallIconFileNames = call.argument("smallIconFileNames");
-          final ArrayList<String> titles = call.argument("titles");
-          final ArrayList<String> subTitles = call.argument("subTitles");
-          final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
-          final ArrayList<Boolean> isLocals = call.argument("isLocals");
-          final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
-
-          for(int i = 0; i < urls.size(); i++ ){
+    if(call.method.equals("play") || call.method.equals("playAll") || this.player != null){ // check if player is released then do nothing
+      switch (call.method) {
+        case "play": {
+          final String url = call.argument("url");
+          final double vol = call.argument("volume");
+          this.volume = (float) vol;
+          this.repeatMode = call.argument("repeatMode");
+          final boolean isBackground = call.argument("isBackground");
+          this.respectAudioFocus = call.argument("respectAudioFocus");
+          playerMode = PlayerMode.SINGLE;
+          if (isBackground) {
+            // init player as BackgroundExoPlayer instance
+            this.audioObject = new AudioObject(url);
+            if(player != null && !player.isPlayerReleased()){
+              player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
+            }else{
+              player = new BackgroundExoPlayer();
+              player.initAudioPlayer(this, this.activity, playerId);
+              audioPlayers.put(playerId, player);
+              player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
+            }
+            
+          } else {
+            final String smallIconFileName = call.argument("smallIconFileName");
+            final String title = call.argument("title");
+            final String subTitle = call.argument("subTitle");
+            final String largeIconUrl = call.argument("largeIconUrl");
+            final boolean isLocal = call.argument("isLocal");
+            final int notificationModeInt = call.argument("notificationMode");
             NotificationMode notificationMode;
-            if (notificationModeInts.get(i) == 0) {
+            if (notificationModeInt == 0) {
               notificationMode = NotificationMode.NONE;
-            } else if (notificationModeInts.get(i) == 1) {
+            } else if (notificationModeInt == 1) {
               notificationMode = NotificationMode.NEXT;
-            } else if (notificationModeInts.get(i) == 2){
+            } else if (notificationModeInt == 2){
               notificationMode = NotificationMode.PREVIOUS;
             }else{
               notificationMode = NotificationMode.BOTH;
             }
-            this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode));
+
+            this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationMode);
+            // init player as ForegroundExoPlayer service
+            if(player != null && !player.isPlayerReleased()){
+              player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
+            }else{
+              startForegroundPlayer();
+            }
           }
-          // init player as ForegroundExoPlayer service
-          startForegroundPlayer();
+          break;
         }
-        break;
-      }
-      case "next": {
-        player.next();
-        break;
-      }
-      case "previous": {
-        player.previous();
-        break;
-      }
-      case "resume": {
-        player.resume();
-        break;
-      }
-      case "pause": {
-        player.pause();
-        break;
-      }
-      case "stop": {
-        player.stop();
-        break;
-      }
-      case "release": {
-        if(!player.isBackground() && !player.isPlayerReleased()){
-          this.context.unbindService(connection);
+        case "playAll": {
+          final ArrayList<String> urls = call.argument("urls");
+          final double vol = call.argument("volume");
+          this.volume = (float) vol;
+          this.repeatMode = call.argument("repeatMode");
+          final boolean isBackground = call.argument("isBackground");
+          this.respectAudioFocus = call.argument("respectAudioFocus");
+          playerMode = PlayerMode.PLAYLIST;
+          if (isBackground) {
+            // init player as BackgroundExoPlayer instance
+            for(String url : urls){
+              this.audioObjects.add(new AudioObject(url));
+            }
+            if(player != null && !player.isPlayerReleased()){
+              player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
+            }else{
+              player = new BackgroundExoPlayer();
+              player.initAudioPlayer(this, this.activity, playerId);
+              audioPlayers.put(playerId, player);
+              player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
+            }
+          } else {
+            final ArrayList<String> smallIconFileNames = call.argument("smallIconFileNames");
+            final ArrayList<String> titles = call.argument("titles");
+            final ArrayList<String> subTitles = call.argument("subTitles");
+            final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
+            final ArrayList<Boolean> isLocals = call.argument("isLocals");
+            final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
+
+            for(int i = 0; i < urls.size(); i++ ){
+              NotificationMode notificationMode;
+              if (notificationModeInts.get(i) == 0) {
+                notificationMode = NotificationMode.NONE;
+              } else if (notificationModeInts.get(i) == 1) {
+                notificationMode = NotificationMode.NEXT;
+              } else if (notificationModeInts.get(i) == 2){
+                notificationMode = NotificationMode.PREVIOUS;
+              }else{
+                notificationMode = NotificationMode.BOTH;
+              }
+              this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode));
+            }
+            // init player as ForegroundExoPlayer service
+            if(player != null && !player.isPlayerReleased()){
+              player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
+            }else{
+              startForegroundPlayer();
+            }
+          }
+          break;
         }
-        player.release();
-        break;
+        case "next": {
+          player.next();
+          break;
+        }
+        case "previous": {
+          player.previous();
+          break;
+        }
+        case "resume": {
+          player.resume();
+          break;
+        }
+        case "pause": {
+          player.pause();
+          break;
+        }
+        case "stop": {
+          player.stop();
+          break;
+        }
+        case "release": {
+          if(!player.isBackground() && !player.isPlayerReleased()){
+            this.context.unbindService(connection);
+          }
+          audioPlayers.remove(player.getPlayerId());
+          player.release();
+          break;
+        }
+        case "seek": {
+          final int position = call.argument("position");
+          player.seek(position);
+          break;
+        }
+        case "setVolume": {
+          final Float volume = call.argument("volume");
+          player.setVolume(volume);
+          break;
+        }
+        case "getDuration": {
+          response.success(player.getDuration());
+          return;
+        }
+        case "dispose": {
+          dispose();
+          return;
+        }
+        default: {
+          response.notImplemented();
+          return;
+        }
       }
-      case "seek": {
-        final int position = call.argument("position");
-        player.seek(position);
-        break;
-      }
-      case "setVolume": {
-        final Float volume = call.argument("volume");
-        player.setVolume(volume);
-        break;
-      }
-      case "getDuration": {
-        response.success(player.getDuration());
-        return;
-      }
-      case "dispose": {
-        dispose();
-        return;
-      }
-      default: {
-        response.notImplemented();
-        return;
-      }
+      response.success(1);
+    }else{
+      response.success(0);
     }
-    response.success(1);
   }
 
+
+  public void handlePlayerIndex(){
+    channel.invokeMethod("audio.onCurrentPlayingAudioIndex",buildArguments(player.getPlayerId(), player.getCurrentPlayingAudioIndex()));
+  }
 
   public void handleStateChange(AudioPlayer player, PlayerState playerState) {
     switch (playerState) {
@@ -377,8 +405,8 @@ public class ExoPlayerPlugin implements MethodCallHandler {
               nonePlaying = false;
               final String key = player.getPlayerId();
               final long position = player.getCurrentPosition();
-              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position));
-              channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
+                channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
+                channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position)); 
           } catch(UnsupportedOperationException e) {
 
           }
