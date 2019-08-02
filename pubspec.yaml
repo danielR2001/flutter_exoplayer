@@ -1,8 +1,8 @@
-name: exoplayer
-description: A new Flutter plugin.
+name: flutter_exoplayer
+description: A flutter plugin to play audio files using Java ExoPlayer library
 version: 0.0.1
-author:
-homepage:
+author: Daniel Rachlin <daniel.rachlin@gmail.com>
+homepage: https://github.com/danielR2001/flutter_exoplayer
 
 environment:
   sdk: ">=2.1.0 <3.0.0"

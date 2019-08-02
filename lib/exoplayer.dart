@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:exoplayer/audio_object.dart';
+import 'package:flutter_exoplayer/audio_object.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 

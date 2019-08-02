@@ -6,7 +6,7 @@ dependencies:
     sdk: flutter
   http: ^0.11.3+17
   path_provider: ^1.1.0
-  exoplayer:
+  flutter_exoplayer:
     path: ../
 
 flutter:

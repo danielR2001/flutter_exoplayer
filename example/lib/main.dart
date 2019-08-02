@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:exoplayer/exoplayer.dart';
+import 'package:flutter_exoplayer/exoplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'player_widget.dart';

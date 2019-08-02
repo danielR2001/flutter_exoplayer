@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:exoplayer/audio_object.dart';
-import 'package:exoplayer/exoplayer.dart';
+import 'package:flutter_exoplayer/audio_object.dart';
+import 'package:flutter_exoplayer/exoplayer.dart';
 import 'package:exoplayer_example/main.dart';
 import 'package:flutter/material.dart';
 
