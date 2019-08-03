@@ -127,6 +127,9 @@ public class MediaNotificationManager {
         if (audioObject.getLargeIcon() != null) {
             builder.setLargeIcon(audioObject.getLargeIcon());
         }
+        if(!this.isPlaying){
+            builder.setTimeoutAfter(900000);
+        }
         builder = initNotificationActions(builder);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -134,10 +137,11 @@ public class MediaNotificationManager {
         }
 
         notification = builder.build();
-        // ! TODO content intent => current activity
 
         notificationManager.notify(notificationId, notification);
-        foregroundExoPlayer.startForeground(notificationId, notification);
+        if(this.isPlaying){
+            foregroundExoPlayer.startForeground(notificationId, notification);
+        }
     }
 
     private NotificationManager initNotificationManager() {

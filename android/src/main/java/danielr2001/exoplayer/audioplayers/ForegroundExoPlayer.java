@@ -161,7 +161,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
             stopForeground(false);
-            this.playing = false;
         }
     }
 
@@ -177,7 +176,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         if (!this.released) {
             player.stop(true);
             stopForeground(true);
-            this.playing = false;
         }
     }
 

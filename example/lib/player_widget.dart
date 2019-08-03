@@ -195,7 +195,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                 if (result == 0) {
                   print(
                       "you tried to call audio conrolling methods on released audio player :(");
-                } else {
+                } else if (result != 1) {
                   print("something went wrong in seek :(");
                 }
                 _position = Duration(milliseconds: value.toInt());
@@ -318,7 +318,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in resume :(");
     }
   }
@@ -328,7 +328,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in pause :(");
     }
   }
@@ -338,7 +338,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in stop :(");
     }
   }
@@ -348,7 +348,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in release :(");
     }
   }
@@ -358,7 +358,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in next :(");
     }
   }
@@ -368,7 +368,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (result == 0) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else {
+    } else if (result != 1) {
       print("something went wrong in previous :(");
     }
   }

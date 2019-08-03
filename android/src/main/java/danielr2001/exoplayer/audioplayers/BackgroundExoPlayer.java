@@ -105,7 +105,6 @@ public class BackgroundExoPlayer implements AudioPlayer {
     public void pause() {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
-            this.playing = false;
         }
     }
 
@@ -120,7 +119,6 @@ public class BackgroundExoPlayer implements AudioPlayer {
     public void stop() {
         if (!this.released) {
             player.stop(true);
-            this.playing = false;
         }
     }
 
