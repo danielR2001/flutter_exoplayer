@@ -7,7 +7,7 @@ enum NotificationMode {
   BOTH, //3
 }
 
-class AudioObject {
+class AudioNotification {
   String smallIconFileName;
   String title;
   String subTitle;
@@ -16,8 +16,9 @@ class AudioObject {
   NotificationMode notificationMode;
   //! TODO add background color customization!
   //! TODO notification importance!
+  //! TODO set timeout!
 
-  AudioObject({
+  AudioNotification({
     @required String smallIconFileName,
     String title,
     String subTitle,

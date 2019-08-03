@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_exoplayer/audio_object.dart';
+import 'package:flutter_exoplayer/audio_notification.dart';
 import 'package:flutter_exoplayer/exoplayer.dart';
 import 'package:exoplayer_example/main.dart';
 import 'package:flutter/material.dart';
@@ -262,7 +262,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   Future<void> _play() async {
     if (url != null) {
-      AudioObject audioObject = AudioObject(
+      AudioNotification audioObject = AudioNotification(
           smallIconFileName: "ic_launcher",
           title: "title",
           subTitle: "artist",
@@ -273,27 +273,27 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           repeatMode: true,
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
-          audioObject: audioObject);
+          audioNotification: audioObject);
       if (result != 1) {
         print("something went wrong in play method :(");
       }
     } else {
-      List<AudioObject> audioObjects = [
-        AudioObject(
+      List<AudioNotification> audioNotifications = [
+        AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title1",
             subTitle: "artist1",
             largeIconUrl: imageUrl1,
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
-        AudioObject(
+        AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title2",
             subTitle: "artist2",
             largeIconUrl: imageUrl2,
             isLocal: false,
             notificationMode: NotificationMode.BOTH),
-        AudioObject(
+        AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title3",
             subTitle: "artist3",
@@ -306,7 +306,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           repeatMode: true,
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
-          audioObjects: audioObjects);
+          audioNotifications: audioNotifications);
       if (result != 1) {
         print("something went wrong in playAll method :(");
       }
@@ -378,8 +378,10 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       return imageUrl1;
     } else if (url == kUrl2) {
       return imageUrl2;
-    } else {
+    } else if(url == kUrl2){
       return imageUrl3;
+    }else{
+      return imageUrl1;
     }
   }
 }

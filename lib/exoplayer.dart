@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_exoplayer/audio_object.dart';
+import 'package:flutter_exoplayer/audio_notification.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
@@ -94,14 +94,14 @@ class ExoPlayer {
   /// Plays an audio.
   ///
   /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
-  /// [audioObject] for providing the foreground notification.
+  /// [audioNotification] for providing the foreground notification.
   Future<int> play(
     String url, {
     double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
-    AudioObject audioObject,
+    AudioNotification audioNotification,
   }) {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
@@ -116,16 +116,16 @@ class ExoPlayer {
     bool isLocal;
     int notificationMode;
     if (playerMode == PlayerMode.FOREGROUND) {
-      smallIconFileName = audioObject.getSmallIconFileName();
-      title = audioObject.getTitle();
-      subTitle = audioObject.getSubTitle();
-      largeIconUrl = audioObject.getLargeIconUrl();
-      isLocal = audioObject.getIsLocal();
-      if (audioObject.getNotificationMode() == NotificationMode.NONE) {
+      smallIconFileName = audioNotification.getSmallIconFileName();
+      title = audioNotification.getTitle();
+      subTitle = audioNotification.getSubTitle();
+      largeIconUrl = audioNotification.getLargeIconUrl();
+      isLocal = audioNotification.getIsLocal();
+      if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
         notificationMode = 0;
-      } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+      } else if (audioNotification.getNotificationMode() == NotificationMode.NEXT) {
         notificationMode = 1;
-      } else if (audioObject.getNotificationMode() ==
+      } else if (audioNotification.getNotificationMode() ==
           NotificationMode.PREVIOUS) {
         notificationMode = 2;
       } else {
@@ -153,14 +153,14 @@ class ExoPlayer {
   /// Plays your playlist.
   ///
   /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
-  /// [audioObjects] for providing the foreground notification.
+  /// [audioNotifications] for providing the foreground notification.
   Future<int> playAll(
     List<String> urls, {
     double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
-    List<AudioObject> audioObjects,
+    List<AudioNotification> audioNotifications,
   }) {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
@@ -175,18 +175,18 @@ class ExoPlayer {
     final List<bool> isLocals = List();
     final List<int> notificationModes = List();
     if (playerMode == PlayerMode.FOREGROUND) {
-      for (AudioObject audioObject in audioObjects) {
-        smallIconFileNames.add(audioObject.getSmallIconFileName());
-        titles.add(audioObject.getTitle());
-        subTitles.add(audioObject.getSubTitle());
-        largeIconUrls.add(audioObject.getLargeIconUrl());
-        isLocals.add(audioObject.getIsLocal());
+      for (AudioNotification audioNotification in audioNotifications) {
+        smallIconFileNames.add(audioNotification.getSmallIconFileName());
+        titles.add(audioNotification.getTitle());
+        subTitles.add(audioNotification.getSubTitle());
+        largeIconUrls.add(audioNotification.getLargeIconUrl());
+        isLocals.add(audioNotification.getIsLocal());
 
-        if (audioObject.getNotificationMode() == NotificationMode.NONE) {
+        if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
           notificationModes.add(0);
-        } else if (audioObject.getNotificationMode() == NotificationMode.NEXT) {
+        } else if (audioNotification.getNotificationMode() == NotificationMode.NEXT) {
           notificationModes.add(1);
-        } else if (audioObject.getNotificationMode() ==
+        } else if (audioNotification.getNotificationMode() ==
             NotificationMode.PREVIOUS) {
           notificationModes.add(2);
         } else {

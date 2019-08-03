@@ -112,11 +112,11 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private void handleMethodCall(final MethodCall call, final MethodChannel.Result response) {
     this.player = null; //cleaning up the player
     this.playerId = call.argument("playerId");
-    if(audioPlayers.containsKey(playerId)){
+    if(audioPlayers.containsKey(playerId)){         //! TODO maybe remake this !
       this.player = getPlayer(playerId);
     }
     if(call.method.equals("play") || call.method.equals("playAll") || this.player != null){ // check if player is released then do nothing
-      switch (call.method) {
+      switch (call.method) {                                                        
         case "play": {
           final String url = call.argument("url");
           final double vol = call.argument("volume");
