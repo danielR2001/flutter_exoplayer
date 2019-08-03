@@ -16,7 +16,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String,Bitmap>> {
+public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String, Bitmap>> {
 
     private String imageUrl;
     private boolean isLocal;
@@ -30,20 +30,25 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String,Bitmap>
     }
 
     @Override
-    protected Map<String, Bitmap> doInBackground(String... strings) {//! TODO check unsafe
-        Map<String, Bitmap> bitmap = new HashMap(); 
+    protected Map<String, Bitmap> doInBackground(String... strings) {
+        Map<String, Bitmap> bitmapMap = new HashMap<String, Bitmap>();
         if (isLocal) {
             if (new File(this.imageUrl).exists()) {
-                bitmap.put(this.imageUrl, BitmapFactory.decodeFile(this.imageUrl));
-                return bitmap;
+                Bitmap temp = BitmapFactory.decodeFile(this.imageUrl);
+                if (temp != null) {
+                    bitmapMap.put(this.imageUrl, temp);
+                    return bitmapMap;
+                }
             } else {
-                Log.e("ExoPlayerPlugin", "Local image doesnt exist!");
+                Log.e("ExoPlayerPlugin", "Local image doesn`t exist!");
             }
         } else {
-            bitmap.put(this.imageUrl, getImageBitmapFromNetworkUrl());
-            return bitmap;
+            Bitmap temp = getImageBitmapFromNetworkUrl();
+            if (temp != null) {
+                bitmapMap.put(this.imageUrl, temp);
+                return bitmapMap;
+            }
         }
-
         return null;
     }
 
@@ -62,8 +67,8 @@ public class LoadImageFromUrl extends AsyncTask<String, Void, Map<String,Bitmap>
     }
 
     @Override
-    protected void onPostExecute(Map<String, Bitmap> bitmap) {
-        super.onPostExecute(bitmap);
-        delegate.processFinish(bitmap);
+    protected void onPostExecute(Map<String, Bitmap> bitmapMap) {
+        super.onPostExecute(bitmapMap);
+        delegate.processFinish(bitmapMap);
     }
 }

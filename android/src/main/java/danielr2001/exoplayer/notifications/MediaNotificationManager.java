@@ -201,10 +201,10 @@ public class MediaNotificationManager {
         try {
             new LoadImageFromUrl(imageUrl, isLocal, new AsyncResponse() {
                 @Override
-                public void processFinish(Map<String,Bitmap> bitmap) {
-                    if (bitmap != null) {
-                        if(bitmap.get(audioObject.getLargeIconUrl()) != null){
-                            audioObject.setLargeIcon(bitmap.get(audioObject.getLargeIconUrl()));
+                public void processFinish(Map<String,Bitmap> bitmapMap) {
+                    if (bitmapMap != null) {
+                        if(bitmapMap.get(audioObject.getLargeIconUrl()) != null){
+                            audioObject.setLargeIcon(bitmapMap.get(audioObject.getLargeIconUrl()));
                             showNotification();
                         }else{
                             Log.e("ExoPlayerPlugin", "canceled showing notification!");
