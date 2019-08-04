@@ -260,17 +260,20 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         _currentIndex = index;
       });
     });
-    _playerAudioSessionIdSubscription = _audioPlayer.onAudioSessionIdChange.listen((audioSessionId){
+    _playerAudioSessionIdSubscription =
+        _audioPlayer.onAudioSessionIdChange.listen((audioSessionId) {
       print("audio Session Id: $audioSessionId");
     });
   }
 
   Future<void> _play() async {
     if (url != null) {
-      final Result result = await _audioPlayer.play(url,
-          repeatMode: true,
-          respectAudioFocus: false,
-          playerMode: PlayerMode.BACKGROUND,);
+      final Result result = await _audioPlayer.play(
+        url,
+        repeatMode: true,
+        respectAudioFocus: false,
+        playerMode: PlayerMode.BACKGROUND,
+      );
       if (result == Result.error) {
         print("something went wrong in play method :(");
       }

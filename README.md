@@ -10,7 +10,7 @@ just add this dependency in your pubsec.yaml file:
 
 ```yaml
   dependencies:
-    exoplayer: ^0.0.1
+    flutter_exoplayer: ^0.0.1
 ```
 
 ## Support us
@@ -65,9 +65,9 @@ By default the player is set to play in background (Android system can easily ki
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
       audioObject: audioObject);
-  if (result != 1) {
-    print("something went wrong in resume method :(");
-  } 
+  if (result == Result.error) {
+    print("something went wrong in play method :(");
+  }
 ```
 
 ```dart
@@ -76,8 +76,8 @@ By default the player is set to play in background (Android system can easily ki
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
       audioObjects: audioObjects);
-  if (result != 1) {
-    print("something went wrong in resume method :(");
+  if (result == Result.error) {
+    print("something went wrong in playAll method :(");
   }
 ```
 
@@ -90,8 +90,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.pause();
-  if (result != 1) {
-    print("something went wrong in pause method :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in pause :(");
   }
 ```
 
@@ -99,8 +102,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.resume();
-  if (result != 1) {
-    print("something went wrong in resume method :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in resume :(");
   }
 ```
 
@@ -108,17 +114,23 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.stop();
-  if (result != 1) {
-    print("something went wrong in stop method :(");
-  }
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in stop :(");
+  } 
 ```
 
 * Release: Will release your audio source from the player (you need to call play again).
 
 ```dart
   final int result = await exoplayer.release();
-  if (result != 1) {
-    print("something went wrong in release method :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in release :(");
   }
 ```
 
@@ -126,8 +138,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.next();
-  if (result != 1) {
-    print("something went wrong in resume next :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in next :(");
   }
 ```
 
@@ -135,8 +150,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.previous();
-  if (result != 1) {
-    print("something went wrong in previous method :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in previous :(");
   }
 ```
 
@@ -144,8 +162,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await exoplayer.seek(_duration));
-  if (result != 1) {
-      print("something went wrong in resume method :(");
+  if (result == Result.fail) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.error) {
+    print("something went wrong in seek :(");
   }
 ```
 
