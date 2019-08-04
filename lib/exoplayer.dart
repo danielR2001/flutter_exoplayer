@@ -15,6 +15,7 @@ enum PlayerMode {
   FOREGROUND,
   BACKGROUND,
 }
+enum Result { success, fail, error }
 
 class ExoPlayer {
   static MethodChannel _channel = const MethodChannel('danielr2001/exoplayer')
@@ -44,6 +45,9 @@ class ExoPlayer {
   final StreamController<int> _currentPlayingIndexController =
       StreamController<int>.broadcast();
 
+  final StreamController<int> _audioSessionIdController =
+      StreamController<int>.broadcast();
+
   /// Stream of changes on player playerState.
   Stream<PlayerState> get onPlayerStateChanged => _playerStateController.stream;
 
@@ -69,12 +73,20 @@ class ExoPlayer {
   /// [ReleaseMode.LOOP] also sends events to this stream.
   Stream<void> get onPlayerCompletion => _completionController.stream;
 
+  /// Stream of player completions.
+  ///
+  /// Events are sent every time an audio is finished, therefore no event is
+  /// sent when an audio is paused or stopped.
+  ///
+  /// [ReleaseMode.LOOP] also sends events to this stream.
+  Stream<int> get onAudioSessionIdChange => _audioSessionIdController.stream;
+
   /// Stream of player errors.
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
   Stream<String> get onPlayerError => _errorController.stream;
 
-    /// Stream of player errors.
+  /// Stream of player errors.
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
   Stream<int> get onPlayerIndexChanged => _currentPlayingIndexController.stream;
@@ -95,14 +107,14 @@ class ExoPlayer {
   ///
   /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotification] for providing the foreground notification.
-  Future<int> play(
+  Future<Result> play(
     String url, {
     double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioNotification audioNotification,
-  }) {
+  }) async {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -123,7 +135,8 @@ class ExoPlayer {
       isLocal = audioNotification.getIsLocal();
       if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
         notificationMode = 0;
-      } else if (audioNotification.getNotificationMode() == NotificationMode.NEXT) {
+      } else if (audioNotification.getNotificationMode() ==
+          NotificationMode.NEXT) {
         notificationMode = 1;
       } else if (audioNotification.getNotificationMode() ==
           NotificationMode.PREVIOUS) {
@@ -135,7 +148,7 @@ class ExoPlayer {
       isBackground = false;
     }
 
-    return _invokeMethod('play', {
+    switch (await _invokeMethod('play', {
       'url': url,
       'volume': volume,
       'repeatMode': repeatMode,
@@ -147,21 +160,28 @@ class ExoPlayer {
       'largeIconUrl': largeIconUrl,
       'isLocal': isLocal,
       'notificationMode': notificationMode,
-    });
+    })) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Plays your playlist.
   ///
   /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotifications] for providing the foreground notification.
-  Future<int> playAll(
+  Future<Result> playAll(
     List<String> urls, {
     double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioNotification> audioNotifications,
-  }) {
+  }) async {
     volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -184,7 +204,8 @@ class ExoPlayer {
 
         if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
           notificationModes.add(0);
-        } else if (audioNotification.getNotificationMode() == NotificationMode.NEXT) {
+        } else if (audioNotification.getNotificationMode() ==
+            NotificationMode.NEXT) {
           notificationModes.add(1);
         } else if (audioNotification.getNotificationMode() ==
             NotificationMode.PREVIOUS) {
@@ -197,7 +218,7 @@ class ExoPlayer {
       isBackground = false;
     }
 
-    return _invokeMethod('playAll', {
+    switch (await _invokeMethod('playAll', {
       'urls': urls,
       'volume': volume,
       'repeatMode': repeatMode,
@@ -209,61 +230,125 @@ class ExoPlayer {
       'largeIconUrls': largeIconUrls,
       'isLocals': isLocals,
       'notificationModes': notificationModes,
-    });
+    })) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Pauses the audio that is currently playing.
   ///
   /// If you call [resume] later, the audio will resume from the point that it
   /// has been paused.
-  Future<int> pause() {
-    return _invokeMethod('pause');
+  Future<Result> pause() async {
+    switch (await _invokeMethod('pause')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Plays the next song.
   ///
   /// If playing only single audio it will restart the current.
-  Future<int> next() {
-    return _invokeMethod('next');
+  Future<Result> next() async {
+    switch (await _invokeMethod('next')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Plays the previous song.
   ///
   /// If playing only single audio it will restart the current.
-  Future<int> previous() {
-    return _invokeMethod('previous');
+  Future<Result> previous() async {
+    switch (await _invokeMethod('previous')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Stops the audio that is currently playing.
   ///
   /// The position is going to be reset and you will no longer be able to resume
   /// from the last point.
-  Future<int> stop() {
-    return _invokeMethod('stop');
+  Future<Result> stop() async {
+    switch (await _invokeMethod('stop')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Resumes the audio that has been paused.
-  Future<int> resume() {
-    return _invokeMethod('resume');
+  Future<Result> resume() async {
+    switch (await _invokeMethod('resume')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Releases the resources associated with this audio player.
   ///
-  Future<int> release() {
-    return _invokeMethod('release');
+  Future<Result> release() async {
+    switch (await _invokeMethod('release')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Moves the cursor to the desired position.
-  Future<int> seek(Duration position) {
-    return _invokeMethod('seek', {'position': position.inMilliseconds});
+  Future<Result> seek(Duration position) async {
+    switch (
+        await _invokeMethod('seek', {'position': position.inMilliseconds})) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Sets the volume (amplitude).
   ///
   /// 0 is mute and 1 is the max volume. The values between 0 and 1 are linearly
   /// interpolated.
-  Future<int> setVolume(double volume) {
-    return _invokeMethod('setVolume', {'volume': volume});
+  Future<Result> setVolume(double volume) async {
+    switch (await _invokeMethod('setVolume', {'volume': volume})) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Get audio duration after setting url.
@@ -276,15 +361,29 @@ class ExoPlayer {
   }
 
   /// Gets audio current playing position
-  /// 
+  ///
   /// the position starts from 0.
-  Future<int> getCurrentPosition() async {
-    return _invokeMethod('getCurrentPosition');
+  Future<Result> getCurrentPosition() async {
+    switch (await _invokeMethod('getCurrentPosition')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   /// Gets current playing audio index
-  Future<int> getCurrentPlayingAudioIndex() async {
-    return _invokeMethod('getCurrentPlayingAudioIndex');
+  Future<Result> getCurrentPlayingAudioIndex() async {
+    switch (await _invokeMethod('getCurrentPlayingAudioIndex')) {
+      case 0:
+        return Result.fail;
+      case 1:
+        return Result.success;
+      default:
+        return Result.error;
+    }
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {
@@ -370,6 +469,9 @@ class ExoPlayer {
       case 'audio.onCurrentPlayingAudioIndex':
         player._currentPlayingIndexController.add(value);
         break;
+      case 'audio.onAudioSessionIdChange':
+        player._audioSessionIdController.add(value);
+        break;
       case 'audio.onError':
         player.playerState = PlayerState.STOPPED; //! maybe released?
         player._errorController.add(value);
@@ -403,8 +505,11 @@ class ExoPlayer {
     if (!_errorController.isClosed) {
       futures.add(_errorController.close());
     }
-    if(!_currentPlayingIndexController.isClosed){
+    if (!_currentPlayingIndexController.isClosed) {
       futures.add(_currentPlayingIndexController.close());
+    }
+    if (!_audioSessionIdController.isClosed) {
+      futures.add(_audioSessionIdController.close());
     }
     await Future.wait(futures);
   }

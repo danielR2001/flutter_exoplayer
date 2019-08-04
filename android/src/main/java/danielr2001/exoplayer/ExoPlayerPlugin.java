@@ -273,6 +273,9 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     }
   }
 
+  public void handleAudioSessionIdChange(int audioSessionId){
+    channel.invokeMethod("audio.onAudioSessionIdChange",buildArguments(player.getPlayerId(), audioSessionId));
+  }
 
   public void handlePlayerIndex(){
     channel.invokeMethod("audio.onCurrentPlayingAudioIndex",buildArguments(player.getPlayerId(), player.getCurrentPlayingAudioIndex()));

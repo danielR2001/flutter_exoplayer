@@ -27,7 +27,7 @@ An `ExoPlayer` instance can play a single audio at a time. To create it, simply 
 
 You can create multiple instances to play audio simultaneously, but only if you choose `playerMode: PlayerMode.BACKGROUND`, because android can't run two similar services.
 
-For all methods that return a `Future<int>`: that's the status of the operation. If `1`, the operation was successful, If `0`, you tried to call audio conrolling methods on released audio player (this status is never returned when calling `play` or `playAll`). Otherwise it's the platform native error code.
+For all methods that return a `Future<Result>`: that's the status of the operation (Result is an enum which contains 3 options: success, fail and error). If `success`, the operation was successful, If `fail`, you tried to call audio conrolling methods on released audio player (this status is never returned when calling `play` or `playAll`). Otherwise it's the platform native error code.
 
 Logs are disable by default! To debug, run:
 

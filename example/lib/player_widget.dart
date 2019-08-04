@@ -37,6 +37,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   StreamSubscription _playerErrorSubscription;
   StreamSubscription _playerStateSubscription;
   StreamSubscription _playerIndexSubscription;
+  StreamSubscription _playerAudioSessionIdSubscription;
 
   get _isPlaying => _playerState == PlayerState.PLAYING;
   get _durationText => _duration?.toString()?.split('.')?.first ?? '';
@@ -59,6 +60,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     _playerErrorSubscription?.cancel();
     _playerStateSubscription?.cancel();
     _playerIndexSubscription?.cancel();
+    _playerAudioSessionIdSubscription?.cancel();
     super.dispose();
   }
 
@@ -190,12 +192,12 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               max:
                   _duration != null ? _duration.inMilliseconds.toDouble() : 0.0,
               onChanged: (double value) async {
-                final int result = await _audioPlayer
+                final Result result = await _audioPlayer
                     .seek(Duration(milliseconds: value.toInt()));
-                if (result == 0) {
+                if (result == Result.fail) {
                   print(
                       "you tried to call audio conrolling methods on released audio player :(");
-                } else if (result != 1) {
+                } else if (result == Result.error) {
                   print("something went wrong in seek :(");
                 }
                 _position = Duration(milliseconds: value.toInt());
@@ -258,23 +260,18 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         _currentIndex = index;
       });
     });
+    _playerAudioSessionIdSubscription = _audioPlayer.onAudioSessionIdChange.listen((audioSessionId){
+      print("audio Session Id: $audioSessionId");
+    });
   }
 
   Future<void> _play() async {
     if (url != null) {
-      AudioNotification audioObject = AudioNotification(
-          smallIconFileName: "ic_launcher",
-          title: "title",
-          subTitle: "artist",
-          largeIconUrl: getUrlMatchingImage(),
-          isLocal: false,
-          notificationMode: NotificationMode.BOTH);
-      final int result = await _audioPlayer.play(url,
+      final Result result = await _audioPlayer.play(url,
           repeatMode: true,
-          respectAudioFocus: true,
-          playerMode: PlayerMode.FOREGROUND,
-          audioNotification: audioObject);
-      if (result != 1) {
+          respectAudioFocus: false,
+          playerMode: PlayerMode.BACKGROUND,);
+      if (result == Result.error) {
         print("something went wrong in play method :(");
       }
     } else {
@@ -302,73 +299,73 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             notificationMode: NotificationMode.BOTH),
       ];
 
-      final int result = await _audioPlayer.playAll(urls,
+      final Result result = await _audioPlayer.playAll(urls,
           repeatMode: true,
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
           audioNotifications: audioNotifications);
-      if (result != 1) {
+      if (result == Result.error) {
         print("something went wrong in playAll method :(");
       }
     }
   }
 
   Future<void> _resume() async {
-    final int result = await _audioPlayer.resume();
-    if (result == 0) {
+    final Result result = await _audioPlayer.resume();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in resume :(");
     }
   }
 
   Future<void> _pause() async {
-    final int result = await _audioPlayer.pause();
-    if (result == 0) {
+    final Result result = await _audioPlayer.pause();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in pause :(");
     }
   }
 
   Future<void> _stop() async {
-    final int result = await _audioPlayer.stop();
-    if (result == 0) {
+    final Result result = await _audioPlayer.stop();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in stop :(");
     }
   }
 
   Future<void> _release() async {
-    final int result = await _audioPlayer.release();
-    if (result == 0) {
+    final Result result = await _audioPlayer.release();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in release :(");
     }
   }
 
   Future<void> _next() async {
-    final int result = await _audioPlayer.next();
-    if (result == 0) {
+    final Result result = await _audioPlayer.next();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in next :(");
     }
   }
 
   Future<void> _previous() async {
-    final int result = await _audioPlayer.previous();
-    if (result == 0) {
+    final Result result = await _audioPlayer.previous();
+    if (result == Result.fail) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result != 1) {
+    } else if (result == Result.error) {
       print("something went wrong in previous :(");
     }
   }
@@ -378,9 +375,9 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       return imageUrl1;
     } else if (url == kUrl2) {
       return imageUrl2;
-    } else if(url == kUrl2){
+    } else if (url == kUrl2) {
       return imageUrl3;
-    }else{
+    } else {
       return imageUrl1;
     }
   }

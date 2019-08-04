@@ -22,6 +22,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -73,7 +74,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
         this.audioObject = audioObject;
         this.audioObjects = null;
         initExoPlayer();
-        initStateChangeListener();
+        initListeners();
         player.setPlayWhenReady(true);
     }
 
@@ -85,7 +86,7 @@ public class BackgroundExoPlayer implements AudioPlayer {
         this.audioObjects = audioObjects;
         this.audioObject = null;
         initExoPlayer();
-        initStateChangeListener();
+        initListeners();
         player.setPlayWhenReady(true);
     }
 
@@ -222,7 +223,13 @@ public class BackgroundExoPlayer implements AudioPlayer {
         }
     }
 
-    private void initStateChangeListener() {
+    private void initListeners() {
+        player.addAnalyticsListener(new AnalyticsListener(){
+            @Override
+            public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
+                ref.handleAudioSessionIdChange(audioSessionId);
+            }
+        });
         player.addListener(new Player.EventListener() {
 
             @Override
