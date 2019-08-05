@@ -13,4 +13,4 @@ packages
 .settings
 .vscode
 testing
-local.properties
+pubspec.lock
