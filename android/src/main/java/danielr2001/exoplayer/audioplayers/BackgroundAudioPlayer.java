@@ -6,18 +6,15 @@ import danielr2001.exoplayer.ExoPlayerPlugin;
 import danielr2001.exoplayer.models.AudioObject;
 import danielr2001.exoplayer.enums.PlayerState;
 
+
 import android.app.Activity;
-import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 
-import android.support.v4.media.session.MediaSessionCompat;
-
 import androidx.annotation.Nullable;
-import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -34,21 +31,12 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-public class ForegroundExoPlayer extends Service implements AudioPlayer {
-    private final IBinder binder = new LocalBinder();
 
-    public class LocalBinder extends Binder {
-        public ForegroundExoPlayer getService() {
+public class BackgroundAudioPlayer implements AudioPlayer {
 
-            return ForegroundExoPlayer.this;
-        }
-    }
-
-    private ForegroundExoPlayer foregroundExoPlayer;
-    private MediaNotificationManager mediaNotificationManager;
     private Context context;
     private ExoPlayerPlugin ref;
-    private MediaSessionCompat mediaSession;
+    private BackgroundAudioPlayer backgroundAudioPlayer;
 
     private float volume = 1;
     private boolean repeatMode = false;
@@ -61,50 +49,15 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     private String playerId;
     private SimpleExoPlayer player;
-    private ArrayList<AudioObject> audioObjects;
+    private ArrayList<AudioObject> audioObjects = new ArrayList<>();
     private AudioObject audioObject;
 
-    @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        this.context = getApplicationContext();
-        mediaSession = new MediaSessionCompat(this.context, "playback");
-        //! TODO handle MediaButtonReceiver's callbacks
-        //MediaButtonReceiver.handleIntent(mediaSession, intent);
-        //mediaSession.setCallback(mediaSessionCallback);
-        if(intent.getAction() != null){
-            if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
-                previous();
-            } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
-                resume();
-            } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
-                pause();
-            }else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
-                next();
-            }
-        }
-        return START_STICKY;
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-        this.release();
-    }
-
-    
-
-    @Override
-    public void initAudioPlayer(ExoPlayerPlugin ref, Activity activity, String playerId) {
+    public void initAudioPlayer (ExoPlayerPlugin ref, Activity activity, String playerId) {
         this.ref = ref;
+        this.context = activity.getApplicationContext();
         this.playerId = playerId;
-        this.mediaNotificationManager = new MediaNotificationManager(this, this.context, this.mediaSession, activity);
-        this.foregroundExoPlayer = this;
+        this.BackgroundAudioPlayer = this;
         this.initialized = true;
     }
 
@@ -122,7 +75,6 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         this.audioObjects = null;
         initExoPlayer();
         initListeners();
-        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
@@ -135,33 +87,25 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         this.audioObject = null;
         initExoPlayer();
         initListeners();
-        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
     @Override
     public void next() {
-        if (!this.released) {
-            player.next();
-            loadNewAudioNotification();
-            this.resume();
-        }
+        player.next();
+        this.resume();
     }
 
     @Override
-    public void previous() { //!TODO first time go to previous (maybe make counter for 3 sec)
-        if (!this.released) {
-            player.previous();
-            loadNewAudioNotification();
-            this.resume();
-        }
+    public void previous() {
+        player.previous();
+        this.resume();
     }
 
     @Override
     public void pause() {
         if (!this.released && this.playing) {
             player.setPlayWhenReady(false);
-            stopForeground(false);
         }
     }
 
@@ -176,24 +120,19 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     public void stop() {
         if (!this.released) {
             player.stop(true);
-            stopForeground(true);
         }
     }
 
     @Override
     public void release() {
         if (!this.released) {
-            if(this.playing){
-                stopForeground(true);
-            }
-            this.released = true;
             this.playing = false;
+            this.released = true;
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
-            stopSelf();
         }
     }
 
@@ -237,14 +176,14 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
 
     @Override
     public boolean isBackground(){
-        return false;
+        return true;
     }
-    
+
     @Override
     public boolean isPlayerInitialized(){
         return this.initialized;
     }
-    
+
     @Override
     public boolean isPlayerReleased(){
         return this.released;
@@ -258,9 +197,8 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
-        player.setForegroundMode(true);
         // playlist/single audio load
-        if(this.audioObjects != null){
+        if(audioObjects != null){
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
             for (AudioObject audioObject : audioObjects) {
                 MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
@@ -268,11 +206,11 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
             }
             player.prepare(concatenatingMediaSource);
         }else{
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.audioObject.getUrl()));
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
             player.prepare(mediaSource);
         }
         //handle audio focus
-        if(this.respectAudioFocus){ //! TODO catch duck pause!
+        if(this.respectAudioFocus){
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.CONTENT_TYPE_MUSIC)
@@ -295,49 +233,34 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
         player.addListener(new Player.EventListener() {
 
             @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) { 
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState){
                     case Player.STATE_BUFFERING:{
                         //buffering
                         buffering = true;
-                        ref.handleStateChange(foregroundExoPlayer, PlayerState.BUFFERING);
+                        ref.handleStateChange(backgroundAudioPlayer, PlayerState.BUFFERING);
                     }
                     case Player.STATE_READY:{
                         if(buffering){
                             //play
                             playing = true;
                             buffering = false;
-                            ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePlayerIndex();
                         }else{
                             if(playWhenReady && playing){
                                 //first play
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(true);
-                                }else {
-                                    mediaNotificationManager.makeNotification(true);
-                                }
                                 ref.handlePositionUpdates();
                             }else if (playWhenReady && !playing) {
                                 //resumed   
                                 playing = true;                         
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(true);
-                                }else {
-                                    mediaNotificationManager.makeNotification(true);
-                                }
                                 ref.handlePositionUpdates();
-                                ref.handleStateChange(foregroundExoPlayer, PlayerState.PLAYING);
+                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                                 
                             }else if(!playWhenReady && playing){
                                 //paused
                                 playing = false;
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(false);
-                                }else {
-                                    mediaNotificationManager.makeNotification(false);
-                                }
-                                ref.handleStateChange(foregroundExoPlayer, PlayerState.PAUSED);
+                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
                             }
                         }
                         break;
@@ -345,39 +268,17 @@ public class ForegroundExoPlayer extends Service implements AudioPlayer {
                     case Player.STATE_ENDED:{
                         //completed
                         playing = false;
-                        ref.handleStateChange(foregroundExoPlayer, PlayerState.COMPLETED);
+                        ref.handleStateChange(backgroundAudioPlayer, PlayerState.COMPLETED);
                         break;
                     }
                     case Player.STATE_IDLE:{
                         //stopped
                         playing = false;
-                        ref.handleStateChange(foregroundExoPlayer, PlayerState.STOPPED);
+                        ref.handleStateChange(backgroundAudioPlayer, PlayerState.STOPPED);
                         break;
-                    }  //handle of released is in release method!
+                    }
                 }
             }
         });
     }
-
-    private void loadNewAudioNotification(){
-        if(audioObjects != null) {
-            mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), false);
-        }else {
-            mediaNotificationManager.makeNotification(audioObject, false); 
-        }
-    }
-    
-    //// private MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
-    ////     @Override
-    ////     public void onPlay() {
-    ////         Log.d("hii","play!");
-    ////         super.onPlay();
-    ////     }
-
-    ////     @Override
-    ////     public void onPause() {
-    ////         Log.d("hii","pause!");
-    ////         super.onPause();
-    ////     }
-    //// };
 }

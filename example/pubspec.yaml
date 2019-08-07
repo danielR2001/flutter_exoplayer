@@ -1,4 +1,4 @@
-name: exoplayer_example
+name: flutter_exoplayer_example
 description: Demonstrates how to use the exoplayer plugin.
 
 dependencies:

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_exoplayer/audio_notification.dart';
-import 'package:flutter_exoplayer/exoplayer.dart';
-import 'package:exoplayer_example/main.dart';
+import 'package:flutter_exoplayer/audioplayer.dart';
+import 'package:flutter_exoplayer_example/main.dart';
 import 'package:flutter/material.dart';
 
 const imageUrl1 = "https://www.bensound.com/bensound-img/buddy.jpg";
@@ -25,7 +25,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   String url;
   List<String> urls;
 
-  ExoPlayer _audioPlayer;
+  AudioPlayer _audioPlayer;
   Duration _duration;
   Duration _position;
   int _currentIndex = 0;
@@ -237,7 +237,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   }
 
   void _initAudioPlayer() {
-    _audioPlayer = ExoPlayer();
+    _audioPlayer = AudioPlayer();
     _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
       setState(() {
         _duration = duration;

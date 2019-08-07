@@ -1,7 +1,7 @@
 package danielr2001.exoplayer;
 
-import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
-import danielr2001.exoplayer.audioplayers.BackgroundExoPlayer;
+import danielr2001.exoplayer.audioplayers.ForegroundAudioPlayer;
+import danielr2001.exoplayer.audioplayers.BackgroundAudioPlayer;
 import danielr2001.exoplayer.interfaces.AudioPlayer;
 import danielr2001.exoplayer.models.AudioObject;
 import danielr2001.exoplayer.enums.NotificationMode;
@@ -39,9 +39,9 @@ enum PlayerMode {
 }
 
 
-public class ExoPlayerPlugin implements MethodCallHandler {
+public class AudioPlayerPlugin implements MethodCallHandler {
 
-  private static final Logger LOGGER = Logger.getLogger(ExoPlayerPlugin.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(AudioPlayerPlugin.class.getCanonicalName());
 
   private final MethodChannel channel;
   private final Handler handler = new Handler();
@@ -61,15 +61,15 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   private String playerId;
   private AudioPlayer player;
 
-  private ExoPlayerPlugin exoPlayerPlugin;
+  private AudioPlayerPlugin audioPlayerPlugin;
 
   private ServiceConnection connection = new ServiceConnection() {
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
-      ForegroundExoPlayer.LocalBinder binder = (ForegroundExoPlayer.LocalBinder) service;
+      ForegroundAudioPlayer.LocalBinder binder = (ForegroundAudioPlayer.LocalBinder) service;
       player = binder.getService();
-      player.initAudioPlayer(exoPlayerPlugin, activity, playerId);
+      player.initAudioPlayer(audioPlayerPlugin, activity, playerId);
       audioPlayers.put(playerId, player);
 
       if (playerMode == PlayerMode.PLAYLIST) {
@@ -87,15 +87,15 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   };
 
   public static void registerWith(final Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/exoplayer");
-    channel.setMethodCallHandler(new ExoPlayerPlugin(channel, registrar.activity()));
+    final MethodChannel channel = new MethodChannel(registrar.messenger(), "danielr2001/audioplayer");
+    channel.setMethodCallHandler(new AudioPlayerPlugin(channel, registrar.activity()));
   }
 
-  private ExoPlayerPlugin(final MethodChannel channel, Activity activity) {
+  private AudioPlayerPlugin(final MethodChannel channel, Activity activity) {
     this.channel = channel;
     this.activity = activity;
     this.context = activity.getApplicationContext();
-    this.exoPlayerPlugin = this;
+    this.audioPlayerPlugin = this;
     this.channel.setMethodCallHandler(this);
   }
 
@@ -126,12 +126,12 @@ public class ExoPlayerPlugin implements MethodCallHandler {
           this.respectAudioFocus = call.argument("respectAudioFocus");
           playerMode = PlayerMode.SINGLE;
           if (isBackground) {
-            // init player as BackgroundExoPlayer instance
+            // init player as BackgroundAudioPlayer instance
             this.audioObject = new AudioObject(url);
             if(player != null && !player.isPlayerReleased()){
               player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
             }else{
-              player = new BackgroundExoPlayer();
+              player = new BackgroundAudioPlayer();
               player.initAudioPlayer(this, this.activity, playerId);
               audioPlayers.put(playerId, player);
               player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
@@ -156,7 +156,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
             }
 
             this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationMode);
-            // init player as ForegroundExoPlayer service
+            // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
               player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
             }else{
@@ -174,14 +174,14 @@ public class ExoPlayerPlugin implements MethodCallHandler {
           this.respectAudioFocus = call.argument("respectAudioFocus");
           playerMode = PlayerMode.PLAYLIST;
           if (isBackground) {
-            // init player as BackgroundExoPlayer instance
+            // init player as BackgroundAudioPlayer instance
             for(String url : urls){
               this.audioObjects.add(new AudioObject(url));
             }
             if(player != null && !player.isPlayerReleased()){
               player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
             }else{
-              player = new BackgroundExoPlayer();
+              player = new BackgroundAudioPlayer();
               player.initAudioPlayer(this, this.activity, playerId);
               audioPlayers.put(playerId, player);
               player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
@@ -207,7 +207,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
               }
               this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode));
             }
-            // init player as ForegroundExoPlayer service
+            // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
               player.playAll(this.repeatMode, this.respectAudioFocus, this.audioObjects);
             }else{
@@ -320,11 +320,11 @@ public class ExoPlayerPlugin implements MethodCallHandler {
   }
 
   private void startForegroundPlayer(){
-    if(!isMyServiceRunning(ForegroundExoPlayer.class)){
-      ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundExoPlayer.class));
-      this.context.bindService(new Intent(this.context, ForegroundExoPlayer.class), connection, Context.BIND_AUTO_CREATE);
+    if(!isMyServiceRunning(ForegroundAudioPlayer.class)){
+      ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundAudioPlayer.class));
+      this.context.bindService(new Intent(this.context, ForegroundAudioPlayer.class), connection, Context.BIND_AUTO_CREATE);
     }else{
-      Log.e("ExoPlayerPlugin", "Can't start more than 1 service at a time");
+      Log.e("AudioPlayerPlugin", "Can't start more than 1 service at a time");
     }
   }
   
@@ -375,14 +375,14 @@ public class ExoPlayerPlugin implements MethodCallHandler {
     private final WeakReference<Map<String, AudioPlayer>> audioPlayers;
     private final WeakReference<MethodChannel> channel;
     private final WeakReference<Handler> handler;
-    private final WeakReference<ExoPlayerPlugin> exoPlayerPlugin;
+    private final WeakReference<AudioPlayerPlugin> audioPlayerPlugin;
 
     private UpdateCallback(final Map<String, AudioPlayer> audioPlayers, final MethodChannel channel, final Handler handler,
-        final ExoPlayerPlugin exoPlayerPlugin) {
+        final AudioPlayerPlugin audioPlayerPlugin) {
       this.audioPlayers = new WeakReference<>(audioPlayers);
       this.channel = new WeakReference<>(channel);
       this.handler = new WeakReference<>(handler);
-      this.exoPlayerPlugin = new WeakReference<>(exoPlayerPlugin);
+      this.audioPlayerPlugin = new WeakReference<>(audioPlayerPlugin);
     }
 
     @Override
@@ -390,11 +390,11 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       final Map<String, AudioPlayer> audioPlayers = this.audioPlayers.get();
       final MethodChannel channel = this.channel.get();
       final Handler handler = this.handler.get();
-      final ExoPlayerPlugin exoPlayerPlugin = this.exoPlayerPlugin.get();
+      final AudioPlayerPlugin audioPlayerPlugin = this.audioPlayerPlugin.get();
 
-      if (audioPlayers == null || channel == null || handler == null || exoPlayerPlugin == null) {
-        if (exoPlayerPlugin != null) {
-          exoPlayerPlugin.stopPositionUpdates();
+      if (audioPlayers == null || channel == null || handler == null || audioPlayerPlugin == null) {
+        if (audioPlayerPlugin != null) {
+          audioPlayerPlugin.stopPositionUpdates();
         }
         return;
       }
@@ -416,7 +416,7 @@ public class ExoPlayerPlugin implements MethodCallHandler {
       }
 
       if (nonePlaying) {
-          exoPlayerPlugin.stopPositionUpdates();
+          audioPlayerPlugin.stopPositionUpdates();
       } else {
           handler.postDelayed(this, 200);
       }

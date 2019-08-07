@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_exoplayer/exoplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'player_widget.dart';
@@ -24,7 +23,6 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  ExoPlayer advancedPlayer;
   String localFilePath;
 
   Widget _tab(List<Widget> children) {
@@ -144,7 +142,7 @@ class _ExampleAppState extends State<ExampleApp> {
               Tab(text: 'Local & Remote Mix'),
             ],
           ),
-          title: Text('exoplayer Example'),
+          title: Text('flutter_exoplayer Example'),
         ),
         body: TabBarView(
           children: [

@@ -17,12 +17,12 @@ enum PlayerMode {
 }
 enum Result { success, fail, error }
 
-class ExoPlayer {
-  static MethodChannel _channel = const MethodChannel('danielr2001/exoplayer')
+class AudioPlayer {
+  static MethodChannel _channel = const MethodChannel('danielr2001/audioplayer')
     ..setMethodCallHandler(platformCallHandler);
   static final _uuid = Uuid();
   static bool logEnabled = false;
-  static final players = Map<String, ExoPlayer>();
+  static final players = Map<String, AudioPlayer>();
 
   String playerId;
   PlayerState playerState;
@@ -95,9 +95,9 @@ class ExoPlayer {
 
   PlayerState get state => _audioPlayerState;
 
-  /// Initializes ExoPlayer
+  /// Initializes AudioPlayer
   ///
-  ExoPlayer() {
+  AudioPlayer() {
     playerState = PlayerState.RELEASED;
     playerId = _uuid.v4();
     players[playerId] = this;
@@ -105,7 +105,7 @@ class ExoPlayer {
 
   /// Plays an audio.
   ///
-  /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
+  /// If [PlayerMode] is set to [PlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotification] for providing the foreground notification.
   Future<Result> play(
     String url, {
@@ -172,7 +172,7 @@ class ExoPlayer {
 
   /// Plays your playlist.
   ///
-  /// If [exoPlayerMode] is set to [ExoPlayerMode.FOREGROUND], then you also need to pass:
+  /// If [PlayerMode] is set to [PlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotifications] for providing the foreground notification.
   Future<Result> playAll(
     List<String> urls, {
@@ -413,7 +413,7 @@ class ExoPlayer {
     _log('_platformCallHandler call ${call.method} $callArgs');
 
     final playerId = callArgs['playerId'] as String;
-    final ExoPlayer player = players[playerId];
+    final AudioPlayer player = players[playerId];
     final value = callArgs['value'];
 
     switch (call.method) {
