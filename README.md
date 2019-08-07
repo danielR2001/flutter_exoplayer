@@ -27,7 +27,7 @@ An `AudioPlayer` instance can play a single audio at a time. To create it, simpl
 
 You can create multiple instances to play audio simultaneously, but only if you choose `playerMode: PlayerMode.BACKGROUND`, because android can't run two similar services.
 
-For all methods that return a `Future<Result>`: that's the status of the operation (Result is an enum which contains 3 options: success, fail and error). If `success`, the operation was successful, If `fail`, you tried to call audio conrolling methods on released audio player (this status is never returned when calling `play` or `playAll`). Otherwise it's the platform native error code.
+For all methods that return a `Future<Result>`: that's the status of the operation (Result is an enum which contains 3 options: SUCCESS, FAIL and ERROR). If `SUCCESS`, the operation was successful, If `FAIL`, you tried to call audio conrolling methods on released audio player (this status is never returned when calling `play` or `playAll`). Otherwise it's the platform native ERROR code.
 
 Logs are disable by default! To debug, run:
 
@@ -65,7 +65,7 @@ By default the player is set to play in background (Android system can easily ki
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
       audioObject: audioObject);
-  if (result == Result.error) {
+  if (result == Result.ERROR) {
     print("something went wrong in play method :(");
   }
 ```
@@ -76,7 +76,7 @@ By default the player is set to play in background (Android system can easily ki
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
       audioObjects: audioObjects);
-  if (result == Result.error) {
+  if (result == Result.ERROR) {
     print("something went wrong in playAll method :(");
   }
 ```
@@ -90,10 +90,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.pause();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in pause :(");
   }
 ```
@@ -102,10 +102,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.resume();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in resume :(");
   }
 ```
@@ -114,10 +114,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.stop();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in stop :(");
   } 
 ```
@@ -126,10 +126,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.release();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in release :(");
   }
 ```
@@ -138,10 +138,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.next();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in next :(");
   }
 ```
@@ -150,10 +150,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.previous();
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in previous :(");
   }
 ```
@@ -162,10 +162,10 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 ```dart
   final int result = await audioPlayer.seek(_duration));
-  if (result == Result.fail) {
+  if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
-  } else if (result == Result.error) {
+  } else if (result == Result.ERROR) {
     print("something went wrong in seek :(");
   }
 ```
@@ -174,7 +174,11 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 When playing in `PlayerMode.FOREGROUND` then the player will show foreground notification, You can customize it in the `AudioObject` thing like priority/ background color / what actions to show and etc'. 
 
-`NotificationMode` represents the actions you want to show with your notification (previous, play/pause, next), you have the option to choose between: NONE - only play/pause, PREVIOUS - previous and play/pause, NEXT - next and play/pause, and BOTH - that include all actions.
+`NotificationActionMode` represents the actions you want to show with your notification (previous, play/pause, next), you have the option to choose between: NONE - only play/pause, PREVIOUS - previous and play/pause, NEXT - next and play/pause, and ALL - that include all actions.
+
+`NotificationActionCallbackMode` is a mode that lets you choose between two options: DEFAULT or CUSTOM,
+this parameter decides if you will recieve action callback (`CUSTOM`) or not (`DEFAULT`) when user taps on the action via `onNotificationActionCallback` stream, and then you can make custom action for your taste. If set to
+`DEFAULT` then the action will do only as the action name says (PLAY -> play, PREVIOUS -> play previous etc`).
 
 Attention! You need to place your app icon or the icon you want to show in the APP_NAME\android\app\src\main\res\drawable folder (you can drop multiple icons there), if you won`t do so your app will crash because android require a small icon for notification.
 
@@ -185,7 +189,7 @@ Attention! You need to place your app icon or the icon you want to show in the A
       subTitle: "artist",
       largeIconUrl: "local or network image url",
       isLocal: false,
-      notificationMode: NotificationMode.BOTH);
+      notificationActionMode: NotificationActionMode.ALL);
 ```
 
 ### Streams
@@ -221,7 +225,7 @@ This Event returns the current player state. You can use it to show if player pl
 ```dart
   audioPlayer.onPlayerStateChanged.listen((PlayerState s) => {
     print('Current player state: $s');
-    setState(() => palyerState = s);
+    setState(() => plaVyerState = s);
   });
 ```
 
@@ -233,20 +237,38 @@ It does not fire when you interrupt the audio with pause or stop.
 
 ```dart
   audioPlayer.onPlayerCompletion.listen((event) {
-    onComplete();
-    setState(() {
-      position = duration;
-    });
+    print('Current player is completed');
+  });
+```
+
+#### Audio Session ID Event
+
+This Event is called when audio session id is changed.
+
+```dart
+  audioPlayer.onAudioSessionIdChange.listen((audioSessionId) {
+      print("audio Session Id: $audioSessionId");
+  });
+```
+
+#### Notification Action Event
+
+This Event is called when the user taps on one of the notification actions, then the stream will
+return the action name of the action that the user has clicked on.
+
+```dart
+  audioPlayer.onNotificationActionCallback.listen((notificationActionName) {
+    //do something
   });
 ```
 
 #### Error Event
 
-This is called when an unexpected error is thrown in the native code.
+This is called when an unexpected ERROR is thrown in the native code.
 
 ```dart
   audioPlayer.onPlayerError.listen((msg) {
-    print('audioPlayer error : $msg');
+    print('audioPlayer ERROR : $msg');
     setState(() {
       playerState = PlayerState.stopped;
       duration = Duration(seconds: 0);

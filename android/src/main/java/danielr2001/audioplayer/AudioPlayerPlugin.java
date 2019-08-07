@@ -4,7 +4,9 @@ import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
 import danielr2001.audioplayer.audioplayers.BackgroundAudioPlayer;
 import danielr2001.audioplayer.interfaces.AudioPlayer;
 import danielr2001.audioplayer.models.AudioObject;
-import danielr2001.audioplayer.enums.NotificationMode;
+import danielr2001.audioplayer.enums.NotificationActionMode;
+import danielr2001.audioplayer.enums.NotificationActionName;
+import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
 import danielr2001.audioplayer.enums.PlayerState;
 
 import android.app.Activity;
@@ -59,7 +61,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
   private final ArrayList<AudioObject> audioObjects = new ArrayList<>();
 
   private String playerId;
-  private AudioPlayer player;
+  private AudioPlayer player;  //temp player
 
   private AudioPlayerPlugin audioPlayerPlugin;
 
@@ -143,19 +145,27 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             final String subTitle = call.argument("subTitle");
             final String largeIconUrl = call.argument("largeIconUrl");
             final boolean isLocal = call.argument("isLocal");
-            final int notificationModeInt = call.argument("notificationMode");
-            NotificationMode notificationMode;
+            final int notificationModeInt = call.argument("NotificationActionMode");
+            final int notificationActionCallbackModeInt = call.argument("notificationActionCallbackMode");
+            NotificationActionMode notificationActionMode;
+            NotificationActionCallbackMode notificationActionCallbackMode;
             if (notificationModeInt == 0) {
-              notificationMode = NotificationMode.NONE;
+              notificationActionMode = NotificationActionMode.NONE;
             } else if (notificationModeInt == 1) {
-              notificationMode = NotificationMode.NEXT;
+              notificationActionMode = NotificationActionMode.NEXT;
             } else if (notificationModeInt == 2){
-              notificationMode = NotificationMode.PREVIOUS;
+              notificationActionMode = NotificationActionMode.PREVIOUS;
             }else{
-              notificationMode = NotificationMode.BOTH;
+              notificationActionMode = NotificationActionMode.ALL;
             }
 
-            this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationMode);
+            if(notificationActionCallbackModeInt == 0){
+              notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT;
+            }else{
+              notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
+            }
+
+            this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationActionMode, notificationActionCallbackMode);
             // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
               player.play(this.repeatMode, this.respectAudioFocus, this.audioObject);
@@ -193,19 +203,28 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
             final ArrayList<Boolean> isLocals = call.argument("isLocals");
             final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
+            final ArrayList<Integer> notificationActionCallbackModeInts = call.argument("notificationActionCallbackModes");
 
             for(int i = 0; i < urls.size(); i++ ){
-              NotificationMode notificationMode;
+              NotificationActionMode notificationActionMode;
+              NotificationActionCallbackMode notificationActionCallbackMode;
               if (notificationModeInts.get(i) == 0) {
-                notificationMode = NotificationMode.NONE;
+                notificationActionMode = NotificationActionMode.NONE;
               } else if (notificationModeInts.get(i) == 1) {
-                notificationMode = NotificationMode.NEXT;
+                notificationActionMode = NotificationActionMode.NEXT;
               } else if (notificationModeInts.get(i) == 2){
-                notificationMode = NotificationMode.PREVIOUS;
+                notificationActionMode = NotificationActionMode.PREVIOUS;
               }else{
-                notificationMode = NotificationMode.BOTH;
+                notificationActionMode = NotificationActionMode.ALL;
               }
-              this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationMode));
+
+              if(notificationActionCallbackModeInts.get(i) == 0){
+                notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT;
+              }else{
+                notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
+              }
+
+              this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationActionMode, notificationActionCallbackMode));
             }
             // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
@@ -273,11 +292,28 @@ public class AudioPlayerPlugin implements MethodCallHandler {
     }
   }
 
-  public void handleAudioSessionIdChange(int audioSessionId){
+  public void handleNotificationActionCallback(AudioPlayer audioplayer, NotificationActionName notificationActionName){
+      switch(notificationActionName){
+        case PREVIOUS:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 0));  
+          break;
+        case NEXT:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 1));  
+          break;
+        case PLAY:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 2));  
+          break;
+        case PAUSE:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 3));  
+          break;
+      }
+  }
+
+  public void handleAudioSessionIdChange(AudioPlayer audioplayer, int audioSessionId){
     channel.invokeMethod("audio.onAudioSessionIdChange",buildArguments(player.getPlayerId(), audioSessionId));
   }
 
-  public void handlePlayerIndex(){
+  public void handlePlayerIndex(AudioPlayer audioplayer){
     channel.invokeMethod("audio.onCurrentPlayingAudioIndex",buildArguments(player.getPlayerId(), player.getCurrentPlayingAudioIndex()));
   }
 
@@ -324,7 +360,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
       ContextCompat.startForegroundService(this.context, new Intent(this.context, ForegroundAudioPlayer.class));
       this.context.bindService(new Intent(this.context, ForegroundAudioPlayer.class), connection, Context.BIND_AUTO_CREATE);
     }else{
-      Log.e("AudioPlayerPlugin", "Can't start more than 1 service at a time");
+      Log.e("AudioPlayerPlugin", "Can't start more than 1 service at a time, to stop service call release method");
     }
   }
   

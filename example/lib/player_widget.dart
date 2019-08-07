@@ -38,6 +38,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   StreamSubscription _playerStateSubscription;
   StreamSubscription _playerIndexSubscription;
   StreamSubscription _playerAudioSessionIdSubscription;
+  StreamSubscription _notificationActionCallbackSubscription;
 
   get _isPlaying => _playerState == PlayerState.PLAYING;
   get _durationText => _duration?.toString()?.split('.')?.first ?? '';
@@ -61,6 +62,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     _playerStateSubscription?.cancel();
     _playerIndexSubscription?.cancel();
     _playerAudioSessionIdSubscription?.cancel();
+    _notificationActionCallbackSubscription?.cancel();
     super.dispose();
   }
 
@@ -194,10 +196,10 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               onChanged: (double value) async {
                 final Result result = await _audioPlayer
                     .seek(Duration(milliseconds: value.toInt()));
-                if (result == Result.fail) {
+                if (result == Result.FAIL) {
                   print(
                       "you tried to call audio conrolling methods on released audio player :(");
-                } else if (result == Result.error) {
+                } else if (result == Result.ERROR) {
                   print("something went wrong in seek :(");
                 }
                 _position = Duration(milliseconds: value.toInt());
@@ -264,6 +266,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         _audioPlayer.onAudioSessionIdChange.listen((audioSessionId) {
       print("audio Session Id: $audioSessionId");
     });
+    _notificationActionCallbackSubscription = _audioPlayer
+        .onNotificationActionCallback
+        .listen((notificationActionName) {
+      //do something
+    });
   }
 
   Future<void> _play() async {
@@ -274,7 +281,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         respectAudioFocus: false,
         playerMode: PlayerMode.BACKGROUND,
       );
-      if (result == Result.error) {
+      if (result == Result.ERROR) {
         print("something went wrong in play method :(");
       }
     } else {
@@ -285,21 +292,23 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             subTitle: "artist1",
             largeIconUrl: imageUrl1,
             isLocal: false,
-            notificationMode: NotificationMode.BOTH),
+            notificationActionMode: NotificationActionMode.ALL,
+            notificationActionCallbackMode:
+                NotificationActionCallbackMode.CUSTOM),
         AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title2",
             subTitle: "artist2",
             largeIconUrl: imageUrl2,
             isLocal: false,
-            notificationMode: NotificationMode.BOTH),
+            notificationActionMode: NotificationActionMode.ALL),
         AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title3",
             subTitle: "artist3",
             largeIconUrl: imageUrl3,
             isLocal: false,
-            notificationMode: NotificationMode.BOTH),
+            notificationActionMode: NotificationActionMode.ALL),
       ];
 
       final Result result = await _audioPlayer.playAll(urls,
@@ -307,7 +316,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           respectAudioFocus: true,
           playerMode: PlayerMode.FOREGROUND,
           audioNotifications: audioNotifications);
-      if (result == Result.error) {
+      if (result == Result.ERROR) {
         print("something went wrong in playAll method :(");
       }
     }
@@ -315,60 +324,60 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   Future<void> _resume() async {
     final Result result = await _audioPlayer.resume();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in resume :(");
     }
   }
 
   Future<void> _pause() async {
     final Result result = await _audioPlayer.pause();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in pause :(");
     }
   }
 
   Future<void> _stop() async {
     final Result result = await _audioPlayer.stop();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in stop :(");
     }
   }
 
   Future<void> _release() async {
     final Result result = await _audioPlayer.release();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in release :(");
     }
   }
 
   Future<void> _next() async {
     final Result result = await _audioPlayer.next();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in next :(");
     }
   }
 
   Future<void> _previous() async {
     final Result result = await _audioPlayer.previous();
-    if (result == Result.fail) {
+    if (result == Result.FAIL) {
       print(
           "you tried to call audio conrolling methods on released audio player :(");
-    } else if (result == Result.error) {
+    } else if (result == Result.ERROR) {
       print("something went wrong in previous :(");
     }
   }

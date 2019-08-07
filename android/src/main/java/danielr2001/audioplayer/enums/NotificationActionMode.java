@@ -1,8 +1,8 @@
 package danielr2001.audioplayer.enums;
 
-public enum NotificationMode {
+public enum NotificationActionMode {
     NONE,
     NEXT,
     PREVIOUS,
-    BOTH,
-  }
+    ALL,
+}

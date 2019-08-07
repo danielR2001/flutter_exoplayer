@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 
-enum NotificationMode {
+enum NotificationActionMode {
   NONE, //0
   NEXT, //1
   PREVIOUS, //2
-  BOTH, //3
+  ALL, //3
+}
+
+enum NotificationActionName{
+  PREVIOUS,
+  NEXT,
+  PLAY,
+  PAUSE,
+}
+
+enum NotificationActionCallbackMode{
+  CUSTOM,
+  DEFAULT,
 }
 
 class AudioNotification {
@@ -13,8 +25,9 @@ class AudioNotification {
   String subTitle;
   String largeIconUrl;
   bool isLocal;
-  NotificationMode notificationMode;
-  //! TODO add background color customization!
+  NotificationActionMode notificationActionMode;
+  NotificationActionCallbackMode notificationActionCallbackMode;
+  //! TODO add background color!
   //! TODO notification importance!
   //! TODO set timeout!
 
@@ -24,17 +37,20 @@ class AudioNotification {
     String subTitle,
     String largeIconUrl,
     bool isLocal = false,
-    NotificationMode notificationMode = NotificationMode.BOTH,
+    NotificationActionMode notificationActionMode = NotificationActionMode.ALL,
+    NotificationActionCallbackMode notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT,
   }) {
     isLocal ??= false;
-    notificationMode ??= NotificationMode.BOTH;
+    notificationActionMode ??= NotificationActionMode.ALL;
+    notificationActionCallbackMode ??= NotificationActionCallbackMode.DEFAULT;
 
     this.smallIconFileName = smallIconFileName;
     this.title = title;
     this.subTitle = subTitle;
     this.largeIconUrl = largeIconUrl;
     this.isLocal = isLocal;
-    this.notificationMode = notificationMode;
+    this.notificationActionMode = notificationActionMode;
+    this.notificationActionCallbackMode = notificationActionCallbackMode;
   }
 
   String getSmallIconFileName() {
@@ -57,7 +73,11 @@ class AudioNotification {
     return isLocal;
   }
 
-  NotificationMode getNotificationMode() {
-    return notificationMode;
+  NotificationActionMode getNotificationMode() {
+    return notificationActionMode;
+  }
+
+  NotificationActionCallbackMode getNotificationActionCallbackMode(){
+    return notificationActionCallbackMode;
   }
 }

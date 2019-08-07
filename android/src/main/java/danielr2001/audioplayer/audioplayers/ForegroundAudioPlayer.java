@@ -5,6 +5,8 @@ import danielr2001.audioplayer.notifications.MediaNotificationManager;
 import danielr2001.audioplayer.AudioPlayerPlugin;
 import danielr2001.audioplayer.models.AudioObject;
 import danielr2001.audioplayer.enums.PlayerState;
+import danielr2001.audioplayer.enums.NotificationActionName;
+import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
 
 import android.app.Activity;
 import android.app.Service;
@@ -77,15 +79,37 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         //! TODO handle MediaButtonReceiver's callbacks
         //MediaButtonReceiver.handleIntent(mediaSession, intent);
         //mediaSession.setCallback(mediaSessionCallback);
-        if(intent.getAction() != null){
+        if(intent.getAction() != null){  
+            AudioObject currentAudioObject;
+            if(this.audioObjects !=null){
+                currentAudioObject = this.audioObjects.get(player.getCurrentWindowIndex());
+            }else{
+                currentAudioObject = this.audioObject;
+            }
             if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
-                previous();
+                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                    previous();
+                }else{
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PREVIOUS);     
+                }
             } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
-                resume();
+                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                    resume();
+                }else{
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PLAY);
+                }
             } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
-                pause();
+                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                    pause();
+                }else{
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PAUSE);
+                }
             }else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
-                next();
+                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                    next();
+                }else{
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT); 
+                }
             }
         }
         return START_STICKY;
@@ -289,7 +313,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         player.addAnalyticsListener(new AnalyticsListener(){
             @Override
             public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
-                ref.handleAudioSessionIdChange(audioSessionId);
+                ref.handleAudioSessionIdChange(foregroundAudioPlayer, audioSessionId);
             }
         });
         player.addListener(new Player.EventListener() {
@@ -308,7 +332,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                            ref.handlePlayerIndex();
+                            ref.handlePlayerIndex(foregroundAudioPlayer);
                         }else{
                             if(playWhenReady && playing){
                                 //first play

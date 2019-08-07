@@ -227,7 +227,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
         player.addAnalyticsListener(new AnalyticsListener(){
             @Override
             public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
-                ref.handleAudioSessionIdChange(audioSessionId);
+                ref.handleAudioSessionIdChange(backgroundAudioPlayer, audioSessionId);
             }
         });
         player.addListener(new Player.EventListener() {
@@ -246,7 +246,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                             playing = true;
                             buffering = false;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
-                            ref.handlePlayerIndex();
+                            ref.handlePlayerIndex(backgroundAudioPlayer);
                         }else{
                             if(playWhenReady && playing){
                                 //first play

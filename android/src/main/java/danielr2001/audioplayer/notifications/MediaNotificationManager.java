@@ -1,7 +1,7 @@
 package danielr2001.audioplayer.notifications;
 
 import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
-import danielr2001.audioplayer.enums.NotificationMode;
+import danielr2001.audioplayer.enums.NotificationActionMode;
 import danielr2001.audioplayer.interfaces.AsyncResponse;
 import danielr2001.audioplayer.R;
 import danielr2001.audioplayer.models.AudioObject;
@@ -28,7 +28,7 @@ public class MediaNotificationManager {
     public static final String PAUSE_ACTION = "com.daniel.exoPlayer.action.pause";
     public static final String PREVIOUS_ACTION = "com.daniel.exoPlayer.action.previous";
     public static final String NEXT_ACTION = "com.daniel.exoPlayer.action.next";
-    private static final int notificationId = 1;
+    private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "Playback";
 
     private ForegroundAudioPlayer foregroundExoPlayer;
@@ -138,9 +138,9 @@ public class MediaNotificationManager {
 
         notification = builder.build();
 
-        notificationManager.notify(notificationId, notification);
+        notificationManager.notify(NOTIFICATION_ID, notification);
         if(this.isPlaying){
-            foregroundExoPlayer.startForeground(notificationId, notification);
+            foregroundExoPlayer.startForeground(NOTIFICATION_ID, notification);
         }
     }
 
@@ -163,7 +163,7 @@ public class MediaNotificationManager {
     }
 
     private NotificationCompat.Builder initNotificationActions(NotificationCompat.Builder builder) {
-        if (audioObject.getNotificationMode() == NotificationMode.PREVIOUS || audioObject.getNotificationMode() == NotificationMode.BOTH) {
+        if (audioObject.getNotificationActionMode() == NotificationActionMode.PREVIOUS || audioObject.getNotificationActionMode() == NotificationActionMode.ALL) {
             builder.addAction(R.drawable.ic_previous, "Previous", pprevIntent);
         }
 
@@ -173,19 +173,19 @@ public class MediaNotificationManager {
             builder.addAction(R.drawable.ic_play, "Play", pplayIntent);
         }
 
-        if (audioObject.getNotificationMode() == NotificationMode.NEXT || audioObject.getNotificationMode() == NotificationMode.BOTH) {
+        if (audioObject.getNotificationActionMode() == NotificationActionMode.NEXT || audioObject.getNotificationActionMode() == NotificationActionMode.ALL) {
             builder.addAction(R.drawable.ic_next, "Next", pnextIntent);
         }
         return builder;
     }
 
     private NotificationCompat.Builder initNotificationStyle(NotificationCompat.Builder builder) {
-        if (audioObject.getNotificationMode() == NotificationMode.NEXT
-                || audioObject.getNotificationMode() == NotificationMode.PREVIOUS) {
+        if (audioObject.getNotificationActionMode() == NotificationActionMode.NEXT
+                || audioObject.getNotificationActionMode() == NotificationActionMode.PREVIOUS) {
             builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
                     .setShowActionsInCompactView(0, 1)
                     .setMediaSession(mediaSession.getSessionToken()));
-        } else if (audioObject.getNotificationMode() == NotificationMode.BOTH) {
+        } else if (audioObject.getNotificationActionMode() == NotificationActionMode.ALL) {
             builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
                     .setShowActionsInCompactView(0, 1, 2)
                     .setMediaSession(mediaSession.getSessionToken()));

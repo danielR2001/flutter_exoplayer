@@ -1,6 +1,7 @@
 package danielr2001.audioplayer.models;
 
-import danielr2001.audioplayer.enums.NotificationMode;
+import danielr2001.audioplayer.enums.NotificationActionMode;
+import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
 
 import android.graphics.Bitmap;
 
@@ -11,19 +12,21 @@ public class AudioObject {
     private String subTitle;
     private String largeIconUrl;
     private boolean isLocal;
-    private NotificationMode notificationMode;
+    private NotificationActionMode notificationActionMode;
+    private NotificationActionCallbackMode notificationActionCallbackMode;
 
     private Bitmap largeIcon;
     
     //for foreground player
-    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationMode notificationMode){
+    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationActionMode notificationActionMode, NotificationActionCallbackMode notificationActionCallbackMode){
         this.url = url;
         this.smallIconFileName = smallIconFileName;
         this.title = title;
         this.subTitle = subTitle;
         this.largeIconUrl = largeIconUrl;
         this.isLocal = isLocal;
-        this.notificationMode = notificationMode;
+        this.notificationActionMode = notificationActionMode;
+        this.notificationActionCallbackMode = notificationActionCallbackMode;
     }
 
     //for background player
@@ -59,8 +62,12 @@ public class AudioObject {
         return isLocal;
     }
 
-    public NotificationMode getNotificationMode(){
-        return notificationMode;
+    public NotificationActionMode getNotificationActionMode(){
+        return notificationActionMode;
+    }
+
+    public NotificationActionCallbackMode getNotificationActionCallbackMode(){
+        return notificationActionCallbackMode;
     }
 
     public void setLargeIcon(Bitmap bitmap){

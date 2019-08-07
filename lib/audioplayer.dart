@@ -15,7 +15,11 @@ enum PlayerMode {
   FOREGROUND,
   BACKGROUND,
 }
-enum Result { success, fail, error }
+enum Result {
+  SUCCESS,
+  FAIL,
+  ERROR,
+}
 
 class AudioPlayer {
   static MethodChannel _channel = const MethodChannel('danielr2001/audioplayer')
@@ -48,7 +52,12 @@ class AudioPlayer {
   final StreamController<int> _audioSessionIdController =
       StreamController<int>.broadcast();
 
+  final StreamController<NotificationActionName> _notificationActionController =
+      StreamController<NotificationActionName>.broadcast();
+
   /// Stream of changes on player playerState.
+  /// 
+  /// Events are sent every time the state of the audioplayer is changed
   Stream<PlayerState> get onPlayerStateChanged => _playerStateController.stream;
 
   /// Stream of changes on audio position.
@@ -73,18 +82,22 @@ class AudioPlayer {
   /// [ReleaseMode.LOOP] also sends events to this stream.
   Stream<void> get onPlayerCompletion => _completionController.stream;
 
-  /// Stream of player completions.
+  /// Stream of player audio session ID.
   ///
-  /// Events are sent every time an audio is finished, therefore no event is
-  /// sent when an audio is paused or stopped.
-  ///
-  /// [ReleaseMode.LOOP] also sends events to this stream.
+  /// Events are sent every time the audio session id is changed.
   Stream<int> get onAudioSessionIdChange => _audioSessionIdController.stream;
 
   /// Stream of player errors.
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
   Stream<String> get onPlayerError => _errorController.stream;
+
+  /// Stream of notification actions callback.
+  ///
+  /// Events are sent every time the user taps on one of the notification`s
+  /// actions, if `NotificationActionCallbackMode.CUSTOM` is passed to `AudioNotification`.
+  Stream<NotificationActionName> get onNotificationActionCallback =>
+      _notificationActionController.stream;
 
   /// Stream of player errors.
   ///
@@ -126,23 +139,30 @@ class AudioPlayer {
     String subTitle;
     String largeIconUrl;
     bool isLocal;
-    int notificationMode;
+    int notificationActionMode;
+    int notificationActionCallbackMode = 0;
     if (playerMode == PlayerMode.FOREGROUND) {
       smallIconFileName = audioNotification.getSmallIconFileName();
       title = audioNotification.getTitle();
       subTitle = audioNotification.getSubTitle();
       largeIconUrl = audioNotification.getLargeIconUrl();
       isLocal = audioNotification.getIsLocal();
-      if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
-        notificationMode = 0;
+      if (audioNotification.getNotificationMode() ==
+          NotificationActionMode.NONE) {
+        notificationActionMode = 0;
       } else if (audioNotification.getNotificationMode() ==
-          NotificationMode.NEXT) {
-        notificationMode = 1;
+          NotificationActionMode.NEXT) {
+        notificationActionMode = 1;
       } else if (audioNotification.getNotificationMode() ==
-          NotificationMode.PREVIOUS) {
-        notificationMode = 2;
+          NotificationActionMode.PREVIOUS) {
+        notificationActionMode = 2;
       } else {
-        notificationMode = 3;
+        notificationActionMode = 3;
+      }
+
+      if (audioNotification.getNotificationActionCallbackMode() ==
+          NotificationActionCallbackMode.CUSTOM) {
+        notificationActionCallbackMode = 1;
       }
 
       isBackground = false;
@@ -159,14 +179,15 @@ class AudioPlayer {
       'subTitle': subTitle,
       'largeIconUrl': largeIconUrl,
       'isLocal': isLocal,
-      'notificationMode': notificationMode,
+      'notificationActionMode': notificationActionMode,
+      'notificationActionCallbackMode': notificationActionCallbackMode,
     })) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -194,6 +215,7 @@ class AudioPlayer {
     final List<String> largeIconUrls = List();
     final List<bool> isLocals = List();
     final List<int> notificationModes = List();
+    final List<int> notificationActionCallbackModes = List();
     if (playerMode == PlayerMode.FOREGROUND) {
       for (AudioNotification audioNotification in audioNotifications) {
         smallIconFileNames.add(audioNotification.getSmallIconFileName());
@@ -202,16 +224,24 @@ class AudioPlayer {
         largeIconUrls.add(audioNotification.getLargeIconUrl());
         isLocals.add(audioNotification.getIsLocal());
 
-        if (audioNotification.getNotificationMode() == NotificationMode.NONE) {
+        if (audioNotification.getNotificationMode() ==
+            NotificationActionMode.NONE) {
           notificationModes.add(0);
         } else if (audioNotification.getNotificationMode() ==
-            NotificationMode.NEXT) {
+            NotificationActionMode.NEXT) {
           notificationModes.add(1);
         } else if (audioNotification.getNotificationMode() ==
-            NotificationMode.PREVIOUS) {
+            NotificationActionMode.PREVIOUS) {
           notificationModes.add(2);
         } else {
           notificationModes.add(3);
+        }
+
+        if (audioNotification.getNotificationActionCallbackMode() ==
+            NotificationActionCallbackMode.CUSTOM) {
+          notificationActionCallbackModes.add(1);
+        } else {
+          notificationActionCallbackModes.add(0);
         }
       }
 
@@ -230,13 +260,14 @@ class AudioPlayer {
       'largeIconUrls': largeIconUrls,
       'isLocals': isLocals,
       'notificationModes': notificationModes,
+      'notificationActionCallbackModes': notificationActionCallbackModes,
     })) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -247,11 +278,11 @@ class AudioPlayer {
   Future<Result> pause() async {
     switch (await _invokeMethod('pause')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -261,11 +292,11 @@ class AudioPlayer {
   Future<Result> next() async {
     switch (await _invokeMethod('next')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -275,11 +306,11 @@ class AudioPlayer {
   Future<Result> previous() async {
     switch (await _invokeMethod('previous')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -290,11 +321,11 @@ class AudioPlayer {
   Future<Result> stop() async {
     switch (await _invokeMethod('stop')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -302,11 +333,11 @@ class AudioPlayer {
   Future<Result> resume() async {
     switch (await _invokeMethod('resume')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -315,11 +346,11 @@ class AudioPlayer {
   Future<Result> release() async {
     switch (await _invokeMethod('release')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -328,11 +359,11 @@ class AudioPlayer {
     switch (
         await _invokeMethod('seek', {'position': position.inMilliseconds})) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -343,11 +374,11 @@ class AudioPlayer {
   Future<Result> setVolume(double volume) async {
     switch (await _invokeMethod('setVolume', {'volume': volume})) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -366,11 +397,11 @@ class AudioPlayer {
   Future<Result> getCurrentPosition() async {
     switch (await _invokeMethod('getCurrentPosition')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -378,11 +409,11 @@ class AudioPlayer {
   Future<Result> getCurrentPlayingAudioIndex() async {
     switch (await _invokeMethod('getCurrentPlayingAudioIndex')) {
       case 0:
-        return Result.fail;
+        return Result.FAIL;
       case 1:
-        return Result.success;
+        return Result.SUCCESS;
       default:
-        return Result.error;
+        return Result.ERROR;
     }
   }
 
@@ -472,6 +503,34 @@ class AudioPlayer {
       case 'audio.onAudioSessionIdChange':
         player._audioSessionIdController.add(value);
         break;
+      case 'audio.onNotificationActionCallback':
+        switch (value) {
+          case 0:
+            {
+              player._notificationActionController
+                  .add(NotificationActionName.PREVIOUS);
+              break;
+            }
+          case 1:
+            {
+              player._notificationActionController
+                  .add(NotificationActionName.NEXT);
+              break;
+            }
+          case 2:
+            {
+              player._notificationActionController
+                  .add(NotificationActionName.PLAY);
+              break;
+            }
+          case 3:
+            {
+              player._notificationActionController
+                  .add(NotificationActionName.PAUSE);
+              break;
+            }
+        }
+        break;
       case 'audio.onError':
         player.playerState = PlayerState.STOPPED; //! maybe released?
         player._errorController.add(value);
@@ -510,6 +569,9 @@ class AudioPlayer {
     }
     if (!_audioSessionIdController.isClosed) {
       futures.add(_audioSessionIdController.close());
+    }
+    if(!_notificationActionController.isClosed) {
+      futures.add(_notificationActionController.close());
     }
     await Future.wait(futures);
   }
