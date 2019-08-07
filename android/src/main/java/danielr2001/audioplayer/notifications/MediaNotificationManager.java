@@ -1,6 +1,6 @@
 package danielr2001.audioplayer.notifications;
 
-import danielr2001.audioplayer.audioplayers.ForegroundExoPlayer;
+import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
 import danielr2001.audioplayer.enums.NotificationMode;
 import danielr2001.audioplayer.interfaces.AsyncResponse;
 import danielr2001.audioplayer.R;
@@ -31,7 +31,7 @@ public class MediaNotificationManager {
     private static final int notificationId = 1;
     private static final String CHANNEL_ID = "Playback";
 
-    private ForegroundExoPlayer foregroundExoPlayer;
+    private ForegroundAudioPlayer foregroundExoPlayer;
     private Context context;
     private Activity activity;
 
@@ -54,7 +54,7 @@ public class MediaNotificationManager {
     private AudioObject audioObject;
     private boolean isPlaying;
 
-    public MediaNotificationManager(ForegroundExoPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
+    public MediaNotificationManager(ForegroundAudioPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
         this.context = context;
         this.foregroundExoPlayer = foregroundExoPlayer;
         this.mediaSession = mediaSession;
@@ -68,19 +68,19 @@ public class MediaNotificationManager {
         pendingIntent = PendingIntent.getActivity(this.context, 0,
         notificationIntent, 0);
 
-        playIntent = new Intent(this.context, ForegroundExoPlayer.class);
+        playIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         playIntent.setAction(PLAY_ACTION);
         pplayIntent = PendingIntent.getService(this.context, 1, playIntent, 0);
 
-        pauseIntent = new Intent(this.context, ForegroundExoPlayer.class);
+        pauseIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         pauseIntent.setAction(PAUSE_ACTION);
         ppauseIntent = PendingIntent.getService(this.context, 1, pauseIntent, 0);
 
-        prevIntent = new Intent(this.context, ForegroundExoPlayer.class);
+        prevIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         prevIntent.setAction(PREVIOUS_ACTION);
         pprevIntent = PendingIntent.getService(this.context, 1, prevIntent, 0);
 
-        nextIntent = new Intent(this.context, ForegroundExoPlayer.class);
+        nextIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         nextIntent.setAction(NEXT_ACTION);
         pnextIntent = PendingIntent.getService(this.context, 1, nextIntent, 0);
 

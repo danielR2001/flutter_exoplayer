@@ -2,7 +2,7 @@ package danielr2001.audioplayer.audioplayers;
 
 import danielr2001.audioplayer.interfaces.AudioPlayer;
 import danielr2001.audioplayer.notifications.MediaNotificationManager;
-import danielr2001.audioplayer.ExoPlayerPlugin;
+import danielr2001.audioplayer.AudioPlayerPlugin;
 import danielr2001.audioplayer.models.AudioObject;
 import danielr2001.audioplayer.enums.PlayerState;
 
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 public class BackgroundAudioPlayer implements AudioPlayer {
 
     private Context context;
-    private ExoPlayerPlugin ref;
+    private AudioPlayerPlugin ref;
     private BackgroundAudioPlayer backgroundAudioPlayer;
 
     private float volume = 1;
@@ -53,11 +53,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     private AudioObject audioObject;
 
     @Override
-    public void initAudioPlayer (ExoPlayerPlugin ref, Activity activity, String playerId) {
+    public void initAudioPlayer (AudioPlayerPlugin ref, Activity activity, String playerId) {
         this.ref = ref;
         this.context = activity.getApplicationContext();
         this.playerId = playerId;
-        this.BackgroundAudioPlayer = this;
+        this.backgroundAudioPlayer = this;
         this.initialized = true;
     }
 

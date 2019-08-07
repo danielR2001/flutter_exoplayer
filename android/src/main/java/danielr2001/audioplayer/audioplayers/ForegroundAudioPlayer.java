@@ -2,7 +2,7 @@ package danielr2001.audioplayer.audioplayers;
 
 import danielr2001.audioplayer.interfaces.AudioPlayer;
 import danielr2001.audioplayer.notifications.MediaNotificationManager;
-import danielr2001.audioplayer.ExoPlayerPlugin;
+import danielr2001.audioplayer.AudioPlayerPlugin;
 import danielr2001.audioplayer.models.AudioObject;
 import danielr2001.audioplayer.enums.PlayerState;
 
@@ -47,7 +47,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private ForegroundAudioPlayer foregroundAudioPlayer;
     private MediaNotificationManager mediaNotificationManager;
     private Context context;
-    private ExoPlayerPlugin ref;
+    private AudioPlayerPlugin ref;
     private MediaSessionCompat mediaSession;
 
     private float volume = 1;
@@ -100,7 +100,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     
 
     @Override
-    public void initAudioPlayer(ExoPlayerPlugin ref, Activity activity, String playerId) {
+    public void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId) {
         this.ref = ref;
         this.playerId = playerId;
         this.mediaNotificationManager = new MediaNotificationManager(this, this.context, this.mediaSession, activity);

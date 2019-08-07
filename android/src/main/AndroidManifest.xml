@@ -1,9 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="danielr2001.exoplayer">
+  package="danielr2001.audioplayer">
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   
   <application>
-    <service android:name="danielr2001.exoplayer.audioplayers.ForegroundExoPlayer" >
+    <service android:name="danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer" >
         <!-- <intent-filter>
           <action android:name="android.intent.action.MEDIA_BUTTON" />
         </intent-filter> -->

@@ -1,11 +1,11 @@
 package danielr2001.audioplayer;
 
-import danielr2001.exoplayer.audioplayers.ForegroundAudioPlayer;
-import danielr2001.exoplayer.audioplayers.BackgroundAudioPlayer;
-import danielr2001.exoplayer.interfaces.AudioPlayer;
-import danielr2001.exoplayer.models.AudioObject;
-import danielr2001.exoplayer.enums.NotificationMode;
-import danielr2001.exoplayer.enums.PlayerState;
+import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
+import danielr2001.audioplayer.audioplayers.BackgroundAudioPlayer;
+import danielr2001.audioplayer.interfaces.AudioPlayer;
+import danielr2001.audioplayer.models.AudioObject;
+import danielr2001.audioplayer.enums.NotificationMode;
+import danielr2001.audioplayer.enums.PlayerState;
 
 import android.app.Activity;
 import android.app.ActivityManager;
