@@ -1,10 +1,10 @@
-package danielr2001.exoplayer.notifications;
+package danielr2001.audioplayer.notifications;
 
-import danielr2001.exoplayer.audioplayers.ForegroundExoPlayer;
-import danielr2001.exoplayer.enums.NotificationMode;
-import danielr2001.exoplayer.interfaces.AsyncResponse;
-import danielr2001.exoplayer.R;
-import danielr2001.exoplayer.models.AudioObject;
+import danielr2001.audioplayer.audioplayers.ForegroundExoPlayer;
+import danielr2001.audioplayer.enums.NotificationMode;
+import danielr2001.audioplayer.interfaces.AsyncResponse;
+import danielr2001.audioplayer.R;
+import danielr2001.audioplayer.models.AudioObject;
 
 import android.app.Activity;
 import android.app.Notification;

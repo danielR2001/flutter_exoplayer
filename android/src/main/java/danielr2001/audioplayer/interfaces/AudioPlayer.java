@@ -1,7 +1,7 @@
-package danielr2001.exoplayer.interfaces;
+package danielr2001.audioplayer.interfaces;
 
-import danielr2001.exoplayer.ExoPlayerPlugin;
-import danielr2001.exoplayer.models.AudioObject;
+import danielr2001.audioplayer.ExoPlayerPlugin;
+import danielr2001.audioplayer.models.AudioObject;
 
 import android.app.Activity;
 import android.content.Context;

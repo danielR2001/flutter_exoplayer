@@ -1,4 +1,4 @@
-# ExoPlayer
+# Flutter_exoplayer
 
 A Flutter plugin that let's you play multiple audio files simultaneously with an option to choose if to play in background or as a forground service, for now works only for Android.
 
@@ -19,10 +19,10 @@ If you find a bug or a feature you want to be added to this library go to the gi
 
 ## Usage
 
-An `ExoPlayer` instance can play a single audio at a time. To create it, simply call the constructor:
+An `AudioPlayer` instance can play a single audio at a time. To create it, simply call the constructor:
 
 ```dart
-  ExoPlayer exoPlayer = ExoPlayer();
+  AudioPlayer audioPlayer = AudioPlayer();
 ```
 
 You can create multiple instances to play audio simultaneously, but only if you choose `playerMode: PlayerMode.BACKGROUND`, because android can't run two similar services.
@@ -32,7 +32,7 @@ For all methods that return a `Future<Result>`: that's the status of the operati
 Logs are disable by default! To debug, run:
 
 ```dart
-  ExoPlayer.logEnabled = true;
+  AudioPlayer.logEnabled = true;
 ```
 
 ### Playing Audio
@@ -45,14 +45,14 @@ To play audio you have two options:
 
 ```dart
   String url = "URL";
-  exoplayer.play(url);
+  audioPlayer.play(url);
 ```
 
 * play playlist.
 
 ```dart
   List<String> urls = ["URL1","URL2","URL3"];
-  exoplayer.playAll(urls);
+  audioPlayer.playAll(urls);
 ```
 
 The url you pass can be either local direction or network url.
@@ -60,7 +60,7 @@ The url you pass can be either local direction or network url.
 By default the player is set to play in background (Android system can easily kill the Audio player when app is in background), if Player mode is set to FOREGROUND then you need to also pass `audioObject` instance for the foreground notification, respectAudioFocus is set to false (if your app is respectiong audio focus it will pause when other app get's audio focus and duck if other app getting temporary access of audio focus), repeatMode is also set by default to false (every audio source will play only once), and by default the volume is set to max (1.0). To change one or more of this parameters you need to just pass them to play method.
 
 ```dart
-  final int result = await exoplayer.play(url,
+  final int result = await audioPlayer.play(url,
       repeatMode: true,
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
@@ -89,7 +89,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Pause: Will pause your audio and keep the position.
 
 ```dart
-  final int result = await exoplayer.pause();
+  final int result = await audioPlayer.pause();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -101,7 +101,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Resume: Will resume your audio from the exact position it was paused on.
 
 ```dart
-  final int result = await exoplayer.resume();
+  final int result = await audioPlayer.resume();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -113,7 +113,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Stop: Will stop your audio and restart it position.
 
 ```dart
-  final int result = await exoplayer.stop();
+  final int result = await audioPlayer.stop();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -125,7 +125,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Release: Will release your audio source from the player (you need to call play again).
 
 ```dart
-  final int result = await exoplayer.release();
+  final int result = await audioPlayer.release();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -137,7 +137,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Next: Will play the next song in the playlist or if playing single audio it will restart the current.
 
 ```dart
-  final int result = await exoplayer.next();
+  final int result = await audioPlayer.next();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -149,7 +149,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Previous: Will play the previous song in the playlist or if playing single audio it will restart the current.
 
 ```dart
-  final int result = await exoplayer.previous();
+  final int result = await audioPlayer.previous();
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -161,7 +161,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Seek: Will seek to the duration you set.
 
 ```dart
-  final int result = await exoplayer.seek(_duration));
+  final int result = await audioPlayer.seek(_duration));
   if (result == Result.fail) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -190,14 +190,14 @@ Attention! You need to place your app icon or the icon you want to show in the A
 
 ### Streams
 
-The Exoplayer supports subscribing to events like so:
+The AudioPlayer supports subscribing to events like so:
 
 #### Duration Event
 
 This event returns the duration of the file, when it's available (it might take a while because it's being downloaded or buffered).
 
 ```dart
-  exoPlayer.onDurationChanged.listen((Duration d) {
+  audioPlayer.onDurationChanged.listen((Duration d) {
     print('Max duration: $d');
     setState(() => duration = d);
   });
@@ -208,7 +208,7 @@ This event returns the duration of the file, when it's available (it might take 
 This Event updates the current position of the audio. You can use it to make a progress bar, for instance.
 
 ```dart
-  exoPlayer.onAudioPositionChanged.listen((Duration  p) => {
+  audioPlayer.onAudioPositionChanged.listen((Duration  p) => {
     print('Current position: $p');
     setState(() => position = p);
   });
@@ -219,7 +219,7 @@ This Event updates the current position of the audio. You can use it to make a p
 This Event returns the current player state. You can use it to show if player playing, or stopped, or paused.
 
 ```dart
-  exoPlayer.onPlayerStateChanged.listen((PlayerState s) => {
+  audioPlayer.onPlayerStateChanged.listen((PlayerState s) => {
     print('Current player state: $s');
     setState(() => palyerState = s);
   });
@@ -232,7 +232,7 @@ This Event is called when the audio finishes playing; it's used in the loop meth
 It does not fire when you interrupt the audio with pause or stop.
 
 ```dart
-  exoPlayer.onPlayerCompletion.listen((event) {
+  audioPlayer.onPlayerCompletion.listen((event) {
     onComplete();
     setState(() {
       position = duration;
@@ -245,7 +245,7 @@ It does not fire when you interrupt the audio with pause or stop.
 This is called when an unexpected error is thrown in the native code.
 
 ```dart
-  exoPlayer.onPlayerError.listen((msg) {
+  audioPlayer.onPlayerError.listen((msg) {
     print('audioPlayer error : $msg');
     setState(() {
       playerState = PlayerState.stopped;

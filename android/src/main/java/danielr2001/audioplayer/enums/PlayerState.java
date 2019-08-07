@@ -1,4 +1,4 @@
-package danielr2001.exoplayer.enums;
+package danielr2001.audioplayer.enums;
 
 public enum PlayerState {
     PLAYING, 

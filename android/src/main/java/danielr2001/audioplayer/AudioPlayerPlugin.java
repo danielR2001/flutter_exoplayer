@@ -1,4 +1,4 @@
-package danielr2001.exoplayer;
+package danielr2001.audioplayer;
 
 import danielr2001.exoplayer.audioplayers.ForegroundAudioPlayer;
 import danielr2001.exoplayer.audioplayers.BackgroundAudioPlayer;

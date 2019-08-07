@@ -1,6 +1,6 @@
-package danielr2001.exoplayer.models;
+package danielr2001.audioplayer.models;
 
-import danielr2001.exoplayer.enums.NotificationMode;
+import danielr2001.audioplayer.enums.NotificationMode;
 
 import android.graphics.Bitmap;
 
