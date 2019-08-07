@@ -1,6 +1,6 @@
-# exoplayer_example
+# flutter_exoplayer example
 
-This is an example usage of audioplayers plugin.
+This is an example usage of flutter_exoplayer plugin.
 
 It's a simple app with three tabs.
 

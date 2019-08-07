@@ -71,7 +71,7 @@ By default the player is set to play in background (Android system can easily ki
 ```
 
 ```dart
-  final int result = await _audioPlayer.playAll(urls,
+  final int result = await audioPlayer.playAll(urls,
       repeatMode: true,
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
@@ -260,6 +260,18 @@ return the action name of the action that the user has clicked on.
   audioPlayer.onNotificationActionCallback.listen((notificationActionName) {
     //do something
   });
+```
+
+#### Audio Index Event
+
+This Event is called when the current player audio index is changed (new audio is being played).
+
+```dart
+  audioPlayer.onCurrentAudioIndexChanged.listen((index) {
+      setState(() {
+        currentIndex = index;
+      });
+    });
 ```
 
 #### Error Event

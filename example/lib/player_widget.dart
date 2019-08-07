@@ -257,7 +257,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       });
     });
     _playerIndexSubscription =
-        _audioPlayer.onPlayerIndexChanged.listen((index) {
+        _audioPlayer.onCurrentAudioIndexChanged.listen((index) {
       setState(() {
         _currentIndex = index;
       });

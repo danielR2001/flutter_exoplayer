@@ -99,10 +99,10 @@ class AudioPlayer {
   Stream<NotificationActionName> get onNotificationActionCallback =>
       _notificationActionController.stream;
 
-  /// Stream of player errors.
+  /// Stream of current playing index.
   ///
-  /// Events are sent when an unexpected error is thrown in the native code.
-  Stream<int> get onPlayerIndexChanged => _currentPlayingIndexController.stream;
+  /// Events are sent when current index of a player is being changed.
+  Stream<int> get onCurrentAudioIndexChanged => _currentPlayingIndexController.stream;
 
   PlayerState _audioPlayerState;
 
