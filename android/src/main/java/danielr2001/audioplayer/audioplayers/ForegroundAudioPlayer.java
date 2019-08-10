@@ -63,6 +63,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private boolean released = true;
     private boolean playing = false;
     private boolean buffering = false;
+    private boolean stopped = false;
 
     private String playerId;
     private SimpleExoPlayer player;
@@ -140,6 +141,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
 
     @Override
     public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {
+        this.stopped = false;
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -152,6 +154,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
 
     @Override
     public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects) {
+        this.stopped = false;
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -171,7 +174,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void previous() { // !TODO first time go to previous (maybe make counter for 3 sec)
+    public void previous() { // !TODO first time go to pos 0 then second time previous (maybe make counter for 3 sec)
         if (!this.released) {
             player.previous();
             this.resume();
@@ -181,6 +184,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void pause() {
         if (!this.released && this.playing) {
+            this.playing = false;
             player.setPlayWhenReady(false);
             stopForeground(false);
         }
@@ -189,6 +193,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void resume() {
         if (!this.released && !this.playing) {
+            this.playing = true;
             player.setPlayWhenReady(true);
         }
     }
@@ -196,6 +201,8 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void stop() {
         if (!this.released) {
+            this.playing = false;
+            this.stopped = true;
             player.stop(true);
             stopForeground(true);
         }
@@ -318,10 +325,12 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-                if (audioObjects != null) {
-                    mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
-                } else {
-                    mediaNotificationManager.makeNotification(audioObject, true);
+                if(!stopped){
+                    if (audioObjects != null) {
+                        mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
+                    } else {
+                        mediaNotificationManager.makeNotification(audioObject, true);
+                    }
                 }
                 ref.handlePlayerIndex(foregroundAudioPlayer);
             }
@@ -329,60 +338,56 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState) {
-                case Player.STATE_BUFFERING: {
-                    // buffering
-                    buffering = true;
-                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
-                }
-                case Player.STATE_READY: {
-                    if (buffering) {
-                        // stopped buffering still not playing
-                        buffering = false;
-                    } else if (playWhenReady && playing) {
-                        // play
-                        playing = true;
-                        if (audioObjects != null) {
-                            mediaNotificationManager.makeNotification(true);
-                        } else {
-                            mediaNotificationManager.makeNotification(true);
-                        }
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                        ref.handlePositionUpdates();
-                    } else if (playWhenReady && !playing) {
-                        // resumed
-                        playing = true;
-                        if (audioObjects != null) {
-                            mediaNotificationManager.makeNotification(true);
-                        } else {
-                            mediaNotificationManager.makeNotification(true);
-                        }
-                        ref.handlePositionUpdates();
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                    } else if (!playWhenReady && playing) {
-                        // paused
-                        playing = false;
-                        if (audioObjects != null) {
-                            mediaNotificationManager.makeNotification(false);
-                        } else {
-                            mediaNotificationManager.makeNotification(false);
-                        }
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
+                    case Player.STATE_BUFFERING: {
+                        // buffering
+                        buffering = true;
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
+                        break;
                     }
+                    case Player.STATE_READY: {
+                        if (buffering) {
+                            // stopped buffering and playing
+                            buffering = false;
+                            playing = true;
+                            if (audioObjects != null) {
+                                mediaNotificationManager.makeNotification(true);
+                            } else {
+                                mediaNotificationManager.makeNotification(true);
+                            }
+                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                            ref.handlePositionUpdates();
+                        }  else if (playWhenReady && !playing) {
+                            // resumed
+                            if (audioObjects != null) {
+                                mediaNotificationManager.makeNotification(true);
+                            } else {
+                                mediaNotificationManager.makeNotification(true);
+                            }
+                            ref.handlePositionUpdates();
+                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                        } else if (!playWhenReady && playing) {
+                            // paused
+                            if (audioObjects != null) {
+                                mediaNotificationManager.makeNotification(false);
+                            } else {
+                                mediaNotificationManager.makeNotification(false);
+                            }
+                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
+                        }
 
-                    break;
-                }
-                case Player.STATE_ENDED: {
-                    // completed
-                    playing = false;
-                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
-                    break;
-                }
-                case Player.STATE_IDLE: {
-                    // stopped
-                    playing = false;
-                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
-                    break;
-                } // handle of released is in release method!
+                        break;
+                    }
+                    case Player.STATE_ENDED: {
+                        // completed
+                        playing = false;
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
+                        break;
+                    }
+                    case Player.STATE_IDLE: {
+                        // stopped
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
+                        break;
+                    } // handle of released is in release method!
                 }
             }
         });

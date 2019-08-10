@@ -56,7 +56,7 @@ class AudioPlayer {
       StreamController<NotificationActionName>.broadcast();
 
   /// Stream of changes on player playerState.
-  /// 
+  ///
   /// Events are sent every time the state of the audioplayer is changed
   Stream<PlayerState> get onPlayerStateChanged => _playerStateController.stream;
 
@@ -102,7 +102,8 @@ class AudioPlayer {
   /// Stream of current playing index.
   ///
   /// Events are sent when current index of a player is being changed.
-  Stream<int> get onCurrentAudioIndexChanged => _currentPlayingIndexController.stream;
+  Stream<int> get onCurrentAudioIndexChanged =>
+      _currentPlayingIndexController.stream;
 
   PlayerState _audioPlayerState;
 
@@ -462,14 +463,12 @@ class AudioPlayer {
             {
               player.playerState = PlayerState.RELEASED;
               player._playerStateController.add(player.playerState);
-              print(player.playerState);
               break;
             }
           case 0:
             {
               player.playerState = PlayerState.STOPPED;
               player._playerStateController.add(player.playerState);
-                            print(player.playerState);
               break;
             }
           case 1:
@@ -477,28 +476,24 @@ class AudioPlayer {
               player.playerState = PlayerState.BUFFERING;
               player._playerStateController.add(player.playerState);
               player._completionController.add(null);
-                            print(player.playerState);
               break;
             }
           case 2:
             {
               player.playerState = PlayerState.PLAYING;
               player._playerStateController.add(player.playerState);
-                            print(player.playerState);
               break;
             }
           case 3:
             {
               player.playerState = PlayerState.PAUSED;
               player._playerStateController.add(player.playerState);
-                            print(player.playerState);
               break;
             }
           case 4:
             {
               player.playerState = PlayerState.COMPLETED;
               player._playerStateController.add(player.playerState);
-                            print(player.playerState);
               break;
             }
         }
@@ -539,7 +534,7 @@ class AudioPlayer {
         }
         break;
       case 'audio.onError':
-        player.playerState = PlayerState.STOPPED; //! maybe released?
+        player.playerState = PlayerState.STOPPED; //! TODO maybe released?
         player._errorController.add(value);
         break;
       default:
@@ -577,7 +572,7 @@ class AudioPlayer {
     if (!_audioSessionIdController.isClosed) {
       futures.add(_audioSessionIdController.close());
     }
-    if(!_notificationActionController.isClosed) {
+    if (!_notificationActionController.isClosed) {
       futures.add(_notificationActionController.close());
     }
     await Future.wait(futures);

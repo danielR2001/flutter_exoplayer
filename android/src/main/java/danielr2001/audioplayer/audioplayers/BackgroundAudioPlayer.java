@@ -48,6 +48,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     private boolean released = true;
     private boolean playing = false;
     private boolean buffering = false;
+    private boolean stopped = false;
 
     private String playerId;
     private SimpleExoPlayer player;
@@ -70,6 +71,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {
+        this.stopped = false;
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -82,6 +84,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects) {
+        this.stopped = false;
         this.released = false;
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;
@@ -107,6 +110,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void pause() {
         if (!this.released && this.playing) {
+            this.playing = false;
             player.setPlayWhenReady(false);
         }
     }
@@ -114,6 +118,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void resume() {
         if (!this.released && !this.playing) {
+            this.playing = true;
             player.setPlayWhenReady(true);
         }
     }
@@ -121,6 +126,8 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void stop() {
         if (!this.released) {
+            this.playing = false;;
+            this.stopped = true;
             player.stop(true);
         }
     }
@@ -246,27 +253,23 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                         // buffering
                         buffering = true;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.BUFFERING);
+                        break;
                     }
                     case Player.STATE_READY: {
                         if (buffering) {
-                            // stopped buffering still not playing
+                            // stopped buffering and playing
                             buffering = false;
-                        } else if (playWhenReady && playing) {
-                            // play
                             playing = true;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePositionUpdates();
                         } else if (playWhenReady && !playing) {
                             // resumed
-                            playing = true;
                             ref.handlePositionUpdates();
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                         } else if (!playWhenReady && playing) {
                             // paused
-                            playing = false;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
                         }
-    
                         break;
                     }
                     case Player.STATE_ENDED: {
@@ -277,11 +280,10 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                     }
                     case Player.STATE_IDLE: {
                         // stopped
-                        playing = false;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.STOPPED);
                         break;
                     } // handle of released is in release method!
-                    }
+                }
             }
         });
     }
