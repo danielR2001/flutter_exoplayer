@@ -31,11 +31,14 @@ import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+
 public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
 
@@ -76,39 +79,39 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.context = getApplicationContext();
         mediaSession = new MediaSessionCompat(this.context, "playback");
-        //! TODO handle MediaButtonReceiver's callbacks
-        //MediaButtonReceiver.handleIntent(mediaSession, intent);
-        //mediaSession.setCallback(mediaSessionCallback);
-        if(intent.getAction() != null){  
+        // ! TODO handle MediaButtonReceiver's callbacks
+        // MediaButtonReceiver.handleIntent(mediaSession, intent);
+        // mediaSession.setCallback(mediaSessionCallback);
+        if (intent.getAction() != null) {
             AudioObject currentAudioObject;
-            if(this.audioObjects !=null){
+            if (this.audioObjects != null) {
                 currentAudioObject = this.audioObjects.get(player.getCurrentWindowIndex());
-            }else{
+            } else {
                 currentAudioObject = this.audioObject;
             }
             if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
-                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
                     previous();
-                }else{
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PREVIOUS);     
+                } else {
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PREVIOUS);
                 }
             } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
-                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
                     resume();
-                }else{
+                } else {
                     ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PLAY);
                 }
             } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
-                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
                     pause();
-                }else{
+                } else {
                     ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PAUSE);
                 }
-            }else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
-                if(currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT){
+            } else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
+                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
                     next();
-                }else{
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT); 
+                } else {
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT);
                 }
             }
         }
@@ -120,8 +123,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         super.onTaskRemoved(rootIntent);
         this.release();
     }
-
-    
 
     @Override
     public void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId) {
@@ -146,7 +147,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         this.audioObjects = null;
         initExoPlayer();
         initListeners();
-        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
@@ -159,7 +159,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         this.audioObject = null;
         initExoPlayer();
         initListeners();
-        loadNewAudioNotification();
         player.setPlayWhenReady(true);
     }
 
@@ -167,16 +166,14 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     public void next() {
         if (!this.released) {
             player.next();
-            loadNewAudioNotification();
             this.resume();
         }
     }
 
     @Override
-    public void previous() { //!TODO first time go to previous (maybe make counter for 3 sec)
+    public void previous() { // !TODO first time go to previous (maybe make counter for 3 sec)
         if (!this.released) {
             player.previous();
-            loadNewAudioNotification();
             this.resume();
         }
     }
@@ -207,7 +204,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void release() {
         if (!this.released) {
-            if(this.playing){
+            if (this.playing) {
                 stopForeground(true);
             }
             this.released = true;
@@ -260,148 +257,149 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public boolean isBackground(){
+    public boolean isBackground() {
         return false;
     }
-    
+
     @Override
-    public boolean isPlayerInitialized(){
+    public boolean isPlayerInitialized() {
         return this.initialized;
     }
-    
+
     @Override
-    public boolean isPlayerReleased(){
+    public boolean isPlayerReleased() {
         return this.released;
     }
 
     @Override
-    public int getCurrentPlayingAudioIndex(){
+    public int getCurrentPlayingAudioIndex() {
         return player.getCurrentWindowIndex();
     }
 
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
-        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
+        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
+                Util.getUserAgent(this.context, "exoPlayerLibrary"));
         player.setForegroundMode(true);
         // playlist/single audio load
-        if(this.audioObjects != null){
+        if (this.audioObjects != null) {
             ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
             for (AudioObject audioObject : audioObjects) {
-                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
+                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(Uri.parse(audioObject.getUrl()));
                 concatenatingMediaSource.addMediaSource(mediaSource);
             }
             player.prepare(concatenatingMediaSource);
-        }else{
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.audioObject.getUrl()));
+        } else {
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(Uri.parse(this.audioObject.getUrl()));
             player.prepare(mediaSource);
         }
-        //handle audio focus
-        if(this.respectAudioFocus){ //! TODO catch duck pause!
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.CONTENT_TYPE_MUSIC)
-                    .build();
+        // handle audio focus
+        if (this.respectAudioFocus) { // ! TODO catch duck pause!
+            AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MUSIC).build();
             player.setAudioAttributes(audioAttributes, true);
         }
-        //set repeat mode
+        // set repeat mode
         if (repeatMode) {
             player.setRepeatMode(player.REPEAT_MODE_ALL);
         }
     }
 
     private void initListeners() {
-        player.addAnalyticsListener(new AnalyticsListener(){
+        player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
                 ref.handleAudioSessionIdChange(foregroundAudioPlayer, audioSessionId);
             }
         });
         player.addListener(new Player.EventListener() {
+            
+            @Override
+            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+                if (audioObjects != null) {
+                    mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
+                } else {
+                    mediaNotificationManager.makeNotification(audioObject, true);
+                }
+                ref.handlePlayerIndex(foregroundAudioPlayer);
+            }
 
             @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) { 
-                switch (playbackState){
-                    case Player.STATE_BUFFERING:{
-                        //buffering
-                        buffering = true;
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
-                    }
-                    case Player.STATE_READY:{
-                        if(buffering){
-                            //play
-                            playing = true;
-                            buffering = false;
-                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                            ref.handlePlayerIndex(foregroundAudioPlayer);
-                        }else{
-                            if(playWhenReady && playing){
-                                //first play
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(true);
-                                }else {
-                                    mediaNotificationManager.makeNotification(true);
-                                }
-                                ref.handlePositionUpdates();
-                            }else if (playWhenReady && !playing) {
-                                //resumed   
-                                playing = true;                         
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(true);
-                                }else {
-                                    mediaNotificationManager.makeNotification(true);
-                                }
-                                ref.handlePositionUpdates();
-                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                                
-                            }else if(!playWhenReady && playing){
-                                //paused
-                                playing = false;
-                                if(audioObjects != null) {
-                                    mediaNotificationManager.makeNotification(false);
-                                }else {
-                                    mediaNotificationManager.makeNotification(false);
-                                }
-                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
-                            }
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+                switch (playbackState) {
+                case Player.STATE_BUFFERING: {
+                    // buffering
+                    buffering = true;
+                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
+                }
+                case Player.STATE_READY: {
+                    if (buffering) {
+                        // stopped buffering still not playing
+                        buffering = false;
+                    } else if (playWhenReady && playing) {
+                        // play
+                        playing = true;
+                        if (audioObjects != null) {
+                            mediaNotificationManager.makeNotification(true);
+                        } else {
+                            mediaNotificationManager.makeNotification(true);
                         }
-                        break;
-                    }
-                    case Player.STATE_ENDED:{
-                        //completed
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                        ref.handlePositionUpdates();
+                    } else if (playWhenReady && !playing) {
+                        // resumed
+                        playing = true;
+                        if (audioObjects != null) {
+                            mediaNotificationManager.makeNotification(true);
+                        } else {
+                            mediaNotificationManager.makeNotification(true);
+                        }
+                        ref.handlePositionUpdates();
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                    } else if (!playWhenReady && playing) {
+                        // paused
                         playing = false;
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
-                        break;
+                        if (audioObjects != null) {
+                            mediaNotificationManager.makeNotification(false);
+                        } else {
+                            mediaNotificationManager.makeNotification(false);
+                        }
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
                     }
-                    case Player.STATE_IDLE:{
-                        //stopped
-                        playing = false;
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
-                        break;
-                    }  //handle of released is in release method!
+
+                    break;
+                }
+                case Player.STATE_ENDED: {
+                    // completed
+                    playing = false;
+                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
+                    break;
+                }
+                case Player.STATE_IDLE: {
+                    // stopped
+                    playing = false;
+                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
+                    break;
+                } // handle of released is in release method!
                 }
             }
         });
     }
 
-    private void loadNewAudioNotification(){
-        if(audioObjects != null) {
-            mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), false);
-        }else {
-            mediaNotificationManager.makeNotification(audioObject, false); 
-        }
-    }
-    
-    //// private MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
-    ////     @Override
-    ////     public void onPlay() {
-    ////         Log.d("hii","play!");
-    ////         super.onPlay();
-    ////     }
+    //// private MediaSessionCompat.Callback mediaSessionCallback = new
+    //// MediaSessionCompat.Callback() {
+    //// @Override
+    //// public void onPlay() {
+    //// Log.d("hii","play!");
+    //// super.onPlay();
+    //// }
 
-    ////     @Override
-    ////     public void onPause() {
-    ////         Log.d("hii","pause!");
-    ////         super.onPause();
-    ////     }
+    //// @Override
+    //// public void onPause() {
+    //// Log.d("hii","pause!");
+    //// super.onPause();
+    //// }
     //// };
 }

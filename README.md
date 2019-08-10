@@ -231,9 +231,8 @@ This Event returns the current player state. You can use it to show if player pl
 
 #### Completion Event
 
-This Event is called when the audio finishes playing; it's used in the loop method, for instance.
-
-It does not fire when you interrupt the audio with pause or stop.
+This Event is called when the audio finishes playing (in playAll mode it fires only when all playlist finishes playing).
+If `repeatMode` is set yo true then this event is never fired. It does not fire when you interrupt the audio with pause or stop.
 
 ```dart
   audioPlayer.onPlayerCompletion.listen((event) {

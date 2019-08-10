@@ -314,7 +314,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
   }
 
   public void handlePlayerIndex(AudioPlayer audioplayer){
-    channel.invokeMethod("audio.onCurrentPlayingAudioIndex",buildArguments(player.getPlayerId(), player.getCurrentPlayingAudioIndex()));
+    channel.invokeMethod("audio.onCurrentPlayingAudioIndexChange",buildArguments(player.getPlayerId(), player.getCurrentPlayingAudioIndex()));
   }
 
   public void handleStateChange(AudioPlayer player, PlayerState playerState) {
@@ -444,8 +444,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
               nonePlaying = false;
               final String key = player.getPlayerId();
               final long position = player.getCurrentPosition();
-                channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
-                channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position)); 
+              channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
+              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position)); 
           } catch(UnsupportedOperationException e) {
 
           }

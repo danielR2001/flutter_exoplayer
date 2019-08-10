@@ -26,6 +26,8 @@ import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
@@ -233,51 +235,53 @@ public class BackgroundAudioPlayer implements AudioPlayer {
         player.addListener(new Player.EventListener() {
 
             @Override
+            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+                ref.handlePlayerIndex(backgroundAudioPlayer);
+            }
+
+            @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                switch (playbackState){
-                    case Player.STATE_BUFFERING:{
-                        //buffering
+                switch (playbackState) {
+                    case Player.STATE_BUFFERING: {
+                        // buffering
                         buffering = true;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.BUFFERING);
                     }
-                    case Player.STATE_READY:{
-                        if(buffering){
-                            //play
-                            playing = true;
+                    case Player.STATE_READY: {
+                        if (buffering) {
+                            // stopped buffering still not playing
                             buffering = false;
+                        } else if (playWhenReady && playing) {
+                            // play
+                            playing = true;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
-                            ref.handlePlayerIndex(backgroundAudioPlayer);
-                        }else{
-                            if(playWhenReady && playing){
-                                //first play
-                                ref.handlePositionUpdates();
-                            }else if (playWhenReady && !playing) {
-                                //resumed   
-                                playing = true;                         
-                                ref.handlePositionUpdates();
-                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
-                                
-                            }else if(!playWhenReady && playing){
-                                //paused
-                                playing = false;
-                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
-                            }
+                            ref.handlePositionUpdates();
+                        } else if (playWhenReady && !playing) {
+                            // resumed
+                            playing = true;
+                            ref.handlePositionUpdates();
+                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
+                        } else if (!playWhenReady && playing) {
+                            // paused
+                            playing = false;
+                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
                         }
+    
                         break;
                     }
-                    case Player.STATE_ENDED:{
-                        //completed
+                    case Player.STATE_ENDED: {
+                        // completed
                         playing = false;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.COMPLETED);
                         break;
                     }
-                    case Player.STATE_IDLE:{
-                        //stopped
+                    case Player.STATE_IDLE: {
+                        // stopped
                         playing = false;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.STOPPED);
                         break;
+                    } // handle of released is in release method!
                     }
-                }
             }
         });
     }

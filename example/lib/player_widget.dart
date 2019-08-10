@@ -259,6 +259,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     _playerIndexSubscription =
         _audioPlayer.onCurrentAudioIndexChanged.listen((index) {
       setState(() {
+        _position = Duration(milliseconds:  0);
         _currentIndex = index;
       });
     });
@@ -287,14 +288,13 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     } else {
       List<AudioNotification> audioNotifications = [
         AudioNotification(
-            smallIconFileName: "ic_launcher",
-            title: "title1",
-            subTitle: "artist1",
-            largeIconUrl: imageUrl1,
-            isLocal: false,
-            notificationActionMode: NotificationActionMode.ALL,
-            notificationActionCallbackMode:
-                NotificationActionCallbackMode.CUSTOM),
+          smallIconFileName: "ic_launcher",
+          title: "title1",
+          subTitle: "artist1",
+          largeIconUrl: imageUrl1,
+          isLocal: false,
+          notificationActionMode: NotificationActionMode.ALL,
+        ),
         AudioNotification(
             smallIconFileName: "ic_launcher",
             title: "title2",
@@ -311,11 +311,13 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             notificationActionMode: NotificationActionMode.ALL),
       ];
 
-      final Result result = await _audioPlayer.playAll(urls,
-          repeatMode: true,
-          respectAudioFocus: true,
-          playerMode: PlayerMode.FOREGROUND,
-          audioNotifications: audioNotifications);
+      final Result result = await _audioPlayer.playAll(
+        urls,
+        repeatMode: true,
+        respectAudioFocus: true,
+        playerMode: PlayerMode.FOREGROUND,
+        audioNotifications: audioNotifications,
+      );
       if (result == Result.ERROR) {
         print("something went wrong in playAll method :(");
       }

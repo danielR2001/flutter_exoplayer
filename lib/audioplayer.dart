@@ -462,12 +462,14 @@ class AudioPlayer {
             {
               player.playerState = PlayerState.RELEASED;
               player._playerStateController.add(player.playerState);
+              print(player.playerState);
               break;
             }
           case 0:
             {
               player.playerState = PlayerState.STOPPED;
               player._playerStateController.add(player.playerState);
+                            print(player.playerState);
               break;
             }
           case 1:
@@ -475,30 +477,35 @@ class AudioPlayer {
               player.playerState = PlayerState.BUFFERING;
               player._playerStateController.add(player.playerState);
               player._completionController.add(null);
+                            print(player.playerState);
               break;
             }
           case 2:
             {
               player.playerState = PlayerState.PLAYING;
               player._playerStateController.add(player.playerState);
+                            print(player.playerState);
               break;
             }
           case 3:
             {
               player.playerState = PlayerState.PAUSED;
               player._playerStateController.add(player.playerState);
+                            print(player.playerState);
               break;
             }
           case 4:
             {
               player.playerState = PlayerState.COMPLETED;
               player._playerStateController.add(player.playerState);
+                            print(player.playerState);
               break;
             }
         }
         break;
-      case 'audio.onCurrentPlayingAudioIndex':
+      case 'audio.onCurrentPlayingAudioIndexChange':
         player._currentPlayingIndexController.add(value);
+        print("track changed to: $value");
         break;
       case 'audio.onAudioSessionIdChange':
         player._audioSessionIdController.add(value);
