@@ -1,4 +1,4 @@
-group 'danielr2001.exoplayer'
+group 'danielr2001.flutter_exoplayer'
 version '1.0-SNAPSHOT'
 
 buildscript {
