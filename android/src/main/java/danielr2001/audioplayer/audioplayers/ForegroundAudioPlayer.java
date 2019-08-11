@@ -283,6 +283,18 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         return player.getCurrentWindowIndex();
     }
 
+    @Override
+    public void setRepeatMode(boolean repeatMode){
+        if(!this.released && this.repeatMode != repeatMode){
+            this.repeatMode = repeatMode;
+            if(this.repeatMode){
+                player.setRepeatMode(player.REPEAT_MODE_ALL);
+            }else{
+                player.setRepeatMode(player.REPEAT_MODE_OFF);
+            }
+        }
+    }
+
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
@@ -356,7 +368,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                             }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePositionUpdates();
-                        }  else if (playWhenReady && !playing) {
+                        }  else if (playWhenReady) {
                             // resumed
                             if (audioObjects != null) {
                                 mediaNotificationManager.makeNotification(true);
@@ -365,7 +377,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                             }
                             ref.handlePositionUpdates();
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                        } else if (!playWhenReady && playing) {
+                        } else {
                             // paused
                             if (audioObjects != null) {
                                 mediaNotificationManager.makeNotification(false);

@@ -47,4 +47,6 @@ public interface AudioPlayer {
     boolean isPlayerReleased();
 
     int getCurrentPlayingAudioIndex();
+
+    void setRepeatMode(boolean repeatMode);
 }

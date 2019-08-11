@@ -285,6 +285,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       if (result == Result.ERROR) {
         print("something went wrong in play method :(");
       }
+     // _audioPlayer.setRepeatMode(false);
     } else {
       List<AudioNotification> audioNotifications = [
         AudioNotification(

@@ -233,6 +233,7 @@ This Event returns the current player state. You can use it to show if player pl
 
 This Event is called when the audio finishes playing (in playAll mode it fires only when all playlist finishes playing).
 If `repeatMode` is set yo true then this event is never fired. It does not fire when you interrupt the audio with pause or stop.
+`COMPLETED` state acts just like `STOPPED` state.
 
 ```dart
   audioPlayer.onPlayerCompletion.listen((event) {

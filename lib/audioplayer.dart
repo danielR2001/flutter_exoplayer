@@ -408,7 +408,20 @@ class AudioPlayer {
 
   /// Gets current playing audio index
   Future<Result> getCurrentPlayingAudioIndex() async {
-    switch (await _invokeMethod('getCurrentPlayingAudioIndex')) {
+    switch (await _invokeMethod(
+        'getCurrentPlayingAudioIndex')) {
+      case 0:
+        return Result.FAIL;
+      case 1:
+        return Result.SUCCESS;
+      default:
+        return Result.ERROR;
+    }
+  }
+
+  // Sets the repeat mode.
+  Future<Result> setRepeatMode(bool repeatMode) async {
+    switch (await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})) {
       case 0:
         return Result.FAIL;
       case 1:

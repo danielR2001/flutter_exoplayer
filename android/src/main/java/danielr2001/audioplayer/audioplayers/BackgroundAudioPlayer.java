@@ -203,6 +203,18 @@ public class BackgroundAudioPlayer implements AudioPlayer {
         return player.getCurrentWindowIndex();
     }
 
+    @Override
+    public void setRepeatMode(boolean repeatMode){
+        if(!this.released && this.repeatMode != repeatMode){
+            this.repeatMode = repeatMode;
+            if(this.repeatMode){
+                player.setRepeatMode(player.REPEAT_MODE_ALL);
+            }else{
+                player.setRepeatMode(player.REPEAT_MODE_OFF);
+            }
+        }
+    }
+    
     private void initExoPlayer() {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -262,11 +274,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                             playing = true;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePositionUpdates();
-                        } else if (playWhenReady && !playing) {
+                        } else if (playWhenReady) {
                             // resumed
                             ref.handlePositionUpdates();
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
-                        } else if (!playWhenReady && playing) {
+                        } else {
                             // paused
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
                         }
@@ -282,7 +294,8 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                         // stopped
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.STOPPED);
                         break;
-                    } // handle of released is in release method!
+                    } 
+                    // handle of released is in release method!
                 }
             }
         });

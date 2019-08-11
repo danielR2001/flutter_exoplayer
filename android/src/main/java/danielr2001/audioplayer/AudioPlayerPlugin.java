@@ -277,6 +277,11 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           response.success(player.getDuration());
           return;
         }
+        case "setRepeatMode": {
+          final boolean repeatMode = call.argument("repeatMode");
+          player.setRepeatMode(repeatMode);
+          break;
+        }
         case "dispose": {
           dispose();
           return;
