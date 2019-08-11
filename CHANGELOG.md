@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0
+
+- Fixed player state handling.
+- added SetRepeatMode feature.
+
 ## 0.0.2
 
 - Changed the class name, Exoplayer => Audioplayer.
