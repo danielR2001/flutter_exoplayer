@@ -2,6 +2,7 @@ package danielr2001.audioplayer.interfaces;
 
 import danielr2001.audioplayer.AudioPlayerPlugin;
 import danielr2001.audioplayer.models.AudioObject;
+import danielr2001.audioplayer.enums.PlayerMode;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,13 +11,15 @@ import java.util.ArrayList;
 
 public interface AudioPlayer {
 
+    //initializers
     void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId);
 
-    String getPlayerId();
+    void initExoPlayer();
 
-    void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject); 
+    //player contols
+    void play(AudioObject audioObject); 
 
-    void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects);
+    void playAll(ArrayList<AudioObject> audioObjects); //,int index
 
     void next();
 
@@ -30,14 +33,9 @@ public interface AudioPlayer {
 
     void release();
 
-    void setVolume(float volume);
-
-    long getDuration();
-
-    long getCurrentPosition();
-
     void seek(int position);
 
+    //state check
     boolean isPlaying();
 
     boolean isBackground();
@@ -46,7 +44,21 @@ public interface AudioPlayer {
 
     boolean isPlayerReleased();
 
+    boolean isPlayerCompleted();
+
+    //getters
+    String getPlayerId();
+
+    long getDuration();
+
+    long getCurrentPosition();
+
     int getCurrentPlayingAudioIndex();
+
+    //setters
+    void setPlayerAttributes(boolean repeatMode, boolean respectAudioFocus, PlayerMode playerMode);
+
+    void setVolume(float volume);
 
     void setRepeatMode(boolean repeatMode);
 }

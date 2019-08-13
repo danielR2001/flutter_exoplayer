@@ -4,6 +4,10 @@ A Flutter plugin that let's you play multiple audio files simultaneously with an
 
 ![](example/images/Screenshot_1.png) ![](example/images/Screenshot_2.png) ![](example/images/Screenshot_3.png) ![](example/images/Screenshot_4.png)
 
+## Why pick us
+
+TODO why pick us
+
 ## Install
 
 just add this dependency in your pubsec.yaml file:
@@ -233,7 +237,8 @@ This Event returns the current player state. You can use it to show if player pl
 
 This Event is called when the audio finishes playing (in playAll mode it fires only when all playlist finishes playing).
 If `repeatMode` is set yo true then this event is never fired. It does not fire when you interrupt the audio with pause or stop.
-`COMPLETED` state acts just like `STOPPED` state.
+`COMPLETED` state acts just like `PAUSED` state with seek to the first audio and position 0, and can restart the audio player 
+with resume/play/playAll.
 
 ```dart
   audioPlayer.onPlayerCompletion.listen((event) {

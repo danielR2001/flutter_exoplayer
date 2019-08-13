@@ -123,16 +123,16 @@ class AudioPlayer {
   /// [audioNotification] for providing the foreground notification.
   Future<Result> play(
     String url, {
-    double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
+    Duration position = const Duration(milliseconds: 0),
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioNotification audioNotification,
   }) async {
-    volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
     respectAudioFocus ??= false;
+    position ??= Duration(milliseconds: 0);
 
     bool isBackground = true;
     String smallIconFileName;
@@ -171,10 +171,11 @@ class AudioPlayer {
 
     switch (await _invokeMethod('play', {
       'url': url,
-      'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
+      'position': position.inMilliseconds,
+      // audio notification object
       'smallIconFileName': smallIconFileName,
       'title': title,
       'subTitle': subTitle,
@@ -198,16 +199,16 @@ class AudioPlayer {
   /// [audioNotifications] for providing the foreground notification.
   Future<Result> playAll(
     List<String> urls, {
-    double volume = 1.0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
+    Duration position = const Duration(milliseconds: 0),
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioNotification> audioNotifications,
   }) async {
-    volume ??= 1.0;
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
     respectAudioFocus ??= false;
+    position ??= Duration(milliseconds: 0);
 
     bool isBackground = true;
     final List<String> smallIconFileNames = List();
@@ -251,10 +252,11 @@ class AudioPlayer {
 
     switch (await _invokeMethod('playAll', {
       'urls': urls,
-      'volume': volume,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
+      'position': position.inMilliseconds,
+      // audio notification objects
       'smallIconFileNames': smallIconFileNames,
       'titles': titles,
       'subTitles': subTitles,

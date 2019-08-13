@@ -5,6 +5,7 @@ import danielr2001.audioplayer.notifications.MediaNotificationManager;
 import danielr2001.audioplayer.AudioPlayerPlugin;
 import danielr2001.audioplayer.models.AudioObject;
 import danielr2001.audioplayer.enums.PlayerState;
+import danielr2001.audioplayer.enums.PlayerMode;
 
 
 import android.app.Activity;
@@ -39,22 +40,29 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     private Context context;
     private AudioPlayerPlugin ref;
     private BackgroundAudioPlayer backgroundAudioPlayer;
-
-    private float volume = 1;
-    private boolean repeatMode = false;
-    private boolean respectAudioFocus = false;
-
-    private boolean initialized = false;
-    private boolean released = true;
-    private boolean playing = false;
-    private boolean buffering = false;
-    private boolean stopped = false;
-
     private String playerId;
+
+    //player attributes
+    private float volume = 1;
+    private boolean repeatMode;
+    private boolean respectAudioFocus;
+    private PlayerMode playerMode;
+
+    //player states
+    private boolean initialized = false;
+    private boolean buffering = false;
+    private boolean playing = false;
+    private boolean stopped = false;
+    private boolean released = true;
+    private boolean completed = false;
+
+    //ExoPlayer
     private SimpleExoPlayer player;
-    private ArrayList<AudioObject> audioObjects = new ArrayList<>();
+
+    private ArrayList<AudioObject> audioObjects;
     private AudioObject audioObject;
 
+    
     @Override
     public void initAudioPlayer (AudioPlayerPlugin ref, Activity activity, String playerId) {
         this.ref = ref;
@@ -65,52 +73,80 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
-    public String getPlayerId() {
-        return this.playerId;
+    public void initExoPlayer() {
+        player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
+        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
+        // playlist/single audio load
+        if(playerMode == PlayerMode.PLAYLIST){
+            ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
+            for (AudioObject audioObject : audioObjects) {
+                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
+                concatenatingMediaSource.addMediaSource(mediaSource);
+            }
+            player.prepare(concatenatingMediaSource);
+        }else{
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
+            player.prepare(mediaSource);
+        }
+        //handle audio focus
+        if(this.respectAudioFocus){
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MUSIC)
+                    .build();
+            player.setAudioAttributes(audioAttributes, true);
+        }
+        //set repeat mode
+        if (repeatMode) {
+            player.setRepeatMode(player.REPEAT_MODE_ALL);
+        }
     }
 
     @Override
-    public void play(boolean repeatMode, boolean respectAudioFocus, AudioObject audioObject) {
-        this.stopped = false;
-        this.released = false;
-        this.repeatMode = repeatMode;
-        this.respectAudioFocus = respectAudioFocus;
-        this.audioObject = audioObject;
-        this.audioObjects = null;
-        initExoPlayer();
-        initListeners();
-        player.setPlayWhenReady(true);
+    public void play(AudioObject audioObject) {
+        if(this.completed){
+            this.resume();
+        }else{
+            this.released = false;
+            this.stopped = false;
+            this.completed = false;
+            this.buffering = false;
+            this.audioObject = audioObject;
+            initExoPlayer();
+            initEventListeners();
+            player.setPlayWhenReady(true);
+        }
     }
 
     @Override
-    public void playAll(boolean repeatMode, boolean respectAudioFocus, ArrayList<AudioObject> audioObjects) {
-        this.stopped = false;
-        this.released = false;
-        this.repeatMode = repeatMode;
-        this.respectAudioFocus = respectAudioFocus;
-        this.audioObjects = audioObjects;
-        this.audioObject = null;
-        initExoPlayer();
-        initListeners();
-        player.setPlayWhenReady(true);
+    public void playAll(ArrayList<AudioObject> audioObjects) {
+        if(this.completed){
+            this.resume();
+        }else{
+            this.released = false;
+            this.stopped = false;
+            this.completed = false;
+            this.buffering = false;
+            this.audioObjects = audioObjects;
+            this.initExoPlayer();
+            initEventListeners();
+            player.setPlayWhenReady(true);
+        }
     }
 
     @Override
     public void next() {
         player.next();
-        this.resume();
     }
 
     @Override
     public void previous() {
         player.previous();
-        this.resume();
     }
 
     @Override
     public void pause() {
         if (!this.released && this.playing) {
-            this.playing = false;
             player.setPlayWhenReady(false);
         }
     }
@@ -118,7 +154,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void resume() {
         if (!this.released && !this.playing) {
-            this.playing = true;
+            this.completed = false;
             player.setPlayWhenReady(true);
         }
     }
@@ -126,8 +162,6 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void stop() {
         if (!this.released) {
-            this.playing = false;;
-            this.stopped = true;
             player.stop(true);
         }
     }
@@ -135,39 +169,12 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void release() {
         if (!this.released) {
-            this.playing = false;
             this.released = true;
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
-        }
-    }
-
-    @Override
-    public void setVolume(float volume) {
-        if (!this.released && this.volume != volume) {
-            this.volume = volume;
-            player.setVolume(volume);
-        }
-    }
-
-    @Override
-    public long getDuration() {
-        if (!this.released) {
-            return player.getDuration();
-        } else {
-            return -1;
-        }
-    }
-
-    @Override
-    public long getCurrentPosition() {
-        if (!this.released) {
-            return player.getCurrentPosition();
-        } else {
-            return -1;
         }
     }
 
@@ -199,8 +206,51 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
+    public boolean isPlayerCompleted() {
+        return this.completed;
+    }
+
+    @Override
+    public String getPlayerId() {
+        return this.playerId;
+    }
+
+    @Override
+    public long getDuration() {
+        if (!this.released) {
+            return player.getDuration();
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public long getCurrentPosition() {
+        if (!this.released) {
+            return player.getCurrentPosition();
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
     public int getCurrentPlayingAudioIndex(){
         return player.getCurrentWindowIndex();
+    }
+
+    @Override
+    public void setPlayerAttributes(boolean repeatMode, boolean respectAudioFocus, PlayerMode playerMode) {
+        this.repeatMode = repeatMode;
+        this.respectAudioFocus = respectAudioFocus;
+        this.playerMode = playerMode;
+    }
+
+    @Override
+    public void setVolume(float volume) {
+        if (!this.released && this.volume != volume) {
+            this.volume = volume;
+            player.setVolume(volume);
+        }
     }
 
     @Override
@@ -214,37 +264,8 @@ public class BackgroundAudioPlayer implements AudioPlayer {
             }
         }
     }
-    
-    private void initExoPlayer() {
-        player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
-        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
-        // playlist/single audio load
-        if(audioObjects != null){
-            ConcatenatingMediaSource concatenatingMediaSource = new ConcatenatingMediaSource();
-            for (AudioObject audioObject : audioObjects) {
-                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
-                concatenatingMediaSource.addMediaSource(mediaSource);
-            }
-            player.prepare(concatenatingMediaSource);
-        }else{
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
-            player.prepare(mediaSource);
-        }
-        //handle audio focus
-        if(this.respectAudioFocus){
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.CONTENT_TYPE_MUSIC)
-                    .build();
-            player.setAudioAttributes(audioAttributes, true);
-        }
-        //set repeat mode
-        if (repeatMode) {
-            player.setRepeatMode(player.REPEAT_MODE_ALL);
-        }
-    }
 
-    private void initListeners() {
+    private void initEventListeners() {
         player.addAnalyticsListener(new AnalyticsListener(){
             @Override
             public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
@@ -268,18 +289,24 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                         break;
                     }
                     case Player.STATE_READY: {
-                        if (buffering) {
-                            // stopped buffering and playing
+                        if(completed) {
+                            buffering = false;
+                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.COMPLETED);
+                        } else if (buffering) {
+                            // playing
                             buffering = false;
                             playing = true;
-                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
+                            stopped = false;
                             ref.handlePositionUpdates();
+                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                         } else if (playWhenReady) {
                             // resumed
+                            playing = true;
                             ref.handlePositionUpdates();
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
-                        } else {
+                        } else if (!playWhenReady){
                             // paused
+                            playing = false;
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
                         }
                         break;
@@ -287,11 +314,17 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                     case Player.STATE_ENDED: {
                         // completed
                         playing = false;
-                        ref.handleStateChange(backgroundAudioPlayer, PlayerState.COMPLETED);
+                        completed = true;
+                        player.setPlayWhenReady(false);
+                        player.seekTo(0, 0);
                         break;
                     }
                     case Player.STATE_IDLE: {
                         // stopped
+                        playing = false;
+                        stopped = true;
+                        completed = false;
+                        buffering = false;
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.STOPPED);
                         break;
                     } 
