@@ -6,7 +6,22 @@ A Flutter plugin that let's you play multiple audio files simultaneously with an
 
 ## Why pick us
 
-TODO why pick us
+Flutter_exoplayer uses the Java ExoPlayer library, which unlike Android's MediaPlayer offers fast audio buffering, especially when using playlists.
+Because ExoPlayer offers the `ConcatenatingMediaSource` that let's you use an audio list that allways buffers the next audios. This feature 
+of the ExoPlayer let's you play playlists very smoothly. 
+
+Moreover Flutter_exoplayer offers many features such as: 
+
+* Providing realtime player states (PLAYING, PAUSED, STOPPED, RELEASED etc'). 
+* Run unlimited count of audios simultaneously. 
+* Providing audio Session ID for visualizers.
+* It has 2 options for audio playing:
+  * Foreground - plays the audio in foreground service so Android won't kill the service when app is in background.
+  * Background - plays the audio in background (Android can easily kill the service when app is in background), the main use of this option is when app is in foreground.
+* Providing streams such as: current player position, player duration, current player index, player state etc`.
+
+In addition this library is only in it's first steps, any new feature suggestions or bug reports are allways welcome (just submit an issue/PR in my [repository](https://github.com/danielR2001/flutter_exoplayer)), only in this way we can make this library better!
+
 
 ## Install
 
