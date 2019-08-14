@@ -279,6 +279,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         _audioPlayer.onPlayerStateChanged.listen((playerState) {
       setState(() {
         _playerState = playerState;
+        print(_playerState);
       });
     });
     _playerIndexSubscription =

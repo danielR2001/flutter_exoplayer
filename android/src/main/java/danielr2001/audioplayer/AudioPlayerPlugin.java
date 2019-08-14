@@ -62,6 +62,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
 
   private ServiceConnection connection = new ServiceConnection() {
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
       ForegroundAudioPlayer.LocalBinder binder = (ForegroundAudioPlayer.LocalBinder) service;
@@ -102,6 +103,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void handleMethodCall(final MethodCall call, final MethodChannel.Result response) {
     final String playerId = call.argument("playerId");
     AudioPlayer player = null;
@@ -461,10 +463,9 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           }
           try {
               nonePlaying = false;
-              final String key = player.getPlayerId();
               final long position = player.getCurrentPosition();
               channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
-              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(key, position)); 
+              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(player.getPlayerId(), position)); 
           } catch(UnsupportedOperationException e) {
 
           }

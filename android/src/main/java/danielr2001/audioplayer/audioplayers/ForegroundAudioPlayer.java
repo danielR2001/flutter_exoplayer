@@ -143,6 +143,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId) {
         this.initialized = true;
+
         this.playerId = playerId;
         this.ref = ref;
         this.mediaNotificationManager = new MediaNotificationManager(this, this.context, this.mediaSession, activity);
@@ -187,9 +188,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             this.resume();
         }else{
             this.released = false;
-            this.stopped = false;
-            this.completed = false;
-            this.buffering = false;
+
             this.audioObject = audioObject;
             this.initExoPlayer();
             initEventListeners();
@@ -199,13 +198,11 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
 
     @Override
     public void playAll(ArrayList<AudioObject> audioObjects) {
-        if(this.completed){
+        if(this.completed || this.stopped){
             this.resume();
         }else{
             this.released = false;
-            this.stopped = false;
-            this.completed = false;
-            this.buffering = false;
+
             this.audioObjects = audioObjects;
             initExoPlayer();
             initEventListeners();
@@ -236,10 +233,17 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void resume() {
+    public void resume() { 
         if (!this.released && !this.playing) {
-            this.completed = false;
-            player.setPlayWhenReady(true);
+            if(!this.stopped){
+                this.completed = false;
+                player.setPlayWhenReady(true);
+            }else{
+                this.stopped = false;
+                initExoPlayer();
+                initEventListeners();
+                player.setPlayWhenReady(true);
+            }
         }
     }
 
@@ -257,7 +261,13 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             if (this.playing) {
                 stopForeground(true);
             }
+            this.initialized = false;
+            this.buffering = false;
+            this.playing = false;
+            this.stopped = false;
             this.released = true;
+            this.completed = false;
+
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
@@ -396,7 +406,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                             // playing
                             buffering = false;
                             playing = true;
-                            stopped = false;
                             if (playerMode == PlayerMode.PLAYLIST) {
                                 mediaNotificationManager.makeNotification(true);
                             } else {

@@ -65,11 +65,12 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     
     @Override
     public void initAudioPlayer (AudioPlayerPlugin ref, Activity activity, String playerId) {
+        this.initialized = true;
+
         this.ref = ref;
         this.context = activity.getApplicationContext();
         this.playerId = playerId;
         this.backgroundAudioPlayer = this;
-        this.initialized = true;
     }
 
     @Override
@@ -104,13 +105,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void play(AudioObject audioObject) {
-        if(this.completed){
+        if(this.completed || this.stopped){
             this.resume();
         }else{
             this.released = false;
-            this.stopped = false;
-            this.completed = false;
-            this.buffering = false;
+
             this.audioObject = audioObject;
             initExoPlayer();
             initEventListeners();
@@ -120,13 +119,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void playAll(ArrayList<AudioObject> audioObjects) {
-        if(this.completed){
+        if(this.completed || this.stopped){
             this.resume();
         }else{
             this.released = false;
-            this.stopped = false;
-            this.completed = false;
-            this.buffering = false;
+            
             this.audioObjects = audioObjects;
             this.initExoPlayer();
             initEventListeners();
@@ -154,8 +151,15 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void resume() {
         if (!this.released && !this.playing) {
-            this.completed = false;
-            player.setPlayWhenReady(true);
+            if(!this.stopped){
+                this.completed = false;
+                player.setPlayWhenReady(true);
+            }else{
+                this.stopped = false;
+                initExoPlayer();
+                initEventListeners();
+                player.setPlayWhenReady(true);
+            }
         }
     }
 
@@ -169,7 +173,13 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     @Override
     public void release() {
         if (!this.released) {
+            this.initialized = false;
+            this.buffering = false;
+            this.playing = false;
+            this.stopped = false;
             this.released = true;
+            this.completed = false;
+
             this.audioObject = null;
             this.audioObjects = null;
             player.release();
@@ -296,7 +306,6 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                             // playing
                             buffering = false;
                             playing = true;
-                            stopped = false;
                             ref.handlePositionUpdates();
                             ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
                         } else if (playWhenReady) {
