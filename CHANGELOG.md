@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Fixed player state handling completly.
+- Changed the behavior of the `COMPLETED` state to act similarly as `PAUSED` state.
+
 ## 0.1.0
 
 - Fixed player state handling.
