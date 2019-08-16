@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Updated code efficiency.
+- Fixed some minor bugs.
+
 ## 0.2.0
 
 - Fixed player state handling completly.

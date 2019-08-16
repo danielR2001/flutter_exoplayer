@@ -29,7 +29,7 @@ just add this dependency in your pubsec.yaml file:
 
 ```yaml
   dependencies:
-    flutter_exoplayer: ^0.2.0
+    flutter_exoplayer: ^0.2.1
 ```
 
 ## Support us
@@ -108,7 +108,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Pause: Will pause your audio and keep the position.
 
 ```dart
-  final int result = await audioPlayer.pause();
+  final Result result = await audioPlayer.pause();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -120,7 +120,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Resume: Will resume your audio from the exact position it was paused on.
 
 ```dart
-  final int result = await audioPlayer.resume();
+  final Result result = await audioPlayer.resume();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -132,7 +132,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Stop: Will stop your audio and restart it position.
 
 ```dart
-  final int result = await audioPlayer.stop();
+  final Result result = await audioPlayer.stop();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -144,7 +144,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Release: Will release your audio source from the player (you need to call play again).
 
 ```dart
-  final int result = await audioPlayer.release();
+  final Result result = await audioPlayer.release();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -156,7 +156,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Next: Will play the next song in the playlist or if playing single audio it will restart the current.
 
 ```dart
-  final int result = await audioPlayer.next();
+  final Result result = await audioPlayer.next();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -168,7 +168,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Previous: Will play the previous song in the playlist or if playing single audio it will restart the current.
 
 ```dart
-  final int result = await audioPlayer.previous();
+  final Result result = await audioPlayer.previous();
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -180,7 +180,7 @@ After you call play you can control you audio with pause, resume, stop, release,
 * Seek: Will seek to the duration you set.
 
 ```dart
-  final int result = await audioPlayer.seek(_duration));
+  final Result result = await audioPlayer.seek(_duration));
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -231,7 +231,7 @@ This event returns the duration of the file, when it's available (it might take 
 This Event updates the current position of the audio. You can use it to make a progress bar, for instance.
 
 ```dart
-  audioPlayer.onAudioPositionChanged.listen((Duration  p) => {
+  audioPlayer.onAudioPositionChanged.listen((Duration  p) {
     print('Current position: $p');
     setState(() => position = p);
   });
@@ -242,7 +242,7 @@ This Event updates the current position of the audio. You can use it to make a p
 This Event returns the current player state. You can use it to show if player playing, or stopped, or paused.
 
 ```dart
-  audioPlayer.onPlayerStateChanged.listen((PlayerState s) => {
+  audioPlayer.onPlayerStateChanged.listen((PlayerState s) {
     print('Current player state: $s');
     setState(() => plaVyerState = s);
   });
