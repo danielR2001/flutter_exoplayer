@@ -4,32 +4,53 @@ import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 enum PlayerState {
+  RELEASED,
   STOPPED,
+  BUFFERING,
   PLAYING,
   PAUSED,
   COMPLETED,
-  RELEASED,
-  BUFFERING,
 }
+const PlayerStateMap = {
+  -1: PlayerState.RELEASED,
+  0: PlayerState.STOPPED,
+  1: PlayerState.BUFFERING,
+  2: PlayerState.PLAYING,
+  3: PlayerState.PAUSED,
+  4: PlayerState.COMPLETED,
+};
+
 enum PlayerMode {
   FOREGROUND,
   BACKGROUND,
 }
+
 enum Result {
   SUCCESS,
   FAIL,
   ERROR,
 }
 
+const ResultMap = {
+  0: Result.ERROR,
+  1: Result.FAIL,
+  2: Result.SUCCESS,
+};
+
 class AudioPlayer {
   static MethodChannel _channel = const MethodChannel('danielr2001/audioplayer')
     ..setMethodCallHandler(platformCallHandler);
+
   static final _uuid = Uuid();
   static bool logEnabled = false;
   static final players = Map<String, AudioPlayer>();
 
-  String playerId;
-  PlayerState playerState;
+  String _playerId;
+  PlayerState _playerState;
+
+  String get playerId => _playerId;
+
+  PlayerState get playerState => _playerState;
 
   final StreamController<PlayerState> _playerStateController =
       StreamController<PlayerState>.broadcast();
@@ -90,7 +111,8 @@ class AudioPlayer {
   /// Stream of player errors.
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
-  Stream<String> get onPlayerError => _errorController.stream;
+  Stream<String> get onPlayerError =>
+      _errorController.stream; //! TODO handle error stream
 
   /// Stream of notification actions callback.
   ///
@@ -112,8 +134,8 @@ class AudioPlayer {
   /// Initializes AudioPlayer
   ///
   AudioPlayer() {
-    playerState = PlayerState.RELEASED;
-    playerId = _uuid.v4();
+    _playerState = PlayerState.RELEASED;
+    _playerId = _uuid.v4();
     players[playerId] = this;
   }
 
@@ -143,33 +165,21 @@ class AudioPlayer {
     int notificationActionMode;
     int notificationActionCallbackMode = 0;
     if (playerMode == PlayerMode.FOREGROUND) {
-      smallIconFileName = audioNotification.getSmallIconFileName();
-      title = audioNotification.getTitle();
-      subTitle = audioNotification.getSubTitle();
-      largeIconUrl = audioNotification.getLargeIconUrl();
-      isLocal = audioNotification.getIsLocal();
-      if (audioNotification.getNotificationMode() ==
-          NotificationActionMode.NONE) {
-        notificationActionMode = 0;
-      } else if (audioNotification.getNotificationMode() ==
-          NotificationActionMode.NEXT) {
-        notificationActionMode = 1;
-      } else if (audioNotification.getNotificationMode() ==
-          NotificationActionMode.PREVIOUS) {
-        notificationActionMode = 2;
-      } else {
-        notificationActionMode = 3;
-      }
+      smallIconFileName = audioNotification.smallIconFileName;
+      title = audioNotification.title;
+      subTitle = audioNotification.subTitle;
+      largeIconUrl = audioNotification.largeIconUrl;
+      isLocal = audioNotification.isLocal;
 
-      if (audioNotification.getNotificationActionCallbackMode() ==
-          NotificationActionCallbackMode.CUSTOM) {
-        notificationActionCallbackMode = 1;
-      }
+      notificationActionMode =
+          NotificationActionModeMap[audioNotification.notificationMode];
+      notificationActionCallbackMode = NotificationActionCallbackModeMap[
+          audioNotification.notificationActionCallbackMode];
 
       isBackground = false;
     }
 
-    switch (await _invokeMethod('play', {
+    return ResultMap[await _invokeMethod('play', {
       'url': url,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
@@ -183,14 +193,7 @@ class AudioPlayer {
       'isLocal': isLocal,
       'notificationActionMode': notificationActionMode,
       'notificationActionCallbackMode': notificationActionCallbackMode,
-    })) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    })];
   }
 
   /// Plays your playlist.
@@ -218,39 +221,26 @@ class AudioPlayer {
     final List<bool> isLocals = List();
     final List<int> notificationModes = List();
     final List<int> notificationActionCallbackModes = List();
+
     if (playerMode == PlayerMode.FOREGROUND) {
       for (AudioNotification audioNotification in audioNotifications) {
-        smallIconFileNames.add(audioNotification.getSmallIconFileName());
-        titles.add(audioNotification.getTitle());
-        subTitles.add(audioNotification.getSubTitle());
-        largeIconUrls.add(audioNotification.getLargeIconUrl());
-        isLocals.add(audioNotification.getIsLocal());
+        smallIconFileNames.add(audioNotification.smallIconFileName);
+        titles.add(audioNotification.title);
+        subTitles.add(audioNotification.subTitle);
+        largeIconUrls.add(audioNotification.largeIconUrl);
+        isLocals.add(audioNotification.isLocal);
 
-        if (audioNotification.getNotificationMode() ==
-            NotificationActionMode.NONE) {
-          notificationModes.add(0);
-        } else if (audioNotification.getNotificationMode() ==
-            NotificationActionMode.NEXT) {
-          notificationModes.add(1);
-        } else if (audioNotification.getNotificationMode() ==
-            NotificationActionMode.PREVIOUS) {
-          notificationModes.add(2);
-        } else {
-          notificationModes.add(3);
-        }
+        notificationModes
+            .add(NotificationActionModeMap[audioNotification.notificationMode]);
 
-        if (audioNotification.getNotificationActionCallbackMode() ==
-            NotificationActionCallbackMode.CUSTOM) {
-          notificationActionCallbackModes.add(1);
-        } else {
-          notificationActionCallbackModes.add(0);
-        }
+        notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
+            audioNotification.notificationActionCallbackMode]);
       }
 
       isBackground = false;
     }
 
-    switch (await _invokeMethod('playAll', {
+    return ResultMap[await _invokeMethod('playAll', {
       'urls': urls,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
@@ -264,14 +254,7 @@ class AudioPlayer {
       'isLocals': isLocals,
       'notificationModes': notificationModes,
       'notificationActionCallbackModes': notificationActionCallbackModes,
-    })) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    })];
   }
 
   /// Pauses the audio that is currently playing.
@@ -279,42 +262,21 @@ class AudioPlayer {
   /// If you call [resume] later, the audio will resume from the point that it
   /// has been paused.
   Future<Result> pause() async {
-    switch (await _invokeMethod('pause')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('pause')];
   }
 
   /// Plays the next song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> next() async {
-    switch (await _invokeMethod('next')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('next')];
   }
 
   /// Plays the previous song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> previous() async {
-    switch (await _invokeMethod('previous')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('previous')];
   }
 
   /// Stops the audio that is currently playing.
@@ -322,52 +284,24 @@ class AudioPlayer {
   /// The position is going to be reset and you will no longer be able to resume
   /// from the last point.
   Future<Result> stop() async {
-    switch (await _invokeMethod('stop')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('stop')];
   }
 
   /// Resumes the audio that has been paused.
   Future<Result> resume() async {
-    switch (await _invokeMethod('resume')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('resume')];
   }
 
   /// Releases the resources associated with this audio player.
   ///
   Future<Result> release() async {
-    switch (await _invokeMethod('release')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('release')];
   }
 
   /// Moves the cursor to the desired position.
   Future<Result> seek(Duration position) async {
-    switch (
-        await _invokeMethod('seek', {'position': position.inMilliseconds})) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[
+        await _invokeMethod('seek', {'position': position.inMilliseconds})];
   }
 
   /// Sets the volume (amplitude).
@@ -375,14 +309,7 @@ class AudioPlayer {
   /// 0 is mute and 1 is the max volume. The values between 0 and 1 are linearly
   /// interpolated.
   Future<Result> setVolume(double volume) async {
-    switch (await _invokeMethod('setVolume', {'volume': volume})) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[await _invokeMethod('setVolume', {'volume': volume})];
   }
 
   /// Get audio duration after setting url.
@@ -397,40 +324,19 @@ class AudioPlayer {
   /// Gets audio current playing position
   ///
   /// the position starts from 0.
-  Future<Result> getCurrentPosition() async {
-    switch (await _invokeMethod('getCurrentPosition')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+  Future<int> getCurrentPosition() async {
+    return await _invokeMethod('getCurrentPosition');
   }
 
   /// Gets current playing audio index
-  Future<Result> getCurrentPlayingAudioIndex() async {
-    switch (await _invokeMethod(
-        'getCurrentPlayingAudioIndex')) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+  Future<int> getCurrentPlayingAudioIndex() async {
+    return await _invokeMethod('getCurrentPlayingAudioIndex');
   }
 
   // Sets the repeat mode.
   Future<Result> setRepeatMode(bool repeatMode) async {
-    switch (await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})) {
-      case 0:
-        return Result.FAIL;
-      case 1:
-        return Result.SUCCESS;
-      default:
-        return Result.ERROR;
-    }
+    return ResultMap[
+        await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})];
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {
@@ -473,45 +379,8 @@ class AudioPlayer {
         player._positionController.add(newDuration);
         break;
       case 'audio.onStateChanged':
-        switch (value) {
-          case -1:
-            {
-              player.playerState = PlayerState.RELEASED;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 0:
-            {
-              player.playerState = PlayerState.STOPPED;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 1:
-            {
-              player.playerState = PlayerState.BUFFERING;
-              player._playerStateController.add(player.playerState);
-              player._completionController.add(null);
-              break;
-            }
-          case 2:
-            {
-              player.playerState = PlayerState.PLAYING;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 3:
-            {
-              player.playerState = PlayerState.PAUSED;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-          case 4:
-            {
-              player.playerState = PlayerState.COMPLETED;
-              player._playerStateController.add(player.playerState);
-              break;
-            }
-        }
+        player._playerState = PlayerStateMap[value];
+        player._playerStateController.add(player._playerState);
         break;
       case 'audio.onCurrentPlayingAudioIndexChange':
         player._currentPlayingIndexController.add(value);
@@ -521,35 +390,11 @@ class AudioPlayer {
         player._audioSessionIdController.add(value);
         break;
       case 'audio.onNotificationActionCallback':
-        switch (value) {
-          case 0:
-            {
-              player._notificationActionController
-                  .add(NotificationActionName.PREVIOUS);
-              break;
-            }
-          case 1:
-            {
-              player._notificationActionController
-                  .add(NotificationActionName.NEXT);
-              break;
-            }
-          case 2:
-            {
-              player._notificationActionController
-                  .add(NotificationActionName.PLAY);
-              break;
-            }
-          case 3:
-            {
-              player._notificationActionController
-                  .add(NotificationActionName.PAUSE);
-              break;
-            }
-        }
+        player._notificationActionController
+            .add(NotificationActionNameMap[value]);
         break;
       case 'audio.onError':
-        player.playerState = PlayerState.STOPPED; //! TODO maybe released?
+        player._playerState = PlayerState.STOPPED; //! TODO maybe released?
         player._errorController.add(value);
         break;
       default:

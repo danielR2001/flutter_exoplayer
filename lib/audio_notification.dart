@@ -1,32 +1,51 @@
 import 'package:flutter/material.dart';
 
 enum NotificationActionMode {
-  NONE, //0
-  NEXT, //1
-  PREVIOUS, //2
-  ALL, //3
+  NONE,
+  NEXT,
+  PREVIOUS,
+  ALL,
 }
 
-enum NotificationActionName{
+const NotificationActionModeMap = {
+  NotificationActionMode.NONE: 0,
+  NotificationActionMode.NEXT: 1,
+  NotificationActionMode.PREVIOUS: 2,
+  NotificationActionMode.ALL: 3,
+};
+
+enum NotificationActionName {
   PREVIOUS,
   NEXT,
   PLAY,
   PAUSE,
 }
 
-enum NotificationActionCallbackMode{
+const NotificationActionNameMap = {
+  0:NotificationActionName.PREVIOUS,
+  1:NotificationActionName.NEXT,
+  2:NotificationActionName.PLAY,
+  3:NotificationActionName.PAUSE,
+};
+
+enum NotificationActionCallbackMode {
   CUSTOM,
   DEFAULT,
 }
 
+const NotificationActionCallbackModeMap = {
+  NotificationActionCallbackMode.DEFAULT: 0,
+  NotificationActionCallbackMode.CUSTOM: 1,
+};
+
 class AudioNotification {
-  String smallIconFileName;
-  String title;
-  String subTitle;
-  String largeIconUrl;
-  bool isLocal;
-  NotificationActionMode notificationActionMode;
-  NotificationActionCallbackMode notificationActionCallbackMode;
+  String _smallIconFileName;
+  String _title;
+  String _subTitle;
+  String _largeIconUrl;
+  bool _isLocal;
+  NotificationActionMode _notificationActionMode;
+  NotificationActionCallbackMode _notificationActionCallbackMode;
   //! TODO add background color!
   //! TODO notification importance!
   //! TODO set timeout!
@@ -38,46 +57,34 @@ class AudioNotification {
     String largeIconUrl,
     bool isLocal = false,
     NotificationActionMode notificationActionMode = NotificationActionMode.ALL,
-    NotificationActionCallbackMode notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT,
+    NotificationActionCallbackMode notificationActionCallbackMode =
+        NotificationActionCallbackMode.DEFAULT,
   }) {
     isLocal ??= false;
     notificationActionMode ??= NotificationActionMode.ALL;
     notificationActionCallbackMode ??= NotificationActionCallbackMode.DEFAULT;
 
-    this.smallIconFileName = smallIconFileName;
-    this.title = title;
-    this.subTitle = subTitle;
-    this.largeIconUrl = largeIconUrl;
-    this.isLocal = isLocal;
-    this.notificationActionMode = notificationActionMode;
-    this.notificationActionCallbackMode = notificationActionCallbackMode;
+    this._smallIconFileName = smallIconFileName;
+    this._title = title;
+    this._subTitle = subTitle;
+    this._largeIconUrl = largeIconUrl;
+    this._isLocal = isLocal;
+    this._notificationActionMode = notificationActionMode;
+    this._notificationActionCallbackMode = notificationActionCallbackMode;
   }
 
-  String getSmallIconFileName() {
-    return smallIconFileName;
-  }
+  String get smallIconFileName => _smallIconFileName;
 
-  String getTitle() {
-    return title;
-  }
+  String get title => _title;
 
-  String getSubTitle() {
-    return subTitle;
-  }
+  String get subTitle => _subTitle;
 
-  String getLargeIconUrl() {
-    return largeIconUrl;
-  }
+  String get largeIconUrl => _largeIconUrl;
 
-  bool getIsLocal() {
-    return isLocal;
-  }
+  bool get isLocal => _isLocal;
 
-  NotificationActionMode getNotificationMode() {
-    return notificationActionMode;
-  }
+  NotificationActionMode get notificationMode => _notificationActionMode;
 
-  NotificationActionCallbackMode getNotificationActionCallbackMode(){
-    return notificationActionCallbackMode;
-  }
+  NotificationActionCallbackMode get notificationActionCallbackMode =>
+      _notificationActionCallbackMode;
 }

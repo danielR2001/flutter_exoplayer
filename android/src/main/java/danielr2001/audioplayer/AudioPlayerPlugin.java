@@ -99,7 +99,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
       handleMethodCall(call, response);
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Unexpected error!", e);
-      response.error("Unexpected error!", e.getMessage(), e);
+      response.success(0); //error
+      //response.error("Unexpected error!", e.getMessage(), -1);
     }
   }
 
@@ -281,8 +282,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           break;
         }
         case "setVolume": {
-          final double vol = call.argument("volume");
-          final float volume = (float)vol;
+          final float volume = (float)call.argument("volume");
+         // final float volume = (float)vol;
           player.setVolume(volume);
           break;
         }
@@ -304,9 +305,9 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           return;
         }
       }
-      response.success(1);
+      response.success(2); //success
     }else{
-      response.success(0);
+      response.success(1); //fail
     }
   }
 
