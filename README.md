@@ -7,7 +7,7 @@ A Flutter plugin that let's you play multiple audio files simultaneously with an
 ## Why pick us
 
 Flutter_exoplayer uses the Java ExoPlayer library, which unlike Android's MediaPlayer offers fast audio buffering, especially when using playlists.
-Because ExoPlayer offers the `ConcatenatingMediaSource` that let's you use an audio list that allways buffers the next audios. This feature 
+All thanks to the ExoPlayer`s `ConcatenatingMediaSource` that let's you use an audio list that allways buffers the next audios. This feature 
 of the ExoPlayer let's you play playlists very smoothly. 
 
 Moreover Flutter_exoplayer offers many features such as: 
@@ -79,7 +79,7 @@ The url you pass can be either local direction or network url.
 By default the player is set to play in background (Android system can easily kill the Audio player when app is in background), if Player mode is set to FOREGROUND then you need to also pass `audioObject` instance for the foreground notification, respectAudioFocus is set to false (if your app is respectiong audio focus it will pause when other app get's audio focus and duck if other app getting temporary access of audio focus), repeatMode is also set by default to false (every audio source will play only once), and by default the volume is set to max (1.0). To change one or more of this parameters you need to just pass them to play method.
 
 ```dart
-  final int result = await audioPlayer.play(url,
+  final Result result = await audioPlayer.play(url,
       repeatMode: true,
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
@@ -90,7 +90,7 @@ By default the player is set to play in background (Android system can easily ki
 ```
 
 ```dart
-  final int result = await audioPlayer.playAll(urls,
+  final Result result = await audioPlayer.playAll(urls,
       repeatMode: true,
       respectAudioFocus: true,
       playerMode: PlayerMode.FOREGROUND,
