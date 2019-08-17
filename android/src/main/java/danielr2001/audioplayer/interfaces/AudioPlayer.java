@@ -33,9 +33,9 @@ public interface AudioPlayer {
 
     void release();
 
-    void seek(int position);
+    void seekPosition(int position);
 
-    void seekTo(int index);
+    void seekIndex(int index);
 
     //state check
     boolean isPlaying();

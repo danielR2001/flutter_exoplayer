@@ -177,10 +177,10 @@ After you call play you can control you audio with pause, resume, stop, release,
   }
 ```
 
-* Seek: Will seek to the position you set.
+* seekPosition: Will seek to the position you set.
 
 ```dart
-  final Result result = await audioPlayer.seek(_duration));
+  final Result result = await audioPlayer.seekPosition(_duration));
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
@@ -189,15 +189,15 @@ After you call play you can control you audio with pause, resume, stop, release,
   }
 ```
 
-* SeekTo: Will seek to the index in the playlist you set.
+* seekIndex: Will seek to the index in the playlist you set.
 
 ```dart
-  final Result result = await audioPlayer.SeekTo(index));
+  final Result result = await audioPlayer.seekIndex(index));
   if (result == Result.FAIL) {
     print(
         "you tried to call audio conrolling methods on released audio player :(");
   } else if (result == Result.ERROR) {
-    print("something went wrong in SeekTo :(");
+    print("something went wrong in seekIndex :(");
   }
 ```
 

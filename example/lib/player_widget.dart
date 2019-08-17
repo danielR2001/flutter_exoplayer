@@ -220,7 +220,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                   _duration != null ? _duration.inMilliseconds.toDouble() : 0.0,
               onChanged: (double value) async {
                 final Result result = await _audioPlayer
-                    .seek(Duration(milliseconds: value.toInt()));
+                    .seekPosition(Duration(milliseconds: value.toInt()));
                 if (result == Result.FAIL) {
                   print(
                       "you tried to call audio conrolling methods on released audio player :(");

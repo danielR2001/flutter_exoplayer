@@ -303,14 +303,14 @@ class AudioPlayer {
   }
 
   /// Moves the cursor to the desired position.
-  Future<Result> seek(Duration position) async {
+  Future<Result> seekPosition(Duration position) async {
     return ResultMap[
-        await _invokeMethod('seek', {'position': position.inMilliseconds})];
+        await _invokeMethod('seekPosition', {'position': position.inMilliseconds})];
   }
 
   /// Switches to the desired index in playlist.
-  Future<Result> seekTo(int index) async {
-    return ResultMap[await _invokeMethod('seekTo', {'index': index})];
+  Future<Result> seekIndex(int index) async {
+    return ResultMap[await _invokeMethod('seekIndex', {'index': index})];
   }
 
   /// Sets the volume (amplitude).

@@ -277,14 +277,14 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           player.release();
           break;
         }
-        case "seek": {
+        case "seekPosition": {
           final int position = call.argument("position");
-          player.seek(position);  
+          player.seekPosition(position);  
           break;
         }
-        case "seekTo": {
+        case "seekIndex": {
           final int index = call.argument("index");
-          player.seekTo(index);  
+          player.seekIndex(index);  
           break;
         }
         case "setVolume": {
