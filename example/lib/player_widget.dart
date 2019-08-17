@@ -314,8 +314,6 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       if (result == Result.ERROR) {
         print("something went wrong in play method :(");
       }
-      Result r = await _audioPlayer.setVolume(0.2);
-      print("heyya: $r");
     } else {
       final Result result = await _audioPlayer.playAll(
         urls,

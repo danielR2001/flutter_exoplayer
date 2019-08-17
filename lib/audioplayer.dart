@@ -201,7 +201,9 @@ class AudioPlayer {
   /// If [PlayerMode] is set to [PlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotifications] for providing the foreground notification.
   Future<Result> playAll(
+    //! TODO start from specific index
     List<String> urls, {
+    int index = 0,
     bool repeatMode = false,
     bool respectAudioFocus = false,
     Duration position = const Duration(milliseconds: 0),
@@ -212,6 +214,7 @@ class AudioPlayer {
     repeatMode ??= false;
     respectAudioFocus ??= false;
     position ??= Duration(milliseconds: 0);
+    index ??= 0;
 
     bool isBackground = true;
     final List<String> smallIconFileNames = List();
@@ -246,6 +249,7 @@ class AudioPlayer {
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
       'position': position.inMilliseconds,
+      'index': index,
       // audio notification objects
       'smallIconFileNames': smallIconFileNames,
       'titles': titles,
@@ -302,6 +306,11 @@ class AudioPlayer {
   Future<Result> seek(Duration position) async {
     return ResultMap[
         await _invokeMethod('seek', {'position': position.inMilliseconds})];
+  }
+
+  /// Switches to the desired index in playlist.
+  Future<Result> seekTo(int index) async {
+    return ResultMap[await _invokeMethod('seekTo', {'index': index})];
   }
 
   /// Sets the volume (amplitude).

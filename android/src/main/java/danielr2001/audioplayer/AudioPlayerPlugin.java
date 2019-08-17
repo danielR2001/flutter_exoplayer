@@ -59,6 +59,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
   private boolean tempRepeatMode;
   private boolean tempRespectAudioFocus;
   private AudioPlayerPlugin tempAudioPlayerPlugin;
+  private int tempIndex;
 
   private ServiceConnection connection = new ServiceConnection() {
 
@@ -70,7 +71,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
       tempPlayer.initAudioPlayer(tempAudioPlayerPlugin, tempAudioPlayerPlugin.activity, tempPlayerId);
       tempPlayer.setPlayerAttributes(tempRepeatMode, tempRespectAudioFocus, playerMode);
       if (playerMode == PlayerMode.PLAYLIST) {
-        tempPlayer.playAll((ArrayList<AudioObject>) audioObjects.clone());
+        tempPlayer.playAll((ArrayList<AudioObject>) audioObjects.clone(), tempIndex);
       } else {
         tempPlayer.play(audioObject);
       }
@@ -184,6 +185,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           final boolean repeatMode = call.argument("repeatMode");
           final boolean isBackground = call.argument("isBackground");
           final boolean respectAudioFocus = call.argument("respectAudioFocus");
+          final int index = call.argument("index");
 
           this.playerMode = PlayerMode.PLAYLIST;
           if (isBackground) {
@@ -192,12 +194,12 @@ public class AudioPlayerPlugin implements MethodCallHandler {
               this.audioObjects.add(new AudioObject(url));
             }
             if(player != null && !player.isPlayerReleased()){
-              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone());
+              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone(), index);
             }else{
               player = new BackgroundAudioPlayer();
               player.initAudioPlayer(this, this.activity, playerId);
               player.setPlayerAttributes(repeatMode, respectAudioFocus, this.playerMode);
-              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone());
+              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone(), index);
 
               audioPlayers.put(playerId, player);
             }
@@ -215,6 +217,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             this.tempRepeatMode = repeatMode;
             this.tempRespectAudioFocus = respectAudioFocus;
             this.tempAudioPlayerPlugin = this;
+            this.tempIndex = index;
 
             for(int i = 0; i < urls.size(); i++ ){
               NotificationActionMode notificationActionMode;
@@ -239,7 +242,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             }
             // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
-              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone());
+              player.playAll((ArrayList<AudioObject>) this.audioObjects.clone(), index);
             }else{
               startForegroundPlayer();
             }
@@ -277,8 +280,11 @@ public class AudioPlayerPlugin implements MethodCallHandler {
         case "seek": {
           final int position = call.argument("position");
           player.seek(position);  
-          player.seek(position);
-          player.seek(position);  
+          break;
+        }
+        case "seekTo": {
+          final int index = call.argument("index");
+          player.seekTo(index);  
           break;
         }
         case "setVolume": {

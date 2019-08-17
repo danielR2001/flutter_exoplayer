@@ -74,7 +74,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
-    public void initExoPlayer() {
+    public void initExoPlayer(int index) {
         player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context, Util.getUserAgent(this.context, "exoPlayerLibrary"));
         // playlist/single audio load
@@ -85,6 +85,9 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                 concatenatingMediaSource.addMediaSource(mediaSource);
             }
             player.prepare(concatenatingMediaSource);
+            if(index != 0) {
+                player.seekTo(index,0);
+            }
         }else{
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(audioObject.getUrl()));
             player.prepare(mediaSource);
@@ -111,21 +114,21 @@ public class BackgroundAudioPlayer implements AudioPlayer {
             this.released = false;
 
             this.audioObject = audioObject;
-            initExoPlayer();
+            this.initExoPlayer(0);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
     }
 
     @Override
-    public void playAll(ArrayList<AudioObject> audioObjects) {
+    public void playAll(ArrayList<AudioObject> audioObjects, int index) {
         if(this.completed || this.stopped){
             this.resume();
         }else{
             this.released = false;
             
             this.audioObjects = audioObjects;
-            this.initExoPlayer();
+            this.initExoPlayer(index);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
@@ -156,7 +159,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                 player.setPlayWhenReady(true);
             }else{
                 this.stopped = false;
-                initExoPlayer();
+                this.initExoPlayer(0);
                 initEventListeners();
                 player.setPlayWhenReady(true);
             }
@@ -192,6 +195,13 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     public void seek(int position) {
         if (!this.released) {
             player.seekTo(player.getCurrentWindowIndex(), position);
+        }
+    }
+
+    @Override
+    public void seekTo(int index) {
+        if (!this.released && playerMode == PlayerMode.PLAYLIST) {
+            player.seekTo(index, 0);
         }
     }
 

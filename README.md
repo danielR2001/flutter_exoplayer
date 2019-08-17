@@ -76,7 +76,7 @@ To play audio you have two options:
 
 The url you pass can be either local direction or network url.
 
-By default the player is set to play in background (Android system can easily kill the Audio player when app is in background), if Player mode is set to FOREGROUND then you need to also pass `audioObject` instance for the foreground notification, respectAudioFocus is set to false (if your app is respectiong audio focus it will pause when other app get's audio focus and duck if other app getting temporary access of audio focus), repeatMode is also set by default to false (every audio source will play only once), and by default the volume is set to max (1.0). To change one or more of this parameters you need to just pass them to play method.
+By default the player is set to play in background (Android system can easily kill the Audio player when app is in background), if Player mode is set to FOREGROUND then you need to also pass `audioObject` instance for the foreground notification, respectAudioFocus is set to false (if your app is respectiong audio focus it will pause when other app get's audio focus and duck if other app getting temporary access of audio focus), repeatMode is also set by default to false (every audio source will play only once), by default the volume is set to max (1.0), the index of the audio that you you want to start with by default is set to 0. To change one or more of this parameters you need to just pass them to play method.
 
 ```dart
   final Result result = await audioPlayer.play(url,
@@ -177,7 +177,7 @@ After you call play you can control you audio with pause, resume, stop, release,
   }
 ```
 
-* Seek: Will seek to the duration you set.
+* Seek: Will seek to the position you set.
 
 ```dart
   final Result result = await audioPlayer.seek(_duration));
@@ -186,6 +186,18 @@ After you call play you can control you audio with pause, resume, stop, release,
         "you tried to call audio conrolling methods on released audio player :(");
   } else if (result == Result.ERROR) {
     print("something went wrong in seek :(");
+  }
+```
+
+* SeekTo: Will seek to the index in the playlist you set.
+
+```dart
+  final Result result = await audioPlayer.SeekTo(index));
+  if (result == Result.FAIL) {
+    print(
+        "you tried to call audio conrolling methods on released audio player :(");
+  } else if (result == Result.ERROR) {
+    print("something went wrong in SeekTo :(");
   }
 ```
 
