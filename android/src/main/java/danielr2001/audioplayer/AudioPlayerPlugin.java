@@ -291,6 +291,10 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           response.success(player.getDuration());
           return;
         }
+        case "getCurrentPosition": {
+          response.success(player.getCurrentPosition());
+          return;
+        }
         case "setRepeatMode": {
           final boolean repeatMode = call.argument("repeatMode");
           player.setRepeatMode(repeatMode);
@@ -464,9 +468,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           }
           try {
               nonePlaying = false;
-              final long position = player.getCurrentPosition();
               channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
-              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(player.getPlayerId(), position)); 
+              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(player.getPlayerId(), player.getCurrentPosition())); 
           } catch(UnsupportedOperationException e) {
 
           }

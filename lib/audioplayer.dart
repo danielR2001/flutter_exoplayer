@@ -87,7 +87,7 @@ class AudioPlayer {
   /// position of the playback if the status is [AudioPlayerState.PLAYING].
   ///
   /// You can use it on a progress bar, for instance.
-  Stream get onAudioPositionChanged => _positionController.stream;
+  Stream<Duration> get onAudioPositionChanged => _positionController.stream;
 
   /// Stream of changes on audio duration.
   ///
