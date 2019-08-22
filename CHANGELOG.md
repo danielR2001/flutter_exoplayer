@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+- Fixed seekPosition and seekIndex errors in foregroundPlayer.
+
 ## 0.3.0
 
-- renamed seek to seekPosition.
+- Renamed seek to seekPosition.
 - Added seekIndex feature that lets you seek to a specific index in playlist (available only when playing playlist).
 - Added index parameter to playAll, that indicates from what index to start playing.
 
@@ -19,7 +23,7 @@
 ## 0.1.0
 
 - Fixed player state handling.
-- added SetRepeatMode feature.
+- Added SetRepeatMode feature.
 
 ## 0.0.2
 
