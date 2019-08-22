@@ -3,10 +3,10 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_exoplayer'
-  s.version          = '0.0.1'
+  s.version          = '0.3.0'
   s.summary          = 'A flutter plugin to play audio files using the Java ExoPlayer library.'
   s.description      = <<-DESC
-A new Flutter plugin.
+A flutter plugin to play audio files using the Java ExoPlayer library.'
                        DESC
   s.homepage         = 'https://github.com/danielR2001/flutter_exoplayer'
   s.license          = { :file => '../LICENSE' }
