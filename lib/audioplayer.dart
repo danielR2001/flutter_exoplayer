@@ -11,14 +11,6 @@ enum PlayerState {
   PAUSED,
   COMPLETED,
 }
-const PlayerStateMap = {
-  -1: PlayerState.RELEASED,
-  0: PlayerState.STOPPED,
-  1: PlayerState.BUFFERING,
-  2: PlayerState.PLAYING,
-  3: PlayerState.PAUSED,
-  4: PlayerState.COMPLETED,
-};
 
 enum PlayerMode {
   FOREGROUND,
@@ -31,12 +23,6 @@ enum Result {
   ERROR,
 }
 
-const ResultMap = {
-  0: Result.ERROR,
-  1: Result.FAIL,
-  2: Result.SUCCESS,
-};
-
 class AudioPlayer {
   static MethodChannel _channel = const MethodChannel('danielr2001/audioplayer')
     ..setMethodCallHandler(platformCallHandler);
@@ -44,6 +30,40 @@ class AudioPlayer {
   static final _uuid = Uuid();
   static bool logEnabled = false;
   static final players = Map<String, AudioPlayer>();
+
+  static const PlayerStateMap = {
+    -1: PlayerState.RELEASED,
+    0: PlayerState.STOPPED,
+    1: PlayerState.BUFFERING,
+    2: PlayerState.PLAYING,
+    3: PlayerState.PAUSED,
+    4: PlayerState.COMPLETED,
+  };
+
+  static const ResultMap = {
+    0: Result.ERROR,
+    1: Result.FAIL,
+    2: Result.SUCCESS,
+  };
+
+  static const NotificationActionModeMap = {
+    NotificationActionMode.NONE: 0,
+    NotificationActionMode.NEXT: 1,
+    NotificationActionMode.PREVIOUS: 2,
+    NotificationActionMode.ALL: 3,
+  };
+
+  static const NotificationActionNameMap = {
+    0: NotificationActionName.PREVIOUS,
+    1: NotificationActionName.NEXT,
+    2: NotificationActionName.PLAY,
+    3: NotificationActionName.PAUSE,
+  };
+
+  static const NotificationActionCallbackModeMap = {
+    NotificationActionCallbackMode.DEFAULT: 0,
+    NotificationActionCallbackMode.CUSTOM: 1,
+  };
 
   String _playerId;
   PlayerState _playerState;
@@ -304,8 +324,8 @@ class AudioPlayer {
 
   /// Moves the cursor to the desired position.
   Future<Result> seekPosition(Duration position) async {
-    return ResultMap[
-        await _invokeMethod('seekPosition', {'position': position.inMilliseconds})];
+    return ResultMap[await _invokeMethod(
+        'seekPosition', {'position': position.inMilliseconds})];
   }
 
   /// Switches to the desired index in playlist.

@@ -7,13 +7,6 @@ enum NotificationActionMode {
   ALL,
 }
 
-const NotificationActionModeMap = {
-  NotificationActionMode.NONE: 0,
-  NotificationActionMode.NEXT: 1,
-  NotificationActionMode.PREVIOUS: 2,
-  NotificationActionMode.ALL: 3,
-};
-
 enum NotificationActionName {
   PREVIOUS,
   NEXT,
@@ -21,22 +14,10 @@ enum NotificationActionName {
   PAUSE,
 }
 
-const NotificationActionNameMap = {
-  0:NotificationActionName.PREVIOUS,
-  1:NotificationActionName.NEXT,
-  2:NotificationActionName.PLAY,
-  3:NotificationActionName.PAUSE,
-};
-
 enum NotificationActionCallbackMode {
   CUSTOM,
   DEFAULT,
 }
-
-const NotificationActionCallbackModeMap = {
-  NotificationActionCallbackMode.DEFAULT: 0,
-  NotificationActionCallbackMode.CUSTOM: 1,
-};
 
 class AudioNotification {
   String _smallIconFileName;
