@@ -217,6 +217,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     public void next() {
         if (!this.released) {
             player.next();
+            resume();
         }
     }
 
@@ -224,6 +225,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     public void previous() { // !TODO first time go to pos 0 then second time previous (maybe make counter for 3 sec)
         if (!this.released) {
             player.previous();
+            resume();
         }
     }
 

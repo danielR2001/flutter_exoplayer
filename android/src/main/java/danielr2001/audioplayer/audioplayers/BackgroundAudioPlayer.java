@@ -136,12 +136,18 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void next() {
-        player.next();
+        if (!this.released) {
+            player.next();
+            resume();
+        }
     }
 
     @Override
     public void previous() {
-        player.previous();
+        if (!this.released) {
+            player.previous();
+            resume();
+        }
     }
 
     @Override
