@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Fixed next and previous actions not working when paused.
+
 ## 0.3.1
 
 - Fixed seekPosition and seekIndex errors in foregroundPlayer.
