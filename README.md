@@ -29,7 +29,7 @@ just add this dependency in your pubsec.yaml file:
 
 ```yaml
   dependencies:
-    flutter_exoplayer: ^0.3.2
+    flutter_exoplayer: ^0.3.3
 ```
 
 ## Support us
