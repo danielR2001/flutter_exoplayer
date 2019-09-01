@@ -96,6 +96,11 @@ public class MediaNotificationManager {
             showNotification();
         }
     }
+
+    public void hideNotification() {
+        notificationManager = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(NOTIFICATION_ID);
+    }
     
     //update current notification
     public void makeNotification(boolean isPlaying) {
@@ -141,6 +146,8 @@ public class MediaNotificationManager {
         notificationManager.notify(NOTIFICATION_ID, notification);
         if(this.isPlaying){
             foregroundExoPlayer.startForeground(NOTIFICATION_ID, notification);
+        }else{
+            foregroundExoPlayer.stopForeground(false);
         }
     }
 

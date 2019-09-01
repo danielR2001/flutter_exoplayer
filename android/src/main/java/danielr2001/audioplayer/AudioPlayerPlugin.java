@@ -303,6 +303,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
         }
         case "getCurrentPlayingAudioIndex": {
           response.success(player.getCurrentPlayingAudioIndex());
+          return;
         }
         case "setRepeatMode": {
           final boolean repeatMode = call.argument("repeatMode");
