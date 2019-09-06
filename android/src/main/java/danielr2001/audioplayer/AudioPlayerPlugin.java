@@ -99,9 +99,9 @@ public class AudioPlayerPlugin implements MethodCallHandler {
     try {
       handleMethodCall(call, response);
     } catch (Exception e) {
+      dispose();
       LOGGER.log(Level.SEVERE, "Unexpected error!", e);
       response.success(0); //error
-      //response.error("Unexpected error!", e.getMessage(), -1);
     }
   }
 
@@ -288,8 +288,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           break;
         }
         case "setVolume": {
-          final float volume = (float)call.argument("volume");
-         // final float volume = (float)vol;
+          final double volume = call.argument("volume");
+          final float volume = (float)vol;
           player.setVolume(volume);
           break;
         }

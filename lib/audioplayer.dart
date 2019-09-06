@@ -132,7 +132,7 @@ class AudioPlayer {
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
   Stream<String> get onPlayerError =>
-      _errorController.stream; //! TODO handle error stream
+      _errorController.stream;
 
   /// Stream of notification actions callback.
   ///
@@ -221,7 +221,6 @@ class AudioPlayer {
   /// If [PlayerMode] is set to [PlayerMode.FOREGROUND], then you also need to pass:
   /// [audioNotifications] for providing the foreground notification.
   Future<Result> playAll(
-    //! TODO start from specific index
     List<String> urls, {
     int index = 0,
     bool repeatMode = false,
@@ -423,7 +422,7 @@ class AudioPlayer {
             .add(NotificationActionNameMap[value]);
         break;
       case 'audio.onError':
-        player._playerState = PlayerState.STOPPED; //! TODO maybe released?
+        player._playerState = PlayerState.RELEASED;
         player._errorController.add(value);
         break;
       default:
