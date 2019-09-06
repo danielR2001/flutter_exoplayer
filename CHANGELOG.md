@@ -2,6 +2,11 @@
 
 ## 0.3.4
 
+- Added getVolume feature.
+- Fixed some bugs.
+
+## 0.3.4
+
 - Changed error handling to act as dispose method.
 - Fixed some bugs.
 
