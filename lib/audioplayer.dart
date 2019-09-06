@@ -131,8 +131,7 @@ class AudioPlayer {
   /// Stream of player errors.
   ///
   /// Events are sent when an unexpected error is thrown in the native code.
-  Stream<String> get onPlayerError =>
-      _errorController.stream;
+  Stream<String> get onPlayerError => _errorController.stream;
 
   /// Stream of notification actions callback.
   ///
@@ -213,7 +212,7 @@ class AudioPlayer {
       'isLocal': isLocal,
       'notificationActionMode': notificationActionMode,
       'notificationActionCallbackMode': notificationActionCallbackMode,
-    })];
+    })as int];
   }
 
   /// Plays your playlist.
@@ -277,7 +276,7 @@ class AudioPlayer {
       'isLocals': isLocals,
       'notificationModes': notificationModes,
       'notificationActionCallbackModes': notificationActionCallbackModes,
-    })];
+    }) as int];
   }
 
   /// Pauses the audio that is currently playing.
@@ -285,21 +284,21 @@ class AudioPlayer {
   /// If you call [resume] later, the audio will resume from the point that it
   /// has been paused.
   Future<Result> pause() async {
-    return ResultMap[await _invokeMethod('pause')];
+    return ResultMap[await _invokeMethod('pause')as int];
   }
 
   /// Plays the next song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> next() async {
-    return ResultMap[await _invokeMethod('next')];
+    return ResultMap[await _invokeMethod('next')as int];
   }
 
   /// Plays the previous song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> previous() async {
-    return ResultMap[await _invokeMethod('previous')];
+    return ResultMap[await _invokeMethod('previous')as int];
   }
 
   /// Stops the audio that is currently playing.
@@ -307,29 +306,29 @@ class AudioPlayer {
   /// The position is going to be reset and you will no longer be able to resume
   /// from the last point.
   Future<Result> stop() async {
-    return ResultMap[await _invokeMethod('stop')];
+    return ResultMap[await _invokeMethod('stop')as int];
   }
 
   /// Resumes the audio that has been paused.
   Future<Result> resume() async {
-    return ResultMap[await _invokeMethod('resume')];
+    return ResultMap[await _invokeMethod('resume')as int];
   }
 
   /// Releases the resources associated with this audio player.
   ///
   Future<Result> release() async {
-    return ResultMap[await _invokeMethod('release')];
+    return ResultMap[await _invokeMethod('release')as int];
   }
 
   /// Moves the cursor to the desired position.
   Future<Result> seekPosition(Duration position) async {
     return ResultMap[await _invokeMethod(
-        'seekPosition', {'position': position.inMilliseconds})];
+        'seekPosition', {'position': position.inMilliseconds})as int];
   }
 
   /// Switches to the desired index in playlist.
   Future<Result> seekIndex(int index) async {
-    return ResultMap[await _invokeMethod('seekIndex', {'index': index})];
+    return ResultMap[await _invokeMethod('seekIndex', {'index': index})as int];
   }
 
   /// Sets the volume (amplitude).
@@ -337,7 +336,7 @@ class AudioPlayer {
   /// 0 is mute and 1 is the max volume. The values between 0 and 1 are linearly
   /// interpolated.
   Future<Result> setVolume(double volume) async {
-    return ResultMap[await _invokeMethod('setVolume', {'volume': volume})];
+    return ResultMap[await _invokeMethod('setVolume', {'volume': volume})as int];
   }
 
   /// Get audio duration after setting url.
@@ -345,26 +344,33 @@ class AudioPlayer {
   /// It will be available as soon as the audio duration is available
   /// (it might take a while to download or buffer it if file is not local).
   Future<Duration> getDuration() async {
-    int milliseconds = await _invokeMethod('getDuration');
+    int milliseconds = await _invokeMethod('getDuration') as int;
     return Duration(milliseconds: milliseconds);
+  }
+
+  /// Get audio volume
+  ///
+  /// Volume range is from 0-1.
+  Future<double> getVolume() async {
+    return await _invokeMethod('getVolume') as double;
   }
 
   /// Gets audio current playing position
   ///
   /// the position starts from 0.
   Future<int> getCurrentPosition() async {
-    return await _invokeMethod('getCurrentPosition');
+    return await _invokeMethod('getCurrentPosition') as int;
   }
 
   /// Gets current playing audio index
   Future<int> getCurrentPlayingAudioIndex() async {
-    return await _invokeMethod('getCurrentPlayingAudioIndex');
+    return await _invokeMethod('getCurrentPlayingAudioIndex') as int;
   }
 
   // Sets the repeat mode.
   Future<Result> setRepeatMode(bool repeatMode) async {
     return ResultMap[
-        await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})];
+        await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode}) as int];
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {
@@ -375,7 +381,7 @@ class AudioPlayer {
     }
   }
 
-  Future<int> _invokeMethod(
+  Future<dynamic> _invokeMethod(
     String method, [
     Map<String, dynamic> arguments,
   ]) {
@@ -386,7 +392,7 @@ class AudioPlayer {
 
     return _channel
         .invokeMethod(method, withPlayerId)
-        .then((result) => (result as int));
+        .then((result) => (result));
   }
 
   static Future<void> _doHandlePlatformCall(MethodCall call) async {

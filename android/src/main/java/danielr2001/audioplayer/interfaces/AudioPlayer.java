@@ -57,6 +57,8 @@ public interface AudioPlayer {
 
     int getCurrentPlayingAudioIndex();
 
+    float getVolume();
+
     //setters
     void setPlayerAttributes(boolean repeatMode, boolean respectAudioFocus, PlayerMode playerMode);
 

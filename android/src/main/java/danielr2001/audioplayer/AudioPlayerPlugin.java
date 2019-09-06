@@ -121,7 +121,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           final boolean repeatMode = call.argument("repeatMode");
           final boolean respectAudioFocus = call.argument("respectAudioFocus");
           final boolean isBackground = call.argument("isBackground");
-
+          
           this.playerMode = PlayerMode.SINGLE;
           if (isBackground) {
             // init player as BackgroundAudioPlayer instance
@@ -288,10 +288,19 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           break;
         }
         case "setVolume": {
-          final double volume = call.argument("volume");
+          final double vol = call.argument("volume");
           final float volume = (float)vol;
           player.setVolume(volume);
           break;
+        }
+        case "setRepeatMode": {
+          final boolean repeatMode = call.argument("repeatMode");
+          player.setRepeatMode(repeatMode);
+          break;
+        }
+        case "getVolume": {
+          response.success(player.getVolume());
+          return;
         }
         case "getDuration": {
           response.success(player.getDuration());
@@ -304,11 +313,6 @@ public class AudioPlayerPlugin implements MethodCallHandler {
         case "getCurrentPlayingAudioIndex": {
           response.success(player.getCurrentPlayingAudioIndex());
           return;
-        }
-        case "setRepeatMode": {
-          final boolean repeatMode = call.argument("repeatMode");
-          player.setRepeatMode(repeatMode);
-          break;
         }
         case "dispose": {
           dispose();
@@ -477,11 +481,11 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             continue;
           }
           try {
-              nonePlaying = false;
-              channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
-              channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(player.getPlayerId(), player.getCurrentPosition())); 
+            nonePlaying = false;
+            channel.invokeMethod("audio.onDurationChanged",buildArguments(player.getPlayerId(), player.getDuration()));
+            channel.invokeMethod("audio.onCurrentPositionChanged", buildArguments(player.getPlayerId(), player.getCurrentPosition())); 
           } catch(UnsupportedOperationException e) {
-
+            Log.e("AudioPlayerPlugin", "Error when updating position and duration");
           }
       }
 

@@ -265,6 +265,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
+    public float getVolume() {
+        return player.getVolume();
+    }
+
+    @Override
     public void setPlayerAttributes(boolean repeatMode, boolean respectAudioFocus, PlayerMode playerMode) {
         this.repeatMode = repeatMode;
         this.respectAudioFocus = respectAudioFocus;

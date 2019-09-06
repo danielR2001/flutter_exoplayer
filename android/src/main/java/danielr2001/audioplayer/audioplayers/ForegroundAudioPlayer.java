@@ -222,7 +222,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void previous() { // !TODO first time go to pos 0 then second time previous (maybe make counter for 3 sec)
+    public void previous() {
         if (!this.released) {
             player.previous();
             resume();
@@ -348,6 +348,11 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public int getCurrentPlayingAudioIndex() {
         return player.getCurrentWindowIndex();
+    }
+
+    @Override
+    public float getVolume() {
+        return player.getVolume();
     }
 
     @Override
