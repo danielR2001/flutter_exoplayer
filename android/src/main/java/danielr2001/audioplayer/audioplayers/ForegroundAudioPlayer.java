@@ -278,6 +278,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
+            mediaNotificationManager.setIsNotificationShowing(false);
             stopSelf();
         }
     }
@@ -393,6 +394,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+                mediaNotificationManager.setIsNotificationShowing(true);
                 if (playerMode == PlayerMode.PLAYLIST) {
                     mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
                 } else {
@@ -413,26 +415,33 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                     case Player.STATE_READY: {
                         if(completed) {
                             buffering = false;
-                            mediaNotificationManager.makeNotification(false);
+                            if(mediaNotificationManager.isNotificationShowing()) {
+                                mediaNotificationManager.makeNotification(false);
+                            }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
                         } else if (buffering) {
                             // playing
                             buffering = false;
                             playing = true;
-                            mediaNotificationManager.makeNotification(true);
-
+                            if(mediaNotificationManager.isNotificationShowing()) {
+                                mediaNotificationManager.makeNotification(true);
+                            }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePositionUpdates();
                         } else if (playWhenReady) {
                             // resumed
                             playing = true;
-                            mediaNotificationManager.makeNotification(true);
+                            if(mediaNotificationManager.isNotificationShowing()) {
+                                mediaNotificationManager.makeNotification(true);
+                            }
                             ref.handlePositionUpdates();
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
                         } else if(!playWhenReady) {
                             // paused
                             playing = false;
-                            mediaNotificationManager.makeNotification(false);
+                            if(mediaNotificationManager.isNotificationShowing()) {
+                                mediaNotificationManager.makeNotification(false);
+                            }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
                         }
 
@@ -454,8 +463,10 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         stopped = true;
                         completed = false;
                         buffering = false;
-                        mediaNotificationManager.makeNotification(false);
-                        mediaNotificationManager.hideNotification();
+                        if(mediaNotificationManager.isNotificationShowing()) {
+                            mediaNotificationManager.makeNotification(false);
+                            //mediaNotificationManager.hideNotification();
+                        }
                         ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
                         
                         break;

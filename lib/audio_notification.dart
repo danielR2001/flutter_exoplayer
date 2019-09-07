@@ -30,6 +30,7 @@ class AudioNotification {
   //! TODO add background color!
   //! TODO notification importance!
   //! TODO set timeout!
+  //! TODO add two more fully customizable icons
 
   AudioNotification({
     @required String smallIconFileName,

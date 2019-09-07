@@ -53,6 +53,15 @@ public class MediaNotificationManager {
 
     private AudioObject audioObject;
     private boolean isPlaying;
+    private boolean isNotificationShowing;
+
+    public void setIsNotificationShowing(boolean isNotificationShowing) {
+        this.isNotificationShowing = isNotificationShowing;
+    }
+
+    public boolean isNotificationShowing() {
+        return isNotificationShowing;
+    }
 
     public MediaNotificationManager(ForegroundAudioPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
         this.context = context;
@@ -88,6 +97,7 @@ public class MediaNotificationManager {
 
     //make new notification
     public void makeNotification(AudioObject audioObject, boolean isPlaying) {
+        isNotificationShowing = true;
         this.audioObject = audioObject;
         this.isPlaying = isPlaying;
         if (audioObject.getLargeIconUrl() != null) {
@@ -98,6 +108,7 @@ public class MediaNotificationManager {
     }
 
     public void hideNotification() {
+        isNotificationShowing = false;
         notificationManager = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(NOTIFICATION_ID);
     }
