@@ -360,7 +360,7 @@ class AudioPlayer {
   ///
   /// the position starts from 0.
   Future<Duration> getCurrentPosition() async {
-    int milliseconds =  await _invokeMethod('getCurrentPosition') as int;
+    int milliseconds = await _invokeMethod('getCurrentPosition') as int;
     return Duration(milliseconds: milliseconds);
   }
 
