@@ -422,12 +422,16 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         } else if (buffering) {
                             // playing
                             buffering = false;
-                            playing = true;
-                            if(mediaNotificationManager.isNotificationShowing()) {
-                                mediaNotificationManager.makeNotification(true);
+                            if(playWhenReady){
+                                playing = true;
+                                if(mediaNotificationManager.isNotificationShowing()) {
+                                    mediaNotificationManager.makeNotification(true);
+                                }
+                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                                ref.handlePositionUpdates();
+                            }else{
+                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
                             }
-                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                            ref.handlePositionUpdates();
                         } else if (playWhenReady) {
                             // resumed
                             playing = true;

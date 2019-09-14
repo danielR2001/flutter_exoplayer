@@ -326,9 +326,13 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                         } else if (buffering) {
                             // playing
                             buffering = false;
+                            if(playWhenReady){
                             playing = true;
-                            ref.handlePositionUpdates();
-                            ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
+                                ref.handlePositionUpdates();
+                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PLAYING);
+                            }else{
+                                ref.handleStateChange(backgroundAudioPlayer, PlayerState.PAUSED);
+                            }
                         } else if (playWhenReady) {
                             // resumed
                             playing = true;
