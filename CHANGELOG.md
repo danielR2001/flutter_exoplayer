@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Added protection from notification errors.
+- Fixed seek position when paused (it would set the state to playing).
+- Fixed getCurrentPosition.
+
 ## 0.3.5
 
 - Added getVolume feature.
