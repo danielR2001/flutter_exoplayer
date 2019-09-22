@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- Added two customizable actions with callback in addition to the default ones.
+- Changed NotificationActionMode enum to NotificationDefaultActions.
+- Updated example app.
+
 ## 0.4.0
 
 - Added protection from notification errors.

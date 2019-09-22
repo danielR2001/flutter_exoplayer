@@ -29,7 +29,7 @@ just add this dependency in your pubsec.yaml file:
 
 ```yaml
   dependencies:
-    flutter_exoplayer: ^0.4.0
+    flutter_exoplayer: ^0.5.0
 ```
 
 ## Support us
@@ -205,7 +205,13 @@ After you call play you can control you audio with pause, resume, stop, release,
 
 When playing in `PlayerMode.FOREGROUND` then the player will show foreground notification, You can customize it in the `AudioObject` thing like priority/ background color / what actions to show and etc'. 
 
-`NotificationActionMode` represents the actions you want to show with your notification (previous, play/pause, next), you have the option to choose between: NONE - only play/pause, PREVIOUS - previous and play/pause, NEXT - next and play/pause, and ALL - that include all actions.
+`NotificationDefaultActions` represents the actions you want to show with your notification (previous, play/pause, next), you have the option to choose between: NONE - only play/pause, PREVIOUS - previous and play/pause, NEXT - next and play/pause, and ALL - that include all actions.
+
+`NotificationCustomActions` represents the custom actions you want to show with your notification (like, download etc'), you have the option to choose between: DISABLED - show no custom icons, ONE - show one custom icon, TWO - show two custom icons. The callback of this actions is returned via `onNotificationActionCallback` (CUSTOM1 is the left action, as CUSTOM2 is the right action). If you chose ONE\TWO  you have to provide the resource for
+the icon inside APP_NAME\android\app\src\main\res\drawable, the resource needs to be vector image. The names of the files need to be: "ic_custom1" for
+the left custom action and "ic_custom2" for the right action.
+
+Attention! If you choose to show the custom actions you have to follow the instructions above! the file names needs to be as the instructions say and their location too.
 
 `NotificationActionCallbackMode` is a mode that lets you choose between two options: DEFAULT or CUSTOM,
 this parameter decides if you will recieve action callback (`CUSTOM`) or not (`DEFAULT`) when user taps on the action via `onNotificationActionCallback` stream, and then you can make custom action for your taste. If set to
@@ -220,7 +226,9 @@ Attention! You need to place your app icon or the icon you want to show in the A
       subTitle: "artist",
       largeIconUrl: "local or network image url",
       isLocal: false,
-      notificationActionMode: NotificationActionMode.ALL);
+      notificationDefaultActions: NotificationDefaultActions.ALL,
+      notificationCustomActions: NotificationCustomActions.TWO,
+      );
 ```
 
 ### Streams
