@@ -47,7 +47,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       subTitle: "artist1",
       largeIconUrl: imageUrl1,
       isLocal: false,
-      notificationActionMode: NotificationActionMode.ALL,
+      notificationDefaultActions: NotificationDefaultActions.ALL,
+      notificationCustomActions: NotificationCustomActions.TWO,
     ),
     AudioNotification(
         smallIconFileName: "ic_launcher",
@@ -55,14 +56,14 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         subTitle: "artist2",
         largeIconUrl: imageUrl2,
         isLocal: false,
-        notificationActionMode: NotificationActionMode.ALL),
+        notificationDefaultActions: NotificationDefaultActions.ALL),
     AudioNotification(
         smallIconFileName: "ic_launcher",
         title: "title3",
         subTitle: "artist3",
         largeIconUrl: imageUrl3,
         isLocal: false,
-        notificationActionMode: NotificationActionMode.ALL),
+        notificationDefaultActions: NotificationDefaultActions.ALL),
   ];
 
   get _isPlaying => _playerState == PlayerState.PLAYING;
