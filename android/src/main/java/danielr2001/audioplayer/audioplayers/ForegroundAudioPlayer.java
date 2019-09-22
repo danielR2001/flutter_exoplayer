@@ -128,6 +128,10 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                 } else {
                     ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT);
                 }
+            } else if(intent.getAction().equals(MediaNotificationManager.CUSTOM1_ACTION)) {
+                ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM1);
+            } else if(intent.getAction().equals(MediaNotificationManager.CUSTOM2_ACTION)){
+                ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM2);
             }
         }
         return START_STICKY;

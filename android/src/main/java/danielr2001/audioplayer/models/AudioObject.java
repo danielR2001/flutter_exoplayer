@@ -1,6 +1,7 @@
 package danielr2001.audioplayer.models;
 
-import danielr2001.audioplayer.enums.NotificationActionMode;
+import danielr2001.audioplayer.enums.NotificationDefaultActions;
+import danielr2001.audioplayer.enums.NotificationCustomActions;
 import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
 
 import android.graphics.Bitmap;
@@ -12,21 +13,23 @@ public class AudioObject {
     private String subTitle;
     private String largeIconUrl;
     private boolean isLocal;
-    private NotificationActionMode notificationActionMode;
+    private NotificationDefaultActions notificationDefaultActions;
     private NotificationActionCallbackMode notificationActionCallbackMode;
+    private NotificationCustomActions notificationCustomActions;
 
     private Bitmap largeIcon;
     
     //for foreground player
-    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationActionMode notificationActionMode, NotificationActionCallbackMode notificationActionCallbackMode){
+    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationDefaultActions notificationDefaultActions, NotificationActionCallbackMode notificationActionCallbackMode, NotificationCustomActions notificationCustomActions){
         this.url = url;
         this.smallIconFileName = smallIconFileName;
         this.title = title;
         this.subTitle = subTitle;
         this.largeIconUrl = largeIconUrl;
         this.isLocal = isLocal;
-        this.notificationActionMode = notificationActionMode;
+        this.notificationDefaultActions = notificationDefaultActions;
         this.notificationActionCallbackMode = notificationActionCallbackMode;
+        this.notificationCustomActions = notificationCustomActions;
     }
 
     //for background player
@@ -62,12 +65,16 @@ public class AudioObject {
         return isLocal;
     }
 
-    public NotificationActionMode getNotificationActionMode(){
-        return notificationActionMode;
+    public NotificationDefaultActions getNotificationActionMode(){
+        return notificationDefaultActions;
     }
 
     public NotificationActionCallbackMode getNotificationActionCallbackMode(){
         return notificationActionCallbackMode;
+    }
+
+    public NotificationCustomActions getNotificationCustomActions(){
+        return notificationCustomActions;
     }
 
     public void setLargeIcon(Bitmap bitmap){

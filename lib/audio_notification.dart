@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum NotificationActionMode {
+enum NotificationDefaultActions {
   NONE,
   NEXT,
   PREVIOUS,
@@ -12,11 +12,19 @@ enum NotificationActionName {
   NEXT,
   PLAY,
   PAUSE,
+  CUSTOM1,
+  CUSTOM2,
 }
 
 enum NotificationActionCallbackMode {
   CUSTOM,
   DEFAULT,
+}
+
+enum NotificationCustomActions {
+  DISABLED,
+  ONE,
+  TWO,
 }
 
 class AudioNotification {
@@ -25,12 +33,12 @@ class AudioNotification {
   String _subTitle;
   String _largeIconUrl;
   bool _isLocal;
-  NotificationActionMode _notificationActionMode;
+  NotificationDefaultActions _notificationDefaultActions;
   NotificationActionCallbackMode _notificationActionCallbackMode;
+  NotificationCustomActions _notificationCustomActions;
   //! TODO add background color!
   //! TODO notification importance!
   //! TODO set timeout!
-  //! TODO add two more fully customizable icons
 
   AudioNotification({
     @required String smallIconFileName,
@@ -38,12 +46,14 @@ class AudioNotification {
     String subTitle,
     String largeIconUrl,
     bool isLocal = false,
-    NotificationActionMode notificationActionMode = NotificationActionMode.ALL,
+    NotificationDefaultActions notificationDefaultActions = NotificationDefaultActions.ALL,
     NotificationActionCallbackMode notificationActionCallbackMode =
         NotificationActionCallbackMode.DEFAULT,
+    NotificationCustomActions notificationCustomActions =
+        NotificationCustomActions.DISABLED,
   }) {
     isLocal ??= false;
-    notificationActionMode ??= NotificationActionMode.ALL;
+    notificationDefaultActions ??= NotificationDefaultActions.ALL;
     notificationActionCallbackMode ??= NotificationActionCallbackMode.DEFAULT;
 
     this._smallIconFileName = smallIconFileName;
@@ -51,8 +61,9 @@ class AudioNotification {
     this._subTitle = subTitle;
     this._largeIconUrl = largeIconUrl;
     this._isLocal = isLocal;
-    this._notificationActionMode = notificationActionMode;
+    this._notificationDefaultActions = notificationDefaultActions;
     this._notificationActionCallbackMode = notificationActionCallbackMode;
+    this._notificationCustomActions = notificationCustomActions;
   }
 
   String get smallIconFileName => _smallIconFileName;
@@ -65,8 +76,11 @@ class AudioNotification {
 
   bool get isLocal => _isLocal;
 
-  NotificationActionMode get notificationMode => _notificationActionMode;
+  NotificationDefaultActions get notificationDefaultActions => _notificationDefaultActions;
 
   NotificationActionCallbackMode get notificationActionCallbackMode =>
       _notificationActionCallbackMode;
+
+  NotificationCustomActions get notificationCustomActions =>
+      _notificationCustomActions;
 }

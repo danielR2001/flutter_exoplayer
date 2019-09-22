@@ -46,11 +46,17 @@ class AudioPlayer {
     2: Result.SUCCESS,
   };
 
-  static const NotificationActionModeMap = {
-    NotificationActionMode.NONE: 0,
-    NotificationActionMode.NEXT: 1,
-    NotificationActionMode.PREVIOUS: 2,
-    NotificationActionMode.ALL: 3,
+  static const NotificationDefaultActionsMap = {
+    NotificationDefaultActions.NONE: 0,
+    NotificationDefaultActions.NEXT: 1,
+    NotificationDefaultActions.PREVIOUS: 2,
+    NotificationDefaultActions.ALL: 3,
+  };
+
+    static const NotificationCustomActionsMap = {
+    NotificationCustomActions.DISABLED: 0,
+    NotificationCustomActions.ONE: 1,
+    NotificationCustomActions.TWO: 2,
   };
 
   static const NotificationActionNameMap = {
@@ -58,6 +64,8 @@ class AudioPlayer {
     1: NotificationActionName.NEXT,
     2: NotificationActionName.PLAY,
     3: NotificationActionName.PAUSE,
+    4: NotificationActionName.CUSTOM1,
+    5: NotificationActionName.CUSTOM2,
   };
 
   static const NotificationActionCallbackModeMap = {
@@ -181,8 +189,9 @@ class AudioPlayer {
     String subTitle;
     String largeIconUrl;
     bool isLocal;
-    int notificationActionMode;
+    int notificationDefaultActions;
     int notificationActionCallbackMode = 0;
+    int notificationCustomActions;
     if (playerMode == PlayerMode.FOREGROUND) {
       smallIconFileName = audioNotification.smallIconFileName;
       title = audioNotification.title;
@@ -190,8 +199,9 @@ class AudioPlayer {
       largeIconUrl = audioNotification.largeIconUrl;
       isLocal = audioNotification.isLocal;
 
-      notificationActionMode =
-          NotificationActionModeMap[audioNotification.notificationMode];
+      notificationDefaultActions =
+          NotificationDefaultActionsMap[audioNotification.notificationDefaultActions];
+      notificationCustomActions = NotificationCustomActionsMap[audioNotification.notificationCustomActions];
       notificationActionCallbackMode = NotificationActionCallbackModeMap[
           audioNotification.notificationActionCallbackMode];
 
@@ -210,8 +220,9 @@ class AudioPlayer {
       'subTitle': subTitle,
       'largeIconUrl': largeIconUrl,
       'isLocal': isLocal,
-      'notificationActionMode': notificationActionMode,
+      'notificationDefaultActions': notificationDefaultActions,
       'notificationActionCallbackMode': notificationActionCallbackMode,
+      'notificationCustomActions': notificationCustomActions,
     }) as int];
   }
 
@@ -240,8 +251,9 @@ class AudioPlayer {
     final List<String> subTitles = List();
     final List<String> largeIconUrls = List();
     final List<bool> isLocals = List();
-    final List<int> notificationModes = List();
+    final List<int> notificationDefaultActionsList = List();
     final List<int> notificationActionCallbackModes = List();
+    final List<int> notificationCustomActionsList = List();
 
     if (playerMode == PlayerMode.FOREGROUND) {
       for (AudioNotification audioNotification in audioNotifications) {
@@ -251,8 +263,9 @@ class AudioPlayer {
         largeIconUrls.add(audioNotification.largeIconUrl);
         isLocals.add(audioNotification.isLocal);
 
-        notificationModes
-            .add(NotificationActionModeMap[audioNotification.notificationMode]);
+        notificationDefaultActionsList
+            .add(NotificationDefaultActionsMap[audioNotification.notificationDefaultActions]);
+        notificationCustomActionsList.add(NotificationCustomActionsMap[audioNotification.notificationCustomActions]);
 
         notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
             audioNotification.notificationActionCallbackMode]);
@@ -274,8 +287,9 @@ class AudioPlayer {
       'subTitles': subTitles,
       'largeIconUrls': largeIconUrls,
       'isLocals': isLocals,
-      'notificationModes': notificationModes,
+      'notificationDefaultActionsList': notificationDefaultActionsList,
       'notificationActionCallbackModes': notificationActionCallbackModes,
+      'notificationCustomActionsList': notificationCustomActionsList,
     }) as int];
   }
 

@@ -4,7 +4,8 @@ import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
 import danielr2001.audioplayer.audioplayers.BackgroundAudioPlayer;
 import danielr2001.audioplayer.interfaces.AudioPlayer;
 import danielr2001.audioplayer.models.AudioObject;
-import danielr2001.audioplayer.enums.NotificationActionMode;
+import danielr2001.audioplayer.enums.NotificationDefaultActions;
+import danielr2001.audioplayer.enums.NotificationCustomActions;
 import danielr2001.audioplayer.enums.NotificationActionName;
 import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
 import danielr2001.audioplayer.enums.PlayerState;
@@ -143,8 +144,9 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             final String subTitle = call.argument("subTitle");
             final String largeIconUrl = call.argument("largeIconUrl");
             final boolean isLocal = call.argument("isLocal");
-            final int notificationModeInt = call.argument("notificationActionMode");
+            final int notificationDefaultActionsInt = call.argument("notificationDefaultActions");
             final int notificationActionCallbackModeInt = call.argument("notificationActionCallbackMode");
+            final int notificationCustomActionsInt = call.argument("notificationCustomActionsInt");
 
             this.tempPlayer = player;
             this.tempPlayerId = playerId;
@@ -152,16 +154,25 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             this.tempRespectAudioFocus = respectAudioFocus;
             this.tempAudioPlayerPlugin = this;
             
-            NotificationActionMode notificationActionMode;
+            NotificationDefaultActions notificationDefaultActions;
             NotificationActionCallbackMode notificationActionCallbackMode;
-            if (notificationModeInt == 0) {
-              notificationActionMode = NotificationActionMode.NONE;
-            } else if (notificationModeInt == 1) {
-              notificationActionMode = NotificationActionMode.NEXT;
-            } else if (notificationModeInt == 2){
-              notificationActionMode = NotificationActionMode.PREVIOUS;
+            NotificationCustomActions notificationCustomActions;
+            if (notificationDefaultActionsInt == 0) {
+              notificationDefaultActions = NotificationDefaultActions.NONE;
+            } else if (notificationDefaultActionsInt == 1) {
+              notificationDefaultActions = NotificationDefaultActions.NEXT;
+            } else if (notificationDefaultActionsInt == 2){
+              notificationDefaultActions = NotificationDefaultActions.PREVIOUS;
             }else{
-              notificationActionMode = NotificationActionMode.ALL;
+              notificationDefaultActions = NotificationDefaultActions.ALL;
+            }
+
+            if (notificationCustomActionsInt == 1) {
+              notificationCustomActions = NotificationCustomActions.ONE;
+            } else if (notificationCustomActionsInt == 2) {
+              notificationCustomActions = NotificationCustomActions.TWO;
+            } else {
+              notificationCustomActions = NotificationCustomActions.DISABLED;
             }
 
             if(notificationActionCallbackModeInt == 0){
@@ -170,7 +181,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
               notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
             }
 
-            this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationActionMode, notificationActionCallbackMode);
+            this.audioObject = new AudioObject(url, smallIconFileName, title, subTitle, largeIconUrl, isLocal, notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions);
             // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
               player.play(this.audioObject);
@@ -209,8 +220,9 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             final ArrayList<String> subTitles = call.argument("subTitles");
             final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
             final ArrayList<Boolean> isLocals = call.argument("isLocals");
-            final ArrayList<Integer> notificationModeInts = call.argument("notificationModes");
+            final ArrayList<Integer> notificationDefaultActionsInts = call.argument("notificationDefaultActionsList");
             final ArrayList<Integer> notificationActionCallbackModeInts = call.argument("notificationActionCallbackModes");
+            final ArrayList<Integer> notificationCustomActionsInts = call.argument("notificationCustomActionsList");
 
             this.tempPlayer = player;
             this.tempPlayerId = playerId;
@@ -220,16 +232,25 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             this.tempIndex = index;
 
             for(int i = 0; i < urls.size(); i++ ){
-              NotificationActionMode notificationActionMode;
+              NotificationDefaultActions notificationDefaultActions;
               NotificationActionCallbackMode notificationActionCallbackMode;
-              if (notificationModeInts.get(i) == 0) {
-                notificationActionMode = NotificationActionMode.NONE;
-              } else if (notificationModeInts.get(i) == 1) {
-                notificationActionMode = NotificationActionMode.NEXT;
-              } else if (notificationModeInts.get(i) == 2){
-                notificationActionMode = NotificationActionMode.PREVIOUS;
+              NotificationCustomActions notificationCustomActions;
+              if (notificationDefaultActionsInts.get(i) == 0) {
+                notificationDefaultActions = NotificationDefaultActions.NONE;
+              } else if (notificationDefaultActionsInts.get(i) == 1) {
+                notificationDefaultActions = NotificationDefaultActions.NEXT;
+              } else if (notificationDefaultActionsInts.get(i) == 2){
+                notificationDefaultActions = NotificationDefaultActions.PREVIOUS;
               }else{
-                notificationActionMode = NotificationActionMode.ALL;
+                notificationDefaultActions = NotificationDefaultActions.ALL;
+              }
+
+              if (notificationCustomActionsInts.get(i) == 1) {
+                notificationCustomActions = NotificationCustomActions.ONE;
+              } else if (notificationCustomActionsInts.get(i) == 2) {
+                notificationCustomActions = NotificationCustomActions.TWO;
+              } else {
+                notificationCustomActions = NotificationCustomActions.DISABLED;
               }
 
               if(notificationActionCallbackModeInts.get(i) == 0){
@@ -238,7 +259,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                 notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
               }
 
-              this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationActionMode, notificationActionCallbackMode));
+              this.audioObjects.add(new AudioObject(urls.get(i), smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), isLocals.get(i), notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions));
             }
             // init player as ForegroundAudioPlayer service
             if(player != null && !player.isPlayerReleased()){
@@ -342,6 +363,12 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           break;
         case PAUSE:
           channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 3));  
+          break;
+        case CUSTOM1:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 4));  
+          break;
+        case CUSTOM2:
+          channel.invokeMethod("audio.onNotificationActionCallback",buildArguments(audioplayer.getPlayerId(), 5));  
           break;
       }
   }
