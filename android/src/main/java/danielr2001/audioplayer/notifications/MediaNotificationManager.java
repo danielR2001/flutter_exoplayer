@@ -59,14 +59,23 @@ public class MediaNotificationManager {
 
     private AudioObject audioObject;
     private boolean isPlaying;
-    private boolean isNotificationShowing;
+    private boolean isShowing;
+    private boolean isInitialized;
 
-    public void setIsNotificationShowing(boolean isNotificationShowing) {
-        this.isNotificationShowing = isNotificationShowing;
+    public void setIsShowing(boolean isShowing) {
+        this.isShowing = isShowing;
     }
 
-    public boolean isNotificationShowing() {
-        return isNotificationShowing;
+    public boolean isShowing() {
+        return isShowing;
+    }
+
+    public void setIsInitialized(boolean isInitialized) {
+        this.isInitialized = isInitialized;
+    }
+
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     public MediaNotificationManager(ForegroundAudioPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
@@ -74,6 +83,7 @@ public class MediaNotificationManager {
         this.foregroundExoPlayer = foregroundExoPlayer;
         this.mediaSession = mediaSession;
         this.activity = activity;
+        isInitialized = false;
 
         initIntents();
     }
@@ -111,7 +121,8 @@ public class MediaNotificationManager {
 
     //make new notification
     public void makeNotification(AudioObject audioObject, boolean isPlaying) {
-        isNotificationShowing = true;
+        isInitialized = true;
+        isShowing = true;
         this.audioObject = audioObject;
         this.isPlaying = isPlaying;
         if (audioObject.getLargeIconUrl() != null) {
@@ -119,12 +130,6 @@ public class MediaNotificationManager {
         } else {
             showNotification();
         }
-    }
-
-    public void hideNotification() {
-        isNotificationShowing = false;
-        notificationManager = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(NOTIFICATION_ID);
     }
     
     //update current notification

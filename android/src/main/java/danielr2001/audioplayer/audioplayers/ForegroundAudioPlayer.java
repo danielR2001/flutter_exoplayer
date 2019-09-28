@@ -39,7 +39,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-
+import android.util.Log;
 public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
 
@@ -236,8 +236,8 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void pause() {
         if (!this.released && this.playing) {
-            player.setPlayWhenReady(false);
             stopForeground(false);
+            player.setPlayWhenReady(false);
         }
     }
 
@@ -259,8 +259,9 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     @Override
     public void stop() {
         if (!this.released) {
-            player.stop(true);
+            mediaNotificationManager.setIsShowing(false);
             stopForeground(true);
+            player.stop(true);
         }
     }
 
@@ -269,6 +270,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         if (!this.released) {
             if (this.playing) {
                 stopForeground(true);
+                mediaNotificationManager.setIsShowing(false);
             }
             this.initialized = false;
             this.buffering = false;
@@ -282,7 +284,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             player.release();
             player = null;
             ref.handleStateChange(this, PlayerState.RELEASED);
-            mediaNotificationManager.setIsNotificationShowing(false);
             stopSelf();
         }
     }
@@ -398,11 +399,14 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-                mediaNotificationManager.setIsNotificationShowing(true);
-                if (playerMode == PlayerMode.PLAYLIST) {
-                    mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
-                } else {
-                    mediaNotificationManager.makeNotification(audioObject, true);
+                if(mediaNotificationManager.isShowing() || !mediaNotificationManager.isInitialized()) {
+                    if (playerMode == PlayerMode.PLAYLIST) {
+                        mediaNotificationManager.makeNotification(audioObjects.get(player.getCurrentWindowIndex()), true);
+                    } else {
+                        mediaNotificationManager.makeNotification(audioObject, true);
+                    }
+                }else{
+                    mediaNotificationManager.setIsInitialized(false); //the player was stopped.
                 }
                 ref.handlePlayerIndex(foregroundAudioPlayer);
             }
@@ -419,7 +423,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                     case Player.STATE_READY: {
                         if(completed) {
                             buffering = false;
-                            if(mediaNotificationManager.isNotificationShowing()) {
+                            if(mediaNotificationManager.isShowing()) {
                                 mediaNotificationManager.makeNotification(false);
                             }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
@@ -428,7 +432,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                             buffering = false;
                             if(playWhenReady){
                                 playing = true;
-                                if(mediaNotificationManager.isNotificationShowing()) {
+                                if(mediaNotificationManager.isShowing()) {
                                     mediaNotificationManager.makeNotification(true);
                                 }
                                 ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
@@ -439,7 +443,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         } else if (playWhenReady) {
                             // resumed
                             playing = true;
-                            if(mediaNotificationManager.isNotificationShowing()) {
+                            if(mediaNotificationManager.isShowing()) {
                                 mediaNotificationManager.makeNotification(true);
                             }
                             ref.handlePositionUpdates();
@@ -447,7 +451,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         } else if(!playWhenReady) {
                             // paused
                             playing = false;
-                            if(mediaNotificationManager.isNotificationShowing()) {
+                            if(mediaNotificationManager.isShowing()) {
                                 mediaNotificationManager.makeNotification(false);
                             }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
@@ -471,10 +475,6 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         stopped = true;
                         completed = false;
                         buffering = false;
-                        if(mediaNotificationManager.isNotificationShowing()) {
-                            mediaNotificationManager.makeNotification(false);
-                            //mediaNotificationManager.hideNotification();
-                        }
                         ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
                         
                         break;
