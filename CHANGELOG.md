@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1
+
+- Fixed hiding notification when player stopped.
+- Updated notification managment code efficiency.
+
 ## 0.5.0
 
 - Added two customizable actions with callback in addition to the default ones.
