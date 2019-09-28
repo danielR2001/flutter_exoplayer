@@ -14,3 +14,4 @@ packages
 .vscode
 testing
 pubspec.lock
+android/local.properties

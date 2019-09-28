@@ -7,7 +7,7 @@ A Flutter plugin that let's you play multiple audio files simultaneously with an
 ## Why pick us
 
 Flutter_exoplayer uses the Java ExoPlayer library, which unlike Android's MediaPlayer offers fast audio buffering, especially when using playlists.
-All thanks to the ExoPlayer`s `ConcatenatingMediaSource` that let's you use an audio list that allways buffers the next audios. This feature 
+All thanks to the ExoPlayer's `ConcatenatingMediaSource` that let's you use an audio list that allways buffers the next audios. This feature 
 of the ExoPlayer let's you play playlists very smoothly. 
 
 Moreover Flutter_exoplayer offers many features such as: 
