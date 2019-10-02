@@ -146,7 +146,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
             final boolean isLocal = call.argument("isLocal");
             final int notificationDefaultActionsInt = call.argument("notificationDefaultActions");
             final int notificationActionCallbackModeInt = call.argument("notificationActionCallbackMode");
-            final int notificationCustomActionsInt = call.argument("notificationCustomActionsInt");
+            final int notificationCustomActionsInt = call.argument("notificationCustomActions");
 
             this.tempPlayer = player;
             this.tempPlayerId = playerId;
