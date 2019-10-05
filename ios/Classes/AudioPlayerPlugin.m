@@ -1,11 +1,11 @@
-#import "AudioplayerPlugin.h"
+#import "AudioPlayerPlugin.h"
 
-@implementation AudioplayerPlugin
+@implementation AudioPlayerPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"exoplayer"
             binaryMessenger:[registrar messenger]];
-  AudioplayerPlugin* instance = [[AudioplayerPlugin alloc] init];
+  AudioPlayerPlugin* instance = [[AudioPlayerPlugin alloc] init];
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
