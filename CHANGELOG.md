@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2
+
+- Fixed minor bugs (thanks, @btanarola)
+
 ## 0.5.1
 
 - Fixed hiding notification when player stopped.
