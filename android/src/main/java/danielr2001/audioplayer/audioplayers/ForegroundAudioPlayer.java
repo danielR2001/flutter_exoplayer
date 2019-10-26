@@ -39,7 +39,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-import android.util.Log;
 public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
 
@@ -143,6 +142,40 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         this.release();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setAudioObjects(ArrayList<AudioObject> audioObjects){
+        if(this.audioObjects != null){
+            for (int i = 0; i < this.audioObjects.size(); i++) {
+                audioObjects.get(i).setUrl(this.audioObjects.get(i).getUrl());
+                audioObjects.get(i).setIsLocal(this.audioObjects.get(i).getIsLocal());
+            }
+            this.audioObjects =  (ArrayList<AudioObject>) audioObjects.clone();
+            mediaNotificationManager.makeNotification(this.audioObjects.get(player.getCurrentWindowIndex()), playing);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setAudioObject(AudioObject audioObject){
+        if(this.audioObject != null){
+            audioObject.setUrl(this.audioObject.getUrl());
+            audioObject.setIsLocal(this.audioObject.getIsLocal());
+            this.audioObject = audioObject;
+            mediaNotificationManager.makeNotification(this.audioObject, playing);
+        }
+    }
+
+    @Override
+    public void setSpecificAudioObject(AudioObject audioObject, int index){
+        if(this.audioObjects != null){
+            audioObject.setUrl(this.audioObjects.get(index).getUrl());
+            audioObject.setIsLocal(this.audioObjects.get(index).getIsLocal());
+
+            this.audioObjects.set(index, audioObject);
+            if(getCurrentPlayingAudioIndex() == index) mediaNotificationManager.makeNotification(this.audioObjects.get(player.getCurrentWindowIndex()), playing);
+        }
+    }
 
     @Override
     public void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId) {
@@ -213,7 +246,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             this.audioObjects = audioObjects;
             this.initExoPlayer(index);
             initEventListeners();
-            player.setPlayWhenReady(true);
+             player.setPlayWhenReady(true);
         }
     }
 

@@ -319,6 +319,132 @@ public class AudioPlayerPlugin implements MethodCallHandler {
           player.setRepeatMode(repeatMode);
           break;
         }
+        case "setAudioObject": {
+          final String smallIconFileName = call.argument("smallIconFileName");
+          final String title = call.argument("title");
+          final String subTitle = call.argument("subTitle");
+          final String largeIconUrl = call.argument("largeIconUrl");
+          final int notificationDefaultActionsInt = call.argument("notificationDefaultActions");
+          final int notificationActionCallbackModeInt = call.argument("notificationActionCallbackMode");
+          final int notificationCustomActionsInt = call.argument("notificationCustomActions");
+          
+          NotificationDefaultActions notificationDefaultActions;
+          NotificationActionCallbackMode notificationActionCallbackMode;
+          NotificationCustomActions notificationCustomActions;
+          if (notificationDefaultActionsInt == 0) {
+            notificationDefaultActions = NotificationDefaultActions.NONE;
+          } else if (notificationDefaultActionsInt == 1) {
+            notificationDefaultActions = NotificationDefaultActions.NEXT;
+          } else if (notificationDefaultActionsInt == 2){
+            notificationDefaultActions = NotificationDefaultActions.PREVIOUS;
+          }else{
+            notificationDefaultActions = NotificationDefaultActions.ALL;
+          }
+
+          if (notificationCustomActionsInt == 1) {
+            notificationCustomActions = NotificationCustomActions.ONE;
+          } else if (notificationCustomActionsInt == 2) {
+            notificationCustomActions = NotificationCustomActions.TWO;
+          } else {
+            notificationCustomActions = NotificationCustomActions.DISABLED;
+          }
+
+          if(notificationActionCallbackModeInt == 0){
+            notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT;
+          }else{
+            notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
+          }
+
+          this.audioObject = new AudioObject(smallIconFileName, title, subTitle, largeIconUrl, notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions);
+          
+          player.setAudioObject(this.audioObject);
+          return;
+        }
+        case "setAudioObjects": {
+          final ArrayList<String> smallIconFileNames = call.argument("smallIconFileNames");
+          final ArrayList<String> titles = call.argument("titles");
+          final ArrayList<String> subTitles = call.argument("subTitles");
+          final ArrayList<String> largeIconUrls = call.argument("largeIconUrls");
+          final ArrayList<Integer> notificationDefaultActionsInts = call.argument("notificationDefaultActionsList");
+          final ArrayList<Integer> notificationActionCallbackModeInts = call.argument("notificationActionCallbackModes");
+          final ArrayList<Integer> notificationCustomActionsInts = call.argument("notificationCustomActionsList");
+
+          for(int i = 0; i < smallIconFileNames.size(); i++ ){
+            NotificationDefaultActions notificationDefaultActions;
+            NotificationActionCallbackMode notificationActionCallbackMode;
+            NotificationCustomActions notificationCustomActions;
+            if (notificationDefaultActionsInts.get(i) == 0) {
+              notificationDefaultActions = NotificationDefaultActions.NONE;
+            } else if (notificationDefaultActionsInts.get(i) == 1) {
+              notificationDefaultActions = NotificationDefaultActions.NEXT;
+            } else if (notificationDefaultActionsInts.get(i) == 2){
+              notificationDefaultActions = NotificationDefaultActions.PREVIOUS;
+            }else{
+              notificationDefaultActions = NotificationDefaultActions.ALL;
+            }
+
+            if (notificationCustomActionsInts.get(i) == 1) {
+              notificationCustomActions = NotificationCustomActions.ONE;
+            } else if (notificationCustomActionsInts.get(i) == 2) {
+              notificationCustomActions = NotificationCustomActions.TWO;
+            } else {
+              notificationCustomActions = NotificationCustomActions.DISABLED;
+            }
+
+            if(notificationActionCallbackModeInts.get(i) == 0){
+              notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT;
+            }else{
+              notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
+            }
+
+            this.audioObjects.add(new AudioObject(smallIconFileNames.get(i), titles.get(i), subTitles.get(i), largeIconUrls.get(i), notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions));
+          }
+
+          player.setAudioObjects(this.audioObjects);
+          return;
+        }
+        case "setSpecificAudioNotification": {
+          final String smallIconFileName = call.argument("smallIconFileName");
+          final String title = call.argument("title");
+          final String subTitle = call.argument("subTitle");
+          final String largeIconUrl = call.argument("largeIconUrl");
+          final int notificationDefaultActionsInt = call.argument("notificationDefaultActions");
+          final int notificationActionCallbackModeInt = call.argument("notificationActionCallbackMode");
+          final int notificationCustomActionsInt = call.argument("notificationCustomActions");
+          final int index = call.argument("index");
+          
+          NotificationDefaultActions notificationDefaultActions;
+          NotificationActionCallbackMode notificationActionCallbackMode;
+          NotificationCustomActions notificationCustomActions;
+          if (notificationDefaultActionsInt == 0) {
+            notificationDefaultActions = NotificationDefaultActions.NONE;
+          } else if (notificationDefaultActionsInt == 1) {
+            notificationDefaultActions = NotificationDefaultActions.NEXT;
+          } else if (notificationDefaultActionsInt == 2){
+            notificationDefaultActions = NotificationDefaultActions.PREVIOUS;
+          }else{
+            notificationDefaultActions = NotificationDefaultActions.ALL;
+          }
+
+          if (notificationCustomActionsInt == 1) {
+            notificationCustomActions = NotificationCustomActions.ONE;
+          } else if (notificationCustomActionsInt == 2) {
+            notificationCustomActions = NotificationCustomActions.TWO;
+          } else {
+            notificationCustomActions = NotificationCustomActions.DISABLED;
+          }
+
+          if(notificationActionCallbackModeInt == 0){
+            notificationActionCallbackMode = NotificationActionCallbackMode.DEFAULT;
+          }else{
+            notificationActionCallbackMode = NotificationActionCallbackMode.CUSTOM;
+          }
+
+          this.audioObject = new AudioObject(smallIconFileName, title, subTitle, largeIconUrl, notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions);
+          
+          player.setSpecificAudioObject(this.audioObject, index);
+          return;
+        }
         case "getVolume": {
           response.success(player.getVolume());
           return;

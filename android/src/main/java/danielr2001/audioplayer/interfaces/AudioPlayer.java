@@ -65,4 +65,10 @@ public interface AudioPlayer {
     void setVolume(float volume);
 
     void setRepeatMode(boolean repeatMode);
+
+    void setAudioObjects(ArrayList<AudioObject> audioObjects);
+
+    void setAudioObject(AudioObject audioObject);
+
+    void setSpecificAudioObject(AudioObject audioObject, int index);
 }

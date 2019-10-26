@@ -64,6 +64,15 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     
     @Override
+    public void setAudioObjects(ArrayList<AudioObject> audioObjects){}
+
+    @Override
+    public void setAudioObject(AudioObject audioObject){}
+
+    @Override
+    public void setSpecificAudioObject(AudioObject audioObject, int index){}
+
+    @Override
     public void initAudioPlayer (AudioPlayerPlugin ref, Activity activity, String playerId) {
         this.initialized = true;
 

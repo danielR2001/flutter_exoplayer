@@ -53,7 +53,7 @@ class AudioPlayer {
     NotificationDefaultActions.ALL: 3,
   };
 
-    static const NotificationCustomActionsMap = {
+  static const NotificationCustomActionsMap = {
     NotificationCustomActions.DISABLED: 0,
     NotificationCustomActions.ONE: 1,
     NotificationCustomActions.TWO: 2,
@@ -178,6 +178,8 @@ class AudioPlayer {
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioNotification audioNotification,
   }) async {
+    if(audioNotification == null) return Result.ERROR;
+
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
     respectAudioFocus ??= false;
@@ -199,9 +201,10 @@ class AudioPlayer {
       largeIconUrl = audioNotification.largeIconUrl;
       isLocal = audioNotification.isLocal;
 
-      notificationDefaultActions =
-          NotificationDefaultActionsMap[audioNotification.notificationDefaultActions];
-      notificationCustomActions = NotificationCustomActionsMap[audioNotification.notificationCustomActions];
+      notificationDefaultActions = NotificationDefaultActionsMap[
+          audioNotification.notificationDefaultActions];
+      notificationCustomActions = NotificationCustomActionsMap[
+          audioNotification.notificationCustomActions];
       notificationActionCallbackMode = NotificationActionCallbackModeMap[
           audioNotification.notificationActionCallbackMode];
 
@@ -210,6 +213,7 @@ class AudioPlayer {
 
     return ResultMap[await _invokeMethod('play', {
       'url': url,
+      'isLocal': isLocal,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
@@ -219,7 +223,6 @@ class AudioPlayer {
       'title': title,
       'subTitle': subTitle,
       'largeIconUrl': largeIconUrl,
-      'isLocal': isLocal,
       'notificationDefaultActions': notificationDefaultActions,
       'notificationActionCallbackMode': notificationActionCallbackMode,
       'notificationCustomActions': notificationCustomActions,
@@ -239,6 +242,8 @@ class AudioPlayer {
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioNotification> audioNotifications,
   }) async {
+    if(audioNotifications == null) return Result.ERROR;
+
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
     respectAudioFocus ??= false;
@@ -263,9 +268,10 @@ class AudioPlayer {
         largeIconUrls.add(audioNotification.largeIconUrl);
         isLocals.add(audioNotification.isLocal);
 
-        notificationDefaultActionsList
-            .add(NotificationDefaultActionsMap[audioNotification.notificationDefaultActions]);
-        notificationCustomActionsList.add(NotificationCustomActionsMap[audioNotification.notificationCustomActions]);
+        notificationDefaultActionsList.add(NotificationDefaultActionsMap[
+            audioNotification.notificationDefaultActions]);
+        notificationCustomActionsList.add(NotificationCustomActionsMap[
+            audioNotification.notificationCustomActions]);
 
         notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
             audioNotification.notificationActionCallbackMode]);
@@ -276,6 +282,7 @@ class AudioPlayer {
 
     return ResultMap[await _invokeMethod('playAll', {
       'urls': urls,
+      'isLocals': isLocals,
       'repeatMode': repeatMode,
       'isBackground': isBackground,
       'respectAudioFocus': respectAudioFocus,
@@ -286,7 +293,6 @@ class AudioPlayer {
       'titles': titles,
       'subTitles': subTitles,
       'largeIconUrls': largeIconUrls,
-      'isLocals': isLocals,
       'notificationDefaultActionsList': notificationDefaultActionsList,
       'notificationActionCallbackModes': notificationActionCallbackModes,
       'notificationCustomActionsList': notificationCustomActionsList,
@@ -388,6 +394,119 @@ class AudioPlayer {
     return ResultMap[
         await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})
             as int];
+  }
+
+  /// Sets the [AudioNotification] for the single player, if you want to change specific
+  /// notification in [AudioNotification]s list use [setSpecificAudioNotification].
+  Future<void> setAudioNotification(AudioNotification audioNotification) async {
+    if(audioNotification == null) return Result.ERROR;
+
+    String smallIconFileName;
+    String title;
+    String subTitle;
+    String largeIconUrl;
+
+    int notificationDefaultActions;
+    int notificationActionCallbackMode = 0;
+    int notificationCustomActions;
+
+    smallIconFileName = audioNotification.smallIconFileName;
+    title = audioNotification.title;
+    subTitle = audioNotification.subTitle;
+    largeIconUrl = audioNotification.largeIconUrl;
+
+    notificationDefaultActions = NotificationDefaultActionsMap[
+        audioNotification.notificationDefaultActions];
+    notificationCustomActions = NotificationCustomActionsMap[
+        audioNotification.notificationCustomActions];
+    notificationActionCallbackMode = NotificationActionCallbackModeMap[
+        audioNotification.notificationActionCallbackMode];
+
+    return ResultMap[await _invokeMethod('setAudioObject', {
+      'smallIconFileName': smallIconFileName,
+      'title': title,
+      'subTitle': subTitle,
+      'largeIconUrl': largeIconUrl,
+      'notificationDefaultActions': notificationDefaultActions,
+      'notificationActionCallbackMode': notificationActionCallbackMode,
+      'notificationCustomActions': notificationCustomActions,
+    }) as int];
+  }
+
+  /// Sets the [AudioNotification]s for the playlist player.
+  Future<void> setAudioNotifications(
+      List<AudioNotification> audioNotifications) async {
+    if(audioNotifications == null) return Result.ERROR;
+
+    final List<String> smallIconFileNames = List();
+    final List<String> titles = List();
+    final List<String> subTitles = List();
+    final List<String> largeIconUrls = List();
+    final List<int> notificationDefaultActionsList = List();
+    final List<int> notificationActionCallbackModes = List();
+    final List<int> notificationCustomActionsList = List();
+
+    for (AudioNotification audioNotification in audioNotifications) {
+      smallIconFileNames.add(audioNotification.smallIconFileName);
+      titles.add(audioNotification.title);
+      subTitles.add(audioNotification.subTitle);
+      largeIconUrls.add(audioNotification.largeIconUrl);
+
+      notificationDefaultActionsList.add(NotificationDefaultActionsMap[
+          audioNotification.notificationDefaultActions]);
+      notificationCustomActionsList.add(NotificationCustomActionsMap[
+          audioNotification.notificationCustomActions]);
+
+      notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
+          audioNotification.notificationActionCallbackMode]);
+    }
+
+    return ResultMap[await _invokeMethod('setAudioObjects', {
+      'smallIconFileNames': smallIconFileNames,
+      'titles': titles,
+      'subTitles': subTitles,
+      'largeIconUrls': largeIconUrls,
+      'notificationDefaultActionsList': notificationDefaultActionsList,
+      'notificationActionCallbackModes': notificationActionCallbackModes,
+      'notificationCustomActionsList': notificationCustomActionsList,
+    }) as int];
+  }
+
+  /// Sets a sepcific [AudioNotification] in the [AudioNotification]s for the playlist player.
+  Future<void> setSpecificAudioNotification(AudioNotification audioNotification, int index) async {
+    if(audioNotification == null) return Result.ERROR;
+
+    String smallIconFileName;
+    String title;
+    String subTitle;
+    String largeIconUrl;
+
+    int notificationDefaultActions;
+    int notificationActionCallbackMode = 0;
+    int notificationCustomActions;
+
+    smallIconFileName = audioNotification.smallIconFileName;
+    title = audioNotification.title;
+    subTitle = audioNotification.subTitle;
+    largeIconUrl = audioNotification.largeIconUrl;
+
+    notificationDefaultActions = NotificationDefaultActionsMap[
+        audioNotification.notificationDefaultActions];
+    notificationCustomActions = NotificationCustomActionsMap[
+        audioNotification.notificationCustomActions];
+    notificationActionCallbackMode = NotificationActionCallbackModeMap[
+        audioNotification.notificationActionCallbackMode];
+
+    return ResultMap[await _invokeMethod('setSpecificAudioNotification', {
+      'smallIconFileName': smallIconFileName,
+      'title': title,
+      'subTitle': subTitle,
+      'largeIconUrl': largeIconUrl,
+      'notificationDefaultActions': notificationDefaultActions,
+      'notificationActionCallbackMode': notificationActionCallbackMode,
+      'notificationCustomActions': notificationCustomActions,
+      'index': index,
+    }) as int];
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {

@@ -19,6 +19,19 @@ public class AudioObject {
 
     private Bitmap largeIcon;
     
+    //clone
+    public AudioObject(AudioObject audioObject){
+        this.url = audioObject.url;
+        this.smallIconFileName = audioObject.smallIconFileName;
+        this. title = audioObject.title;
+        this.subTitle = audioObject.subTitle;
+        this.largeIconUrl = audioObject.largeIconUrl;
+        this.isLocal = audioObject.isLocal;
+        this.notificationDefaultActions = audioObject.notificationDefaultActions;
+        this.notificationActionCallbackMode = audioObject.notificationActionCallbackMode;
+        this.notificationCustomActions = audioObject.notificationCustomActions;
+    }
+
     //for foreground player
     public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationDefaultActions notificationDefaultActions, NotificationActionCallbackMode notificationActionCallbackMode, NotificationCustomActions notificationCustomActions){
         this.url = url;
@@ -35,6 +48,17 @@ public class AudioObject {
     //for background player
     public AudioObject(String url){
         this.url = url;
+    }
+
+    //for notification change
+    public AudioObject(String smallIconFileName, String title, String subTitle, String largeIconUrl, NotificationDefaultActions notificationDefaultActions, NotificationActionCallbackMode notificationActionCallbackMode, NotificationCustomActions notificationCustomActions){
+        this.smallIconFileName = smallIconFileName;
+        this.title = title;
+        this.subTitle = subTitle;
+        this.largeIconUrl = largeIconUrl;
+        this.notificationDefaultActions = notificationDefaultActions;
+        this.notificationActionCallbackMode = notificationActionCallbackMode;
+        this.notificationCustomActions = notificationCustomActions;
     }
 
     public String getSmallIconFileName(){
@@ -79,5 +103,13 @@ public class AudioObject {
 
     public void setLargeIcon(Bitmap bitmap){
         this.largeIcon = bitmap;
+    }
+
+    public void setUrl(String url){
+        this.url = url;
+    }
+
+    public void setIsLocal(boolean isLocal){
+        this.isLocal = isLocal;
     }
 }
