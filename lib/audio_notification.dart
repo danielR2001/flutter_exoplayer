@@ -46,7 +46,8 @@ class AudioNotification {
     String subTitle,
     String largeIconUrl,
     bool isLocal = false,
-    NotificationDefaultActions notificationDefaultActions = NotificationDefaultActions.ALL,
+    NotificationDefaultActions notificationDefaultActions =
+        NotificationDefaultActions.ALL,
     NotificationActionCallbackMode notificationActionCallbackMode =
         NotificationActionCallbackMode.DEFAULT,
     NotificationCustomActions notificationCustomActions =
@@ -76,7 +77,8 @@ class AudioNotification {
 
   bool get isLocal => _isLocal;
 
-  NotificationDefaultActions get notificationDefaultActions => _notificationDefaultActions;
+  NotificationDefaultActions get notificationDefaultActions =>
+      _notificationDefaultActions;
 
   NotificationActionCallbackMode get notificationActionCallbackMode =>
       _notificationActionCallbackMode;

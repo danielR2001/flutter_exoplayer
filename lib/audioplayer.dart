@@ -178,7 +178,8 @@ class AudioPlayer {
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     AudioNotification audioNotification,
   }) async {
-    if(audioNotification == null) return Result.ERROR;
+    if (audioNotification == null && playerMode == PlayerMode.FOREGROUND)
+      return Result.ERROR;
 
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -242,7 +243,8 @@ class AudioPlayer {
     PlayerMode playerMode = PlayerMode.BACKGROUND,
     List<AudioNotification> audioNotifications,
   }) async {
-    if(audioNotifications == null) return Result.ERROR;
+    if (audioNotifications == null && playerMode == PlayerMode.FOREGROUND)
+      return Result.ERROR;
 
     playerMode ??= PlayerMode.BACKGROUND;
     repeatMode ??= false;
@@ -399,7 +401,7 @@ class AudioPlayer {
   /// Sets the [AudioNotification] for the single player, if you want to change specific
   /// notification in [AudioNotification]s list use [setSpecificAudioNotification].
   Future<void> setAudioNotification(AudioNotification audioNotification) async {
-    if(audioNotification == null) return Result.ERROR;
+    if (audioNotification == null) return Result.ERROR;
 
     String smallIconFileName;
     String title;
@@ -436,7 +438,7 @@ class AudioPlayer {
   /// Sets the [AudioNotification]s for the playlist player.
   Future<void> setAudioNotifications(
       List<AudioNotification> audioNotifications) async {
-    if(audioNotifications == null) return Result.ERROR;
+    if (audioNotifications == null) return Result.ERROR;
 
     final List<String> smallIconFileNames = List();
     final List<String> titles = List();
@@ -473,8 +475,9 @@ class AudioPlayer {
   }
 
   /// Sets a sepcific [AudioNotification] in the [AudioNotification]s for the playlist player.
-  Future<void> setSpecificAudioNotification(AudioNotification audioNotification, int index) async {
-    if(audioNotification == null) return Result.ERROR;
+  Future<void> setSpecificAudioNotification(
+      AudioNotification audioNotification, int index) async {
+    if (audioNotification == null) return Result.ERROR;
 
     String smallIconFileName;
     String title;
