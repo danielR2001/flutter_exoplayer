@@ -1,6 +1,6 @@
 name: flutter_exoplayer
 description: A flutter plugin to play audio files using the Java ExoPlayer library.
-version: 0.5.2
+version: 0.5.3
 author: Daniel Rachlin <daniel.rachlin@gmail.com>
 homepage: https://github.com/danielR2001/flutter_exoplayer
 

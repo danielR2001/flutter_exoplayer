@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3
+
+- Added new feature of updating Notification metadata dynamically.
+
 ## 0.5.2
 
 - Fixed minor bugs (thanks, @btanarola)
