@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_exoplayer'
-  s.version          = '0.5.3'
+  s.version          = '0.5.4'
   s.summary          = 'A flutter plugin to play audio files using the Java ExoPlayer library.'
   s.description      = <<-DESC
 A flutter plugin to play audio files using the Java ExoPlayer library.'

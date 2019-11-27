@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.4
+
+- **[Feature]** control of playback speed.
+
 ## 0.5.3
 
 - **[Feature]** updating Notification metadata dynamically.
