@@ -353,16 +353,7 @@ class AudioPlayer {
     return ResultMap[await _invokeMethod('seekIndex', {'index': index}) as int];
   }
 
-  /// Sets the volume (amplitude).
-  ///
-  /// 0 is mute and 1 is the max volume. The values between 0 and 1 are linearly
-  /// interpolated.
-  Future<Result> setVolume(double volume) async {
-    return ResultMap[
-        await _invokeMethod('setVolume', {'volume': volume}) as int];
-  }
-
-  /// Get audio duration after setting url.
+  /// Gets audio duration after setting url.
   ///
   /// It will be available as soon as the audio duration is available
   /// (it might take a while to download or buffer it if file is not local).
@@ -371,11 +362,18 @@ class AudioPlayer {
     return Duration(milliseconds: milliseconds);
   }
 
-  /// Get audio volume
+  /// Gets audio volume
   ///
   /// Volume range is from 0-1.
   Future<double> getVolume() async {
     return await _invokeMethod('getVolume') as double;
+  }
+
+  /// Gets the Playback speed
+  ///
+  /// speed range is from 1-8.
+  Future<double> getPlaybackSpeed() async {
+    return await _invokeMethod('getPlaybackSpeed') as double;
   }
 
   /// Gets audio current playing position
@@ -391,10 +389,30 @@ class AudioPlayer {
     return await _invokeMethod('getCurrentPlayingAudioIndex') as int;
   }
 
+  /// Sets the volume (amplitude).
+  ///
+  /// Volume range is from 0-1.
+  /// 0 is mute and 1 is the max volume. The values between 0 and 1 are linearly
+  /// interpolated.
+  Future<Result> setVolume(double volume) async {
+    return ResultMap[
+        await _invokeMethod('setVolume', {'volume': volume}) as int];
+  }
+
   // Sets the repeat mode.
   Future<Result> setRepeatMode(bool repeatMode) async {
     return ResultMap[
         await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})
+            as int];
+  }
+
+  // Sets the playback speed.
+  ///
+  /// speed range is from 1-8.
+  /// 1 is regular speed.
+  Future<Result> setPlaybackSpeed(double speed) async {
+    return ResultMap[
+        await _invokeMethod('setPlaybackSpeed', {'speed': speed})
             as int];
   }
 

@@ -59,6 +59,8 @@ public interface AudioPlayer {
 
     float getVolume();
 
+    float getPlaybackSpeed();
+
     //setters
     void setPlayerAttributes(boolean repeatMode, boolean respectAudioFocus, PlayerMode playerMode);
 
@@ -71,4 +73,6 @@ public interface AudioPlayer {
     void setAudioObject(AudioObject audioObject);
 
     void setSpecificAudioObject(AudioObject audioObject, int index);
+
+    void setPlaybackSpeed(float speed);
 }

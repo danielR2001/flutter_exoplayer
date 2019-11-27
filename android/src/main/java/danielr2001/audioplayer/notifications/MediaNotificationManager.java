@@ -90,8 +90,7 @@ public class MediaNotificationManager {
 
     private void initIntents() {
         notificationIntent = new Intent(this.context, activity.getClass());
-        pNotificatioIntent = PendingIntent.getActivity(this.context, 0,
-        notificationIntent, 0);
+        pNotificatioIntent = PendingIntent.getActivity(this.context, 0, notificationIntent, 0);
 
         playIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         playIntent.setAction(PLAY_ACTION);
@@ -119,7 +118,7 @@ public class MediaNotificationManager {
 
     }
 
-    //make new notification
+    // make new notification
     public void makeNotification(AudioObject audioObject, boolean isPlaying) {
         isInitialized = true;
         isShowing = true;
@@ -131,8 +130,8 @@ public class MediaNotificationManager {
             showNotification();
         }
     }
-    
-    //update current notification
+
+    // update current notification
     public void makeNotification(boolean isPlaying) {
         this.isPlaying = isPlaying;
         showNotification();
@@ -141,10 +140,9 @@ public class MediaNotificationManager {
 
     private void showNotification() {
         Notification notification;
-        int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable",
-                this.context.getPackageName());
+        int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
 
-                notificationManager = initNotificationManager();
+        notificationManager = initNotificationManager();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
                 .setSmallIcon(icon)
                 .setWhen(System.currentTimeMillis())
@@ -162,7 +160,7 @@ public class MediaNotificationManager {
         if (audioObject.getLargeIcon() != null) {
             builder.setLargeIcon(audioObject.getLargeIcon());
         }
-        if(!this.isPlaying){
+        if (!this.isPlaying) {
             builder.setTimeoutAfter(900000);
         }
         builder = initNotificationActions(builder);
@@ -174,9 +172,9 @@ public class MediaNotificationManager {
         notification = builder.build();
 
         notificationManager.notify(NOTIFICATION_ID, notification);
-        if(this.isPlaying){
+        if (this.isPlaying) {
             foregroundExoPlayer.startForeground(NOTIFICATION_ID, notification);
-        }else{
+        } else {
             foregroundExoPlayer.stopForeground(false);
         }
     }
@@ -184,8 +182,7 @@ public class MediaNotificationManager {
     private NotificationManager initNotificationManager() {
         NotificationManager notificationManager;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Playback",
-                    android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Playback", android.app.NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.setSound(null, null);
             notificationChannel.setShowBadge(false);
 
@@ -200,15 +197,17 @@ public class MediaNotificationManager {
     }
 
     private NotificationCompat.Builder initNotificationActions(NotificationCompat.Builder builder) {
-        int customIcon1 = this.context.getResources().getIdentifier("ic_custom1", "drawable", //! TODO maybe change to custom file name
-        this.context.getPackageName());
+        int customIcon1 = this.context.getResources().getIdentifier("ic_custom1", "drawable", // ! TODO maybe change to custom file name
+                this.context.getPackageName());
         int customIcon2 = this.context.getResources().getIdentifier("ic_custom2", "drawable",
-        this.context.getPackageName());
+                this.context.getPackageName());
 
-        if(audioObject.getNotificationCustomActions() == NotificationCustomActions.ONE || audioObject.getNotificationCustomActions() == NotificationCustomActions.TWO){
+        if (audioObject.getNotificationCustomActions() == NotificationCustomActions.ONE
+                || audioObject.getNotificationCustomActions() == NotificationCustomActions.TWO) {
             builder.addAction(customIcon1, "Custom1", pCustomIntent1);
         }
-        if (audioObject.getNotificationActionMode() == NotificationDefaultActions.PREVIOUS || audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
+        if (audioObject.getNotificationActionMode() == NotificationDefaultActions.PREVIOUS
+                || audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
             builder.addAction(R.drawable.ic_previous, "Previous", pPrevIntent);
         }
 
@@ -218,10 +217,11 @@ public class MediaNotificationManager {
             builder.addAction(R.drawable.ic_play, "Play", ppPlayIntent);
         }
 
-        if (audioObject.getNotificationActionMode() == NotificationDefaultActions.NEXT || audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
+        if (audioObject.getNotificationActionMode() == NotificationDefaultActions.NEXT
+                || audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
             builder.addAction(R.drawable.ic_next, "Next", pNextIntent);
         }
-        if(audioObject.getNotificationCustomActions() == NotificationCustomActions.TWO){
+        if (audioObject.getNotificationCustomActions() == NotificationCustomActions.TWO) {
             builder.addAction(customIcon2, "Custom2", pCustomIntent2);
         }
         return builder;
@@ -231,16 +231,13 @@ public class MediaNotificationManager {
         if (audioObject.getNotificationActionMode() == NotificationDefaultActions.NEXT
                 || audioObject.getNotificationActionMode() == NotificationDefaultActions.PREVIOUS) {
             builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
-                    .setShowActionsInCompactView(0, 1)
-                    .setMediaSession(mediaSession.getSessionToken()));
+                    .setShowActionsInCompactView(0, 1).setMediaSession(mediaSession.getSessionToken()));
         } else if (audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
             builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
-                    .setShowActionsInCompactView(0, 1, 2)
-                    .setMediaSession(mediaSession.getSessionToken()));
+                    .setShowActionsInCompactView(0, 1, 2).setMediaSession(mediaSession.getSessionToken()));
         } else {
             builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
-                    .setShowActionsInCompactView(0)
-                    .setMediaSession(mediaSession.getSessionToken()));
+                    .setShowActionsInCompactView(0).setMediaSession(mediaSession.getSessionToken()));
         }
         return builder;
     }
@@ -249,12 +246,12 @@ public class MediaNotificationManager {
         try {
             new LoadImageFromUrl(imageUrl, isLocal, new AsyncResponse() {
                 @Override
-                public void processFinish(Map<String,Bitmap> bitmapMap) {
+                public void processFinish(Map<String, Bitmap> bitmapMap) {
                     if (bitmapMap != null) {
-                        if(bitmapMap.get(audioObject.getLargeIconUrl()) != null){
+                        if (bitmapMap.get(audioObject.getLargeIconUrl()) != null) {
                             audioObject.setLargeIcon(bitmapMap.get(audioObject.getLargeIconUrl()));
                             showNotification();
-                        }else{
+                        } else {
                             Log.e("ExoPlayerPlugin", "canceled showing notification!");
                         }
                     } else {

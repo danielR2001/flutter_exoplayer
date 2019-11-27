@@ -18,12 +18,12 @@ public class AudioObject {
     private NotificationCustomActions notificationCustomActions;
 
     private Bitmap largeIcon;
-    
-    //clone
-    public AudioObject(AudioObject audioObject){
+
+    // clone
+    public AudioObject(AudioObject audioObject) {
         this.url = audioObject.url;
         this.smallIconFileName = audioObject.smallIconFileName;
-        this. title = audioObject.title;
+        this.title = audioObject.title;
         this.subTitle = audioObject.subTitle;
         this.largeIconUrl = audioObject.largeIconUrl;
         this.isLocal = audioObject.isLocal;
@@ -32,8 +32,11 @@ public class AudioObject {
         this.notificationCustomActions = audioObject.notificationCustomActions;
     }
 
-    //for foreground player
-    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl, boolean isLocal, NotificationDefaultActions notificationDefaultActions, NotificationActionCallbackMode notificationActionCallbackMode, NotificationCustomActions notificationCustomActions){
+    // for foreground player
+    public AudioObject(String url, String smallIconFileName, String title, String subTitle, String largeIconUrl,
+            boolean isLocal, NotificationDefaultActions notificationDefaultActions,
+            NotificationActionCallbackMode notificationActionCallbackMode,
+            NotificationCustomActions notificationCustomActions) {
         this.url = url;
         this.smallIconFileName = smallIconFileName;
         this.title = title;
@@ -45,13 +48,16 @@ public class AudioObject {
         this.notificationCustomActions = notificationCustomActions;
     }
 
-    //for background player
-    public AudioObject(String url){
+    // for background player
+    public AudioObject(String url) {
         this.url = url;
     }
 
-    //for notification change
-    public AudioObject(String smallIconFileName, String title, String subTitle, String largeIconUrl, NotificationDefaultActions notificationDefaultActions, NotificationActionCallbackMode notificationActionCallbackMode, NotificationCustomActions notificationCustomActions){
+    // for notification change
+    public AudioObject(String smallIconFileName, String title, String subTitle, String largeIconUrl,
+            NotificationDefaultActions notificationDefaultActions,
+            NotificationActionCallbackMode notificationActionCallbackMode,
+            NotificationCustomActions notificationCustomActions) {
         this.smallIconFileName = smallIconFileName;
         this.title = title;
         this.subTitle = subTitle;
@@ -61,55 +67,55 @@ public class AudioObject {
         this.notificationCustomActions = notificationCustomActions;
     }
 
-    public String getSmallIconFileName(){
+    public String getSmallIconFileName() {
         return smallIconFileName;
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return title;
     }
 
-    public String getSubTitle(){
+    public String getSubTitle() {
         return subTitle;
     }
 
-    public String getLargeIconUrl(){
+    public String getLargeIconUrl() {
         return largeIconUrl;
     }
 
-    public Bitmap getLargeIcon(){
+    public Bitmap getLargeIcon() {
         return largeIcon;
     }
 
-    public String getUrl(){
+    public String getUrl() {
         return url;
     }
 
-    public boolean getIsLocal(){
+    public boolean getIsLocal() {
         return isLocal;
     }
 
-    public NotificationDefaultActions getNotificationActionMode(){
+    public NotificationDefaultActions getNotificationActionMode() {
         return notificationDefaultActions;
     }
 
-    public NotificationActionCallbackMode getNotificationActionCallbackMode(){
+    public NotificationActionCallbackMode getNotificationActionCallbackMode() {
         return notificationActionCallbackMode;
     }
 
-    public NotificationCustomActions getNotificationCustomActions(){
+    public NotificationCustomActions getNotificationCustomActions() {
         return notificationCustomActions;
     }
 
-    public void setLargeIcon(Bitmap bitmap){
+    public void setLargeIcon(Bitmap bitmap) {
         this.largeIcon = bitmap;
     }
 
-    public void setUrl(String url){
+    public void setUrl(String url) {
         this.url = url;
     }
 
-    public void setIsLocal(boolean isLocal){
+    public void setIsLocal(boolean isLocal) {
         this.isLocal = isLocal;
     }
 }
