@@ -18,11 +18,13 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -77,6 +79,8 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
 
     private ArrayList<AudioObject> audioObjects;
     private AudioObject audioObject;
+
+    private static final String TAG = "ForegroundAudioPlayer";
 
     @Nullable
     @Override
@@ -194,7 +198,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
 
     @Override
     public void initExoPlayer(int index) {
-        player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
+        player = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
                 Util.getUserAgent(this.context, "exoPlayerLibrary"));
         player.setForegroundMode(true);
@@ -532,6 +536,11 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                     break;
                 } // handle of released is in release method!
                 }
+            }
+
+            @Override
+            public void onPlayerError(ExoPlaybackException error) {
+                Log.e(TAG, error.getMessage());
             }
         });
     }

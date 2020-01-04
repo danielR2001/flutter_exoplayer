@@ -13,10 +13,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -63,6 +65,8 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     private ArrayList<AudioObject> audioObjects;
     private AudioObject audioObject;
 
+    private static final String TAG = "BackgroundAudioPlayer";
+
     @Override
     public void setAudioObjects(ArrayList<AudioObject> audioObjects) {
     }
@@ -87,7 +91,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
 
     @Override
     public void initExoPlayer(int index) {
-        player = ExoPlayerFactory.newSimpleInstance(this.context, new DefaultTrackSelector());
+        player = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
                 Util.getUserAgent(this.context, "exoPlayerLibrary"));
         // playlist/single audio load
@@ -391,6 +395,11 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                 }
                 // handle of released is in release method!
                 }
+            }
+
+            @Override
+            public void onPlayerError(ExoPlaybackException error) {
+                Log.e(TAG, error.getMessage());
             }
         });
     }
