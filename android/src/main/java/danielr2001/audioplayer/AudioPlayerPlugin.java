@@ -90,7 +90,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
   private AudioPlayerPlugin(final MethodChannel channel, Activity activity) {
     this.channel = channel;
     this.activity = activity;
-    this.context = activity.getApplicationContext();
+    this.context = activity;
     this.channel.setMethodCallHandler(this);
   }
 
