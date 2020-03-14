@@ -90,7 +90,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
-    public void initExoPlayer(int index) {
+    public void initExoPlayer(int index, int position) {
         player = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
                 Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -104,12 +104,14 @@ public class BackgroundAudioPlayer implements AudioPlayer {
             }
             player.prepare(concatenatingMediaSource);
             if (index != 0) {
-                player.seekTo(index, 0);
+                player.seekTo(index, position);
             }
         } else {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(Uri.parse(audioObject.getUrl()));
             player.prepare(mediaSource);
+
+            player.seekTo(0, position);
         }
         // handle audio focus
         if (this.respectAudioFocus) {
@@ -124,28 +126,28 @@ public class BackgroundAudioPlayer implements AudioPlayer {
     }
 
     @Override
-    public void play(AudioObject audioObject) {
+    public void play(AudioObject audioObject, int position) {
         if (this.completed || this.stopped) {
             this.resume();
         } else {
             this.released = false;
 
             this.audioObject = audioObject;
-            this.initExoPlayer(0);
+            this.initExoPlayer(0, position);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
     }
 
     @Override
-    public void playAll(ArrayList<AudioObject> audioObjects, int index) {
+    public void playAll(ArrayList<AudioObject> audioObjects, int index, int position) {
         if (this.completed || this.stopped) {
             this.resume();
         } else {
             this.released = false;
 
             this.audioObjects = audioObjects;
-            this.initExoPlayer(index);
+            this.initExoPlayer(index, position);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
@@ -182,7 +184,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                 player.setPlayWhenReady(true);
             } else {
                 this.stopped = false;
-                this.initExoPlayer(0);
+                this.initExoPlayer(0 , 0);
                 initEventListeners();
                 player.setPlayWhenReady(true);
             }

@@ -114,9 +114,9 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                         resume();
                     } else {
                         if (playerMode == PlayerMode.PLAYLIST) {
-                            playAll(audioObjects, 0);
+                            playAll(audioObjects, 0, 0);
                         } else {
-                            play(audioObject);
+                            play(audioObject, 0);
                         }
                     }
                 } else {
@@ -197,7 +197,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void initExoPlayer(int index) {
+    public void initExoPlayer(int index, int position) {
         player = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
         DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
                 Util.getUserAgent(this.context, "exoPlayerLibrary"));
@@ -212,12 +212,14 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             }
             player.prepare(concatenatingMediaSource);
             if (index != 0) {
-                player.seekTo(index, 0);
+                player.seekTo(index, position);
             }
         } else {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(Uri.parse(this.audioObject.getUrl()));
             player.prepare(mediaSource);
+
+            player.seekTo(0, position);
         }
         // handle audio focus
         if (this.respectAudioFocus) { // ! TODO catch duck pause!
@@ -232,28 +234,28 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     }
 
     @Override
-    public void play(AudioObject audioObject) {
+    public void play(AudioObject audioObject, int position) {
         if (this.completed) {
             this.resume();
         } else {
             this.released = false;
 
             this.audioObject = audioObject;
-            this.initExoPlayer(0);
+            this.initExoPlayer(0, position);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
     }
 
     @Override
-    public void playAll(ArrayList<AudioObject> audioObjects, int index) {
+    public void playAll(ArrayList<AudioObject> audioObjects, int index, int position) {
         if (this.completed || this.stopped) {
             this.resume();
         } else {
             this.released = false;
 
             this.audioObjects = audioObjects;
-            this.initExoPlayer(index);
+            this.initExoPlayer(index, position);
             initEventListeners();
             player.setPlayWhenReady(true);
         }
@@ -291,7 +293,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
                 player.setPlayWhenReady(true);
             } else {
                 this.stopped = false;
-                this.initExoPlayer(0);
+                this.initExoPlayer(0, 0);
                 initEventListeners();
                 player.setPlayWhenReady(true);
             }

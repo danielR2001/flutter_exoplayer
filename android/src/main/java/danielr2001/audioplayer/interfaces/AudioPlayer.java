@@ -14,12 +14,12 @@ public interface AudioPlayer {
     //initializers
     void initAudioPlayer(AudioPlayerPlugin ref, Activity activity, String playerId);
 
-    void initExoPlayer(int index);
+    void initExoPlayer(int index, int position);
 
     //player contols
-    void play(AudioObject audioObject); 
+    void play(AudioObject audioObject, int position); 
 
-    void playAll(ArrayList<AudioObject> audioObjects, int index); 
+    void playAll(ArrayList<AudioObject> audioObjects, int index, int position); 
 
     void next();
 
