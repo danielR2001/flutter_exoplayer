@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.5
+
+- **[Add]** + **[Fix]** Added start from certain position (In Dart side was already implemented but not in Java side).
+
 ## 0.5.4
 
 - **[Feature]** control of playback speed.
