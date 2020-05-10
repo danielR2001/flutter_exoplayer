@@ -65,6 +65,7 @@ FlutterMethodChannel *_channel_audioplayer;
       ^{
         NSLog(@"playAll!");
           NSArray *urls = call.arguments[@"urls"];
+          NSLog(@"%@", urls);
           if (urls == nil)
               result(0);
 
@@ -81,8 +82,6 @@ FlutterMethodChannel *_channel_audioplayer;
           NSString *url = call.arguments[@"url"];
           if (url == nil)
               result(0);
-          
-          int index = call.arguments[@"index"] == [NSNull null] ? 0 : [call.arguments[@"index"] intValue];
           bool isLocals = call.arguments[@"isLocal"] == [NSNull null] ? false : [call.arguments[@"isLocal"] boolValue];
           double milliseconds = call.arguments[@"position"] == [NSNull null] ? 0.0 : [call.arguments[@"position"] doubleValue];
           bool respectAudioFocus = [call.arguments[@"respectAudioFocus"]boolValue] ;
@@ -109,15 +108,23 @@ FlutterMethodChannel *_channel_audioplayer;
             NSLog(@"release");
             [self release:playerId];
         },
-        @"seek":
+        @"seekPosition":
         ^{
-          NSLog(@"seek");
+          NSLog(@"seekPosition");
           if (!call.arguments[@"position"]) {
             result(0);
           } else {
             double milliseconds = call.arguments[@"position"] == [NSNull null] ? 0.0 : [call.arguments[@"position"] doubleValue];
             [self seek:playerId time:CMTimeMakeWithSeconds(milliseconds / 1000,NSEC_PER_SEC)];
           }
+        },
+        @"setAudioObject":
+        ^{
+          NSLog(@"setAudioObject");
+        },
+        @"setAudioObjects":
+        ^{
+          NSLog(@"setAudioObjects");
         }
     };
 
@@ -142,6 +149,7 @@ FlutterMethodChannel *_channel_audioplayer;
        onReady:(VoidCallback)onReady
 {
   NSMutableDictionary * playerInfo = players[playerId];
+  //AVQueuePlayer for play multiple audio files.
   AVPlayer *player = playerInfo[@"player"];
   NSMutableSet *observers = playerInfo[@"observers"];
   AVPlayerItem *playerItem;
