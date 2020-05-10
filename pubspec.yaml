@@ -17,5 +17,9 @@ dev_dependencies:
   test: ^1.3.0
 flutter:
   plugin:
-    androidPackage: danielr2001.audioplayer
-    pluginClass: AudioPlayerPlugin
+    platforms:
+      android:
+        package: danielr2001.audioplayer
+        pluginClass: AudioPlayerPlugin
+      ios:
+        pluginClass: AudioPlayerPlugin
