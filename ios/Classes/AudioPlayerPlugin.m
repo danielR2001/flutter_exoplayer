@@ -281,6 +281,12 @@ FlutterMethodChannel *_channel_audioplayer;
 
 
       case DOUAudioStreamerFinished:
+          [self next:_currentTrack.playerId];
+          NSInteger currentTrackIndex = [_tracks indexOfObject:_currentTrack];
+          if (++ currentTrackIndex < [_tracks count]) {
+              _currentTrack = _tracks[currentTrackIndex];
+              [_channel_audioplayer invokeMethod:@"audio.onCurrentPlayingAudioIndexChange" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(currentTrackIndex)}];
+          }
           status = 4;
           break;
 
@@ -318,7 +324,7 @@ FlutterMethodChannel *_channel_audioplayer;
 
 -(void) next: (NSString *) playerId {
     
-    int currentTrackIndex = [_tracks indexOfObject:_currentTrack];
+    NSInteger currentTrackIndex = [_tracks indexOfObject:_currentTrack];
     
     if (++ currentTrackIndex < [_tracks count]) {
         _currentTrack = _tracks[currentTrackIndex];
