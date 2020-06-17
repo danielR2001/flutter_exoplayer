@@ -280,16 +280,16 @@ FlutterMethodChannel *_channel_audioplayer;
           break;
 
 
-      case DOUAudioStreamerFinished:
-          [self next:_currentTrack.playerId];
-          NSInteger currentTrackIndex = [_tracks indexOfObject:_currentTrack];
-          if (++ currentTrackIndex < [_tracks count]) {
-              _currentTrack = _tracks[currentTrackIndex];
-              [_channel_audioplayer invokeMethod:@"audio.onCurrentPlayingAudioIndexChange" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(currentTrackIndex)}];
+      case DOUAudioStreamerFinished: {
+          
+          NSInteger currentIndex  = [_tracks indexOfObject:_currentTrack];
+          if (++ currentIndex < [_tracks count]) {
+              [_channel_audioplayer invokeMethod:@"audio.onCurrentPlayingAudioIndexChange" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(currentIndex)}];
           }
+          [self next:_currentTrack.playerId];
           status = 4;
           break;
-
+      }
       case DOUAudioStreamerError:
           status = 5;
           break;
@@ -302,7 +302,7 @@ FlutterMethodChannel *_channel_audioplayer;
 - (void)_updateBufferingStatus
 {
   
-    NSString *duration = [NSString stringWithFormat:@"Received %.2f/%.2f MB (%.2f %%), Speed %.2f MB/s", (double)[_streamer receivedLength] / 1024 / 1024, (double)[_streamer expectedLength] / 1024 / 1024, [_streamer bufferingRatio] * 100.0, (double)[_streamer downloadSpeed] / 1024 / 1024];
+//    NSString *duration = [NSString stringWithFormat:@"Received %.2f/%.2f MB (%.2f %%), Speed %.2f MB/s", (double)[_streamer receivedLength] / 1024 / 1024, (double)[_streamer expectedLength] / 1024 / 1024, [_streamer bufferingRatio] * 100.0, (double)[_streamer downloadSpeed] / 1024 / 1024];
 
   if ([_streamer bufferingRatio] >= 1.0) {
     NSLog(@"sha256: %@", [_streamer sha256]);
