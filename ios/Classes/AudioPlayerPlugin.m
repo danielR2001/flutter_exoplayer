@@ -78,7 +78,7 @@ FlutterMethodChannel *_channel_audioplayer;
   }
   
   NSString * playerId = call.arguments[@"playerId"];
-  NSLog(@"iOS => call %@, playerId %@", call.method, playerId);
+  //NSLog(@"iOS => call %@, playerId %@", call.method, playerId);
 
     typedef void (^CaseBlock)(void);
     
@@ -170,7 +170,7 @@ FlutterMethodChannel *_channel_audioplayer;
           } else {
             double milliseconds = call.arguments[@"position"] == [NSNull null] ? 0.0 : [call.arguments[@"position"] doubleValue];
               double second = milliseconds / 1000;
-              NSLog(@"_____second____%f", second);
+              //NSLog(@"_____second____%f", second);
             [self seek:playerId time: second];
           }
         },
@@ -305,7 +305,7 @@ FlutterMethodChannel *_channel_audioplayer;
 //    NSString *duration = [NSString stringWithFormat:@"Received %.2f/%.2f MB (%.2f %%), Speed %.2f MB/s", (double)[_streamer receivedLength] / 1024 / 1024, (double)[_streamer expectedLength] / 1024 / 1024, [_streamer bufferingRatio] * 100.0, (double)[_streamer downloadSpeed] / 1024 / 1024];
 
   if ([_streamer bufferingRatio] >= 1.0) {
-    NSLog(@"sha256: %@", [_streamer sha256]);
+    //NSLog(@"sha256: %@", [_streamer sha256]);
   }
 }
 
