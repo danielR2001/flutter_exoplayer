@@ -3,6 +3,7 @@
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
 #import "DOUAudioStreamer.h"
+#import "STKAudioPlayer.h"
 #import "Track.h"
 
 #if TARGET_OS_IPHONE
@@ -35,10 +36,13 @@ MPNowPlayingInfoCenter *_infoCenter;
 MPRemoteCommandCenter *remoteCommandCenter;
 
 @implementation AudioPlayerPlugin {
+
+    
   FlutterResult _result;
     
     NSMutableArray<Track *> *_tracks;
     DOUAudioStreamer *_streamer;
+    STKAudioPlayer *_player;
     Track *_currentTrack;
     NSTimer *_timer;
     
@@ -129,7 +133,7 @@ FlutterMethodChannel *_channel_audioplayer;
       @"play":
       ^{
           
-          [self->_streamer play];
+          [self->_player play:_currentTrack.audioFileURL.absoluteString];
       },
         @"pause":
         ^{
@@ -215,6 +219,12 @@ FlutterMethodChannel *_channel_audioplayer;
         _streamer = nil;
       }
     
+    if (_player != nil) {
+        [_player pause];
+        _player.delegate = self;
+        _player = nil;
+    }
+    
     [self _cancelTimer];
 }
 
@@ -226,28 +236,15 @@ FlutterMethodChannel *_channel_audioplayer;
         
         [self _initTimer];
         
-        _streamer = [DOUAudioStreamer streamerWithAudioFile:_currentTrack];
-        
-        [_streamer addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:kStatusKVOKey];
-        [_streamer addObserver:self forKeyPath:@"duration" options:NSKeyValueObservingOptionNew context:kDurationKVOKey];
-        [_streamer addObserver:self forKeyPath:@"bufferingRatio" options:NSKeyValueObservingOptionNew context:kBufferingRatioKVOKey];
-        
-        [_streamer play];
+        _player = [[STKAudioPlayer alloc] init];
+        [_player setMuted:false];
+        _player.delegate = self;
+                
+        [_player play:_currentTrack.audioFileURL.absoluteString];
         
         [self _updateBufferingStatus];
-        [self _setupHintForStreamer];
         
     }
-}
-
-- (void)_setupHintForStreamer
-{
-    NSUInteger nextIndex = [_tracks indexOfObject:_currentTrack] + 1;
-  if (nextIndex >= [_tracks count]) {
-    nextIndex = 0;
-  }
-
-  [DOUAudioStreamer setHintWithAudioFile:[_tracks objectAtIndex:nextIndex]];
 }
 
 ///    -1: PlayerState.RELEASED,
@@ -257,47 +254,6 @@ FlutterMethodChannel *_channel_audioplayer;
 ///    3: PlayerState.PAUSED,
 ///    4: PlayerState.COMPLETED,
 
-- (void)_updateStatus {
-
-    int status = -1;
-    
-  switch ([_streamer status]) {
-          
-     case DOUAudioStreamerIdle:
-         status = 0;
-         break;
-          
-     case DOUAudioStreamerBuffering:
-          status = 1;
-          break;
-          
-      case DOUAudioStreamerPlaying:
-          status = 2;
-          break;
-          
-      case DOUAudioStreamerPaused:
-          status = 3;
-          break;
-
-
-      case DOUAudioStreamerFinished: {
-          
-          NSInteger currentIndex  = [_tracks indexOfObject:_currentTrack];
-          if (++ currentIndex < [_tracks count]) {
-              [_channel_audioplayer invokeMethod:@"audio.onCurrentPlayingAudioIndexChange" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(currentIndex)}];
-          }
-          [self next:_currentTrack.playerId];
-          status = 4;
-          break;
-      }
-      case DOUAudioStreamerError:
-          status = 5;
-          break;
-  }
-    
-    [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(status)}];
-
-}
 
 - (void)_updateBufferingStatus
 {
@@ -309,16 +265,21 @@ FlutterMethodChannel *_channel_audioplayer;
   }
 }
 
+-(void) playerIndexChanged: (NSInteger)newIndex {
+    [_channel_audioplayer invokeMethod:@"audio.onCurrentPlayingAudioIndexChange" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(newIndex)}];
+
+}
+
 
 -(void) pause: (NSString *) playerId {
     
-    [_streamer pause];
+    [_player pause];
     [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": playerId, @"value": @3 }];
 }
 
 -(void) resume: (NSString *) playerId {
     
-    [_streamer play];
+    [_player resume];
     [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": playerId, @"value": @2 }];
 }
 
@@ -331,8 +292,8 @@ FlutterMethodChannel *_channel_audioplayer;
     } else {
         _currentTrack = _tracks[0];
     }
-
-      [self _resetStreamer];
+    [self playerIndexChanged:currentTrackIndex];
+    [self _resetStreamer];
 }
 
 -(void) previous: (NSString *) playerId {
@@ -345,22 +306,23 @@ FlutterMethodChannel *_channel_audioplayer;
         _currentTrack = _tracks[0];
     }
 
-      [self _resetStreamer];
+    [self playerIndexChanged:currentTrackIndex];
+    [self _resetStreamer];
 }
 
 
 -(void) stop: (NSString *) playerId {
   
-    if ([_streamer status] == DOUAudioStreamerPlaying) {
-        [_streamer stop];
+    if ([_player state] == STKAudioPlayerStatePlaying) {
+        [_player stop];
     }
     [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": playerId, @"value": @0 }];
 }
 
 -(void) release: (NSString *) playerId {
 
-  if ([_streamer status] == DOUAudioStreamerPlaying) {
-    [_streamer pause];
+  if ([_player state] == STKAudioPlayerStatePlaying) {
+    [_player pause];
       [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @-1 }];
   }
 }
@@ -370,38 +332,25 @@ FlutterMethodChannel *_channel_audioplayer;
   
     NSLog(@"____Seek_time_____%f__", time);
     
-    [_streamer setCurrentTime:time];
+    [_player seekToTime:time];
 }
 
 - (void)_timerAction:(id)timer {
     
-    int mSecond = 0;
-    if ([_streamer duration] == 0.0) {
-        mSecond = 0;
-          
-    } else {
-        mSecond = [_streamer currentTime] * 1000;
+    
+    if ([_player duration] != 0.0) {
+        //NSLog(@"___________duration____%f", [_player duration]);
+        [self updateDuration];
     }
     
-    //NSLog(@"____on_Timer_change___%ld", mSecond);
-    
+    NSInteger mSecond = [_player progress] * 1000;
     [_channel_audioplayer invokeMethod:@"audio.onCurrentPositionChanged" arguments:@{@"playerId": _currentTrack.playerId, @"value": @((int)mSecond)}];
     
-    if ([_streamer status] == DOUAudioStreamerPlaying) {
+    if ([_player state] == STKAudioPlayerStatePlaying) {
         [self updateNotification];
     }
 
 }
-
-- (void)_durationAction:(id)timer {
-    
-    NSInteger mSecond = [_streamer duration] * 1000;
-    
-    [_channel_audioplayer invokeMethod:@"audio.onDurationChanged" arguments:@{@"playerId": _currentTrack.playerId, @"value": @(mSecond)}];
-    
-    [self setNotification:[_streamer duration] elapsedTime:10];
-}
-
 
 
 -(void) onSoundComplete: (NSString *) playerId {
@@ -411,35 +360,11 @@ FlutterMethodChannel *_channel_audioplayer;
 //  [ _channel_audioplayer invokeMethod:@"audio.onComplete" arguments:@{@"playerId": playerId}];
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-  if (context == kStatusKVOKey) {
-    [self performSelector:@selector(_updateStatus)
-                 onThread:[NSThread mainThread]
-               withObject:nil
-            waitUntilDone:NO];
-  }
-  else if (context == kDurationKVOKey) {
-    [self performSelector:@selector(_durationAction:)
-                 onThread:[NSThread mainThread]
-               withObject:nil
-            waitUntilDone:NO];
-  }
-  else if (context == kBufferingRatioKVOKey) {
-    [self performSelector:@selector(_updateBufferingStatus)
-                 onThread:[NSThread mainThread]
-               withObject:nil
-            waitUntilDone:NO];
-  }
-  else {
-    [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
-  }
-}
-
 - (void)dealloc {
   
     [self _cancelStreamer];
     _streamer = nil;
+    _player = nil;
 }
 
 #if TARGET_OS_IPHONE
@@ -538,5 +463,76 @@ FlutterMethodChannel *_channel_audioplayer;
       });
     }
 #endif
+
+- (void)updateDuration {
+    NSInteger mSecond = [_player duration] * 1000;
+    [_channel_audioplayer invokeMethod:@"audio.onDurationChanged" arguments:@{@"playerId": _currentTrack.playerId, @"value": @((int)mSecond)}];
+    
+    [self setNotification:[_player duration] elapsedTime:10];
+}
+
+- (void)audioPlayer:(nonnull STKAudioPlayer *)audioPlayer didFinishBufferingSourceWithQueueItemId:(nonnull NSObject *)queueItemId {
+    NSLog(@"didFinishBufferingSourceWithQueueItemId");
+}
+
+- (void)audioPlayer:(nonnull STKAudioPlayer *)audioPlayer didFinishPlayingQueueItemId:(nonnull NSObject *)queueItemId withReason:(STKAudioPlayerStopReason)stopReason andProgress:(double)progress andDuration:(double)duration {
+    
+    NSInteger currentIndex  = [_tracks indexOfObject:_currentTrack];
+    if (++ currentIndex < [_tracks count]) {
+        [self next:_currentTrack.playerId];
+    }
+    
+    
+}
+
+- (void)audioPlayer:(nonnull STKAudioPlayer *)audioPlayer didStartPlayingQueueItemId:(nonnull NSObject *)queueItemId {
+    NSLog(@"didStartPlayingQueueItemId");
+}
+
+- (void)audioPlayer:(nonnull STKAudioPlayer *)audioPlayer stateChanged:(STKAudioPlayerState)state previousState:(STKAudioPlayerState)previousState {
+    NSLog(@"stateChanged");
+    
+      int status = -1;
+      
+    switch (state) {
+            
+       case STKAudioPlayerStateDisposed:
+           status = 0;
+           break;
+            
+       case STKAudioPlayerStateBuffering:
+            status = 1;
+            break;
+            
+        case STKAudioPlayerStatePlaying:
+            status = 2;
+            break;
+            
+        case STKAudioPlayerStatePaused:
+            status = 3;
+            break;
+
+        case STKAudioPlayerStateStopped: {
+            status = 0;
+            break;
+        }
+        case STKAudioPlayerStateError:
+            status = 5;
+            break;
+        case STKAudioPlayerStateReady:
+            status = 6;
+            break;
+        case STKAudioPlayerStateRunning:
+            status = 7;
+            break;
+    }
+      
+      [_channel_audioplayer invokeMethod:@"audio.onStateChanged" arguments:@{ @"playerId": _currentTrack.playerId, @"value": @(status)}];
+
+}
+
+- (void)audioPlayer:(nonnull STKAudioPlayer *)audioPlayer unexpectedError:(STKAudioPlayerErrorCode)errorCode {
+    NSLog(@"unexpectedError");
+}
 
 @end
