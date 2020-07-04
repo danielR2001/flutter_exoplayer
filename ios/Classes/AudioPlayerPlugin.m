@@ -422,10 +422,11 @@ FlutterMethodChannel *_channel_audioplayer;
         
         NSLog(@"playOrPauseEvent");
         
-        if ([_streamer status] == DOUAudioStreamerPaused) {
-            [_streamer play];
-        } else if ([_streamer status] == DOUAudioStreamerPlaying) {
-            [_streamer pause];
+        if ([_player state] == STKAudioPlayerStatePaused) {
+            [_player resume];
+            
+        } else if ([_player state] == STKAudioPlayerStatePlaying) {
+            [_player pause];
         }
         
         return MPRemoteCommandHandlerStatusSuccess;
