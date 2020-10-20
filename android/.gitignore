@@ -7,6 +7,3 @@
 /build
 /captures
 local.properties
-/gradle
-gradlew
-gradlew.*
