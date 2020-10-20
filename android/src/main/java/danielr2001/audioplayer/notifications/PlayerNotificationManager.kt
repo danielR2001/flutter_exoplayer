@@ -96,13 +96,11 @@ class UampNotificationManager(
         }
 
         private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
-            return withContext(Dispatchers.IO) {
-                val request = ImageRequest.Builder(context)
-                        .data(uri)
-                        .size(NOTIFICATION_LARGE_ICON_SIZE)
-                        .build()
-                Coil.imageLoader(context).execute(request).drawable?.toBitmap(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-            }
+            val request = ImageRequest.Builder(context)
+                    .data(uri)
+                    .size(NOTIFICATION_LARGE_ICON_SIZE)
+                    .build()
+            return Coil.imageLoader(context).execute(request).drawable?.toBitmap(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
         }
     }
 }
