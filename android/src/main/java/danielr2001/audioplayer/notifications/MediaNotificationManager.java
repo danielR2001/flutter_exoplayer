@@ -1,12 +1,5 @@
 package danielr2001.audioplayer.notifications;
 
-import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
-import danielr2001.audioplayer.enums.NotificationDefaultActions;
-import danielr2001.audioplayer.enums.NotificationCustomActions;
-import danielr2001.audioplayer.interfaces.AsyncResponse;
-import danielr2001.audioplayer.R;
-import danielr2001.audioplayer.models.AudioObject;
-
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -14,15 +7,23 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.media.MediaMetadata;
 import android.os.Build;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import java.util.Map;
+
+import danielr2001.audioplayer.R;
+import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer;
+import danielr2001.audioplayer.enums.NotificationCustomActions;
+import danielr2001.audioplayer.enums.NotificationDefaultActions;
+import danielr2001.audioplayer.interfaces.AsyncResponse;
+import danielr2001.audioplayer.models.AudioObject;
 
 public class MediaNotificationManager {
     public static final String PLAY_ACTION = "com.daniel.exoPlayer.action.play";
@@ -31,23 +32,15 @@ public class MediaNotificationManager {
     public static final String NEXT_ACTION = "com.daniel.exoPlayer.action.next";
     public static final String CUSTOM1_ACTION = "com.daniel.exoPlayer.action.custom1";
     public static final String CUSTOM2_ACTION = "com.daniel.exoPlayer.action.custom2";
+    public static final String CLOSE_ACTION = "com.daniel.exoPlayer.action.close";
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "Playback";
 
-    private ForegroundAudioPlayer foregroundExoPlayer;
-    private Context context;
-    private Activity activity;
+    private final ForegroundAudioPlayer foregroundExoPlayer;
+    private final Context context;
+    private final Activity activity;
 
-    private NotificationManager notificationManager;
-    private MediaSessionCompat mediaSession;
-
-    private Intent playIntent;
-    private Intent pauseIntent;
-    private Intent prevIntent;
-    private Intent nextIntent;
-    private Intent notificationIntent;
-    private Intent customIntent1;
-    private Intent customIntent2;
+    private final MediaSessionCompat mediaSession;
 
     private PendingIntent ppPlayIntent;
     private PendingIntent pPauseIntent;
@@ -56,6 +49,7 @@ public class MediaNotificationManager {
     private PendingIntent pNotificatioIntent;
     private PendingIntent pCustomIntent1;
     private PendingIntent pCustomIntent2;
+    private PendingIntent pCloseIntent;
 
     private AudioObject audioObject;
     private boolean isPlaying;
@@ -89,33 +83,36 @@ public class MediaNotificationManager {
     }
 
     private void initIntents() {
-        notificationIntent = new Intent(this.context, activity.getClass());
+        Intent notificationIntent = new Intent(this.context, activity.getClass());
         pNotificatioIntent = PendingIntent.getActivity(this.context, 0, notificationIntent, 0);
 
-        playIntent = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent playIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         playIntent.setAction(PLAY_ACTION);
         ppPlayIntent = PendingIntent.getService(this.context, 1, playIntent, 0);
 
-        pauseIntent = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent pauseIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         pauseIntent.setAction(PAUSE_ACTION);
         pPauseIntent = PendingIntent.getService(this.context, 1, pauseIntent, 0);
 
-        prevIntent = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent prevIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         prevIntent.setAction(PREVIOUS_ACTION);
         pPrevIntent = PendingIntent.getService(this.context, 1, prevIntent, 0);
 
-        nextIntent = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent nextIntent = new Intent(this.context, ForegroundAudioPlayer.class);
         nextIntent.setAction(NEXT_ACTION);
         pNextIntent = PendingIntent.getService(this.context, 1, nextIntent, 0);
 
-        customIntent1 = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent customIntent1 = new Intent(this.context, ForegroundAudioPlayer.class);
         customIntent1.setAction(CUSTOM1_ACTION);
         pCustomIntent1 = PendingIntent.getService(this.context, 1, customIntent1, 0);
 
-        customIntent2 = new Intent(this.context, ForegroundAudioPlayer.class);
+        Intent customIntent2 = new Intent(this.context, ForegroundAudioPlayer.class);
         customIntent2.setAction(CUSTOM2_ACTION);
         pCustomIntent2 = PendingIntent.getService(this.context, 1, customIntent2, 0);
 
+        Intent closeIntent = new Intent(this.context, ForegroundAudioPlayer.class);
+        closeIntent.setAction(CLOSE_ACTION);
+        pCloseIntent = PendingIntent.getService(this.context, 1, closeIntent, 0);
     }
 
     // make new notification
@@ -135,38 +132,29 @@ public class MediaNotificationManager {
     public void makeNotification(boolean isPlaying) {
         this.isPlaying = isPlaying;
         showNotification();
-
     }
 
     private void showNotification() {
         Notification notification;
         int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
 
-        notificationManager = initNotificationManager();
+        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, audioObject.getTitle())
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, audioObject.getSubTitle())
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, audioObject.getLargeIcon())
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, audioObject.getDuration()) // 4
+                .build());
+
+        NotificationManager notificationManager = initNotificationManager();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
                 .setSmallIcon(icon)
-                .setWhen(System.currentTimeMillis())
-                .setShowWhen(false)
                 .setColorized(true)
-                .setSound(null)
                 .setContentIntent(pNotificatioIntent);
 
-        if (audioObject.getTitle() != null) {
-            builder.setContentTitle(audioObject.getTitle());
-        }
-        if (audioObject.getSubTitle() != null) {
-            builder.setContentText(audioObject.getSubTitle());
-        }
-        if (audioObject.getLargeIcon() != null) {
-            builder.setLargeIcon(audioObject.getLargeIcon());
-        }
-        if (!this.isPlaying) {
-            builder.setTimeoutAfter(900000);
-        }
-        builder = initNotificationActions(builder);
+        initNotificationActions(builder);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = initNotificationStyle(builder);
+            initNotificationStyle(builder);
         }
 
         notification = builder.build();
@@ -196,10 +184,13 @@ public class MediaNotificationManager {
         return notificationManager;
     }
 
-    private NotificationCompat.Builder initNotificationActions(NotificationCompat.Builder builder) {
+    private void initNotificationActions(NotificationCompat.Builder builder) {
         int customIcon1 = this.context.getResources().getIdentifier("ic_custom1", "drawable", // ! TODO maybe change to custom file name
                 this.context.getPackageName());
         int customIcon2 = this.context.getResources().getIdentifier("ic_custom2", "drawable",
+                this.context.getPackageName());
+
+        int closeIcon = this.context.getResources().getIdentifier("ic_close", "drawable",
                 this.context.getPackageName());
 
         if (audioObject.getNotificationCustomActions() == NotificationCustomActions.ONE
@@ -224,22 +215,21 @@ public class MediaNotificationManager {
         if (audioObject.getNotificationCustomActions() == NotificationCustomActions.TWO) {
             builder.addAction(customIcon2, "Custom2", pCustomIntent2);
         }
-        return builder;
+        builder.addAction(closeIcon, "Close", pCloseIntent);
     }
 
-    private NotificationCompat.Builder initNotificationStyle(NotificationCompat.Builder builder) {
+    private void initNotificationStyle(NotificationCompat.Builder builder) {
         if (audioObject.getNotificationActionMode() == NotificationDefaultActions.NEXT
                 || audioObject.getNotificationActionMode() == NotificationDefaultActions.PREVIOUS) {
-            builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+            builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                     .setShowActionsInCompactView(0, 1).setMediaSession(mediaSession.getSessionToken()));
         } else if (audioObject.getNotificationActionMode() == NotificationDefaultActions.ALL) {
-            builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+            builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                     .setShowActionsInCompactView(0, 1, 2).setMediaSession(mediaSession.getSessionToken()));
         } else {
-            builder.setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+            builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                     .setShowActionsInCompactView(0).setMediaSession(mediaSession.getSessionToken()));
         }
-        return builder;
     }
 
     private void loadImageFromUrl(String imageUrl, boolean isLocal) {

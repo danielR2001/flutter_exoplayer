@@ -1,47 +1,47 @@
 package danielr2001.audioplayer.audioplayers;
 
-import danielr2001.audioplayer.interfaces.AudioPlayer;
-import danielr2001.audioplayer.notifications.MediaNotificationManager;
-import danielr2001.audioplayer.AudioPlayerPlugin;
-import danielr2001.audioplayer.models.AudioObject;
-import danielr2001.audioplayer.enums.PlayerState;
-import danielr2001.audioplayer.enums.NotificationActionName;
-import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
-import danielr2001.audioplayer.enums.PlayerMode;
-
 import android.app.Activity;
 import android.app.Service;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
-
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.PlaybackParameters;
 
 import java.util.ArrayList;
+
+import danielr2001.audioplayer.AudioPlayerPlugin;
+import danielr2001.audioplayer.enums.NotificationActionCallbackMode;
+import danielr2001.audioplayer.enums.NotificationActionName;
+import danielr2001.audioplayer.enums.PlayerMode;
+import danielr2001.audioplayer.enums.PlayerState;
+import danielr2001.audioplayer.interfaces.AudioPlayer;
+import danielr2001.audioplayer.models.AudioObject;
+import danielr2001.audioplayer.notifications.MediaNotificationManager;
 
 public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     private final IBinder binder = new LocalBinder();
@@ -92,9 +92,7 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.context = getApplicationContext();
         mediaSession = new MediaSessionCompat(this.context, "playback");
-        // ! TODO handle MediaButtonReceiver's callbacks
-        // MediaButtonReceiver.handleIntent(mediaSession, intent);
-        // mediaSession.setCallback(mediaSessionCallback);
+
         if (intent.getAction() != null) {
             AudioObject currentAudioObject;
             if (this.playerMode == PlayerMode.PLAYLIST) {
@@ -102,42 +100,52 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             } else {
                 currentAudioObject = this.audioObject;
             }
-            if (intent.getAction().equals(MediaNotificationManager.PREVIOUS_ACTION)) {
-                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
-                    previous();
-                } else {
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PREVIOUS);
-                }
-            } else if (intent.getAction().equals(MediaNotificationManager.PLAY_ACTION)) {
-                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
-                    if (!stopped) {
-                        resume();
+            switch (intent.getAction()) {
+                case MediaNotificationManager.PREVIOUS_ACTION:
+                    if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
+                        previous();
                     } else {
-                        if (playerMode == PlayerMode.PLAYLIST) {
-                            playAll(audioObjects, 0, 0);
-                        } else {
-                            play(audioObject, 0);
-                        }
+                        ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PREVIOUS);
                     }
-                } else {
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PLAY);
-                }
-            } else if (intent.getAction().equals(MediaNotificationManager.PAUSE_ACTION)) {
-                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
-                    pause();
-                } else {
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PAUSE);
-                }
-            } else if (intent.getAction().equals(MediaNotificationManager.NEXT_ACTION)) {
-                if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
-                    next();
-                } else {
-                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT);
-                }
-            } else if (intent.getAction().equals(MediaNotificationManager.CUSTOM1_ACTION)) {
-                ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM1);
-            } else if (intent.getAction().equals(MediaNotificationManager.CUSTOM2_ACTION)) {
-                ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM2);
+                    break;
+                case MediaNotificationManager.PLAY_ACTION:
+                    if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
+                        if (!stopped) {
+                            resume();
+                        } else {
+                            if (playerMode == PlayerMode.PLAYLIST) {
+                                playAll(audioObjects, 0, 0);
+                            } else {
+                                play(audioObject, 0);
+                            }
+                        }
+                    } else {
+                        ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PLAY);
+                    }
+                    break;
+                case MediaNotificationManager.PAUSE_ACTION:
+                    if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
+                        pause();
+                    } else {
+                        ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.PAUSE);
+                    }
+                    break;
+                case MediaNotificationManager.NEXT_ACTION:
+                    if (currentAudioObject.getNotificationActionCallbackMode() == NotificationActionCallbackMode.DEFAULT) {
+                        next();
+                    } else {
+                        ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.NEXT);
+                    }
+                    break;
+                case MediaNotificationManager.CUSTOM1_ACTION:
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM1);
+                    break;
+                case MediaNotificationManager.CUSTOM2_ACTION:
+                    ref.handleNotificationActionCallback(this.foregroundAudioPlayer, NotificationActionName.CUSTOM2);
+                    break;
+                case MediaNotificationManager.CLOSE_ACTION:
+                    stop();
+                    break;
             }
         }
         return START_STICKY;
@@ -196,10 +204,26 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         this.foregroundAudioPlayer = this;
     }
 
+    public static DefaultDataSourceFactory createDataSourceFactory(Context context, String userAgent) {
+        DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(
+                userAgent,
+                null,
+                DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
+                DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
+                true /* allowCrossProtocolRedirects */
+        );
+
+        return new DefaultDataSourceFactory(
+                context,
+                null,
+                httpDataSourceFactory
+        );
+    }
+
     @Override
     public void initExoPlayer(int index, int position) {
         player = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
-        DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(this.context,
+        DefaultDataSourceFactory dataSourceFactory = createDataSourceFactory(this.context,
                 Util.getUserAgent(this.context, "exoPlayerLibrary"));
         player.setForegroundMode(true);
         // playlist/single audio load
@@ -290,13 +314,12 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         if (!this.released && !this.playing) {
             if (!this.stopped) {
                 this.completed = false;
-                player.setPlayWhenReady(true);
             } else {
                 this.stopped = false;
                 this.initExoPlayer(0, 0);
                 initEventListeners();
-                player.setPlayWhenReady(true);
             }
+            player.setPlayWhenReady(true);
         }
     }
 
@@ -445,7 +468,14 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     private void initEventListeners() {
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public void onSeekTo(long pos) {
+                seekPosition((int) pos);
+            }
+        });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
@@ -472,71 +502,71 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState) {
-                case Player.STATE_BUFFERING: {
-                    // buffering
-                    buffering = true;
-                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
-                    break;
-                }
-                case Player.STATE_READY: {
-                    if (completed) {
-                        buffering = false;
-                        if (mediaNotificationManager.isShowing()) {
-                            mediaNotificationManager.makeNotification(false);
-                        }
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
-                    } else if (buffering) {
-                        // playing
-                        buffering = false;
-                        if (playWhenReady) {
+                    case Player.STATE_BUFFERING: {
+                        // buffering
+                        buffering = true;
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.BUFFERING);
+                        break;
+                    }
+                    case Player.STATE_READY: {
+                        if (completed) {
+                            buffering = false;
+                            if (mediaNotificationManager.isShowing()) {
+                                mediaNotificationManager.makeNotification(false);
+                            }
+                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.COMPLETED);
+                        } else if (buffering) {
+                            // playing
+                            invokeDurationUpdate();
+                            buffering = false;
+                            if (playWhenReady) {
+                                playing = true;
+                                if (mediaNotificationManager.isShowing()) {
+                                    mediaNotificationManager.makeNotification(true);
+                                }
+                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                                ref.handlePositionUpdates();
+                            } else {
+                                ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
+                            }
+                        } else if (playWhenReady) {
+                            // resumed
                             playing = true;
                             if (mediaNotificationManager.isShowing()) {
                                 mediaNotificationManager.makeNotification(true);
                             }
-                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
                             ref.handlePositionUpdates();
-                        } else {
+                            ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
+                        } else if (!playWhenReady) {
+                            // paused
+                            playing = false;
+                            if (mediaNotificationManager.isShowing()) {
+                                mediaNotificationManager.makeNotification(false);
+                            }
                             ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
                         }
-                    } else if (playWhenReady) {
-                        // resumed
-                        playing = true;
-                        if (mediaNotificationManager.isShowing()) {
-                            mediaNotificationManager.makeNotification(true);
-                        }
-                        ref.handlePositionUpdates();
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PLAYING);
-                    } else if (!playWhenReady) {
-                        // paused
-                        playing = false;
-                        if (mediaNotificationManager.isShowing()) {
-                            mediaNotificationManager.makeNotification(false);
-                        }
-                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.PAUSED);
+
+                        break;
                     }
+                    case Player.STATE_ENDED: {
+                        // completed
+                        playing = false;
+                        completed = true;
+                        stopForeground(false);
+                        player.setPlayWhenReady(false);
+                        player.seekTo(0, 0);
+                        break;
+                    }
+                    case Player.STATE_IDLE: {
+                        // stopped
+                        playing = false;
+                        stopped = true;
+                        completed = false;
+                        buffering = false;
+                        ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
 
-                    break;
-                }
-                case Player.STATE_ENDED: {
-                    // completed
-                    playing = false;
-                    completed = true;
-
-                    stopForeground(false);
-                    player.setPlayWhenReady(false);
-                    player.seekTo(0, 0);
-                    break;
-                }
-                case Player.STATE_IDLE: {
-                    // stopped
-                    playing = false;
-                    stopped = true;
-                    completed = false;
-                    buffering = false;
-                    ref.handleStateChange(foregroundAudioPlayer, PlayerState.STOPPED);
-
-                    break;
-                } // handle of released is in release method!
+                        break;
+                    } // handle of released is in release method!
                 }
             }
 
@@ -547,18 +577,21 @@ public class ForegroundAudioPlayer extends Service implements AudioPlayer {
         });
     }
 
-    //// private MediaSessionCompat.Callback mediaSessionCallback = new
-    //// MediaSessionCompat.Callback() {
-    //// @Override
-    //// public void onPlay() {
-    //// Log.d("hii","play!");
-    //// super.onPlay();
-    //// }
+    private void invokeDurationUpdate() {
+        AudioObject currentAudioObject;
+        if (this.playerMode == PlayerMode.PLAYLIST) {
+            currentAudioObject = this.audioObjects.get(player.getCurrentWindowIndex());
+        } else {
+            currentAudioObject = this.audioObject;
+        }
+        currentAudioObject.setDuration(getDuration());
+        invokeMediaSeekUpdate();
+    }
 
-    //// @Override
-    //// public void onPause() {
-    //// Log.d("hii","pause!");
-    //// super.onPause();
-    //// }
-    //// };
+    private void invokeMediaSeekUpdate() {
+        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_PLAYING, getCurrentPosition(), getPlaybackSpeed())
+                .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                .build());
+    }
 }
