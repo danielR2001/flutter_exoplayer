@@ -7,7 +7,7 @@ import android.net.Uri
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.graphics.drawable.toBitmap
-import coil.Coil.execute
+import coil.Coil
 import coil.request.ImageRequest
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
@@ -101,7 +101,7 @@ class UampNotificationManager(
                         .data(uri)
                         .size(NOTIFICATION_LARGE_ICON_SIZE)
                         .build()
-                execute(request).drawable?.toBitmap(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                Coil.imageLoader(context).execute(request).drawable?.toBitmap(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
             }
         }
     }
