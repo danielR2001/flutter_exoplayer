@@ -16,7 +16,6 @@
 //import android.support.v4.media.session.PlaybackStateCompat
 //import android.util.Log
 //import androidx.core.content.ContextCompat
-//import androidx.core.util.toHalf
 //import com.google.android.exoplayer2.*
 //import com.google.android.exoplayer2.analytics.AnalyticsListener
 //import com.google.android.exoplayer2.analytics.AnalyticsListener.EventTime
@@ -606,22 +605,3 @@
 //        private const val TAG = "ForegroundAudioPlayer"
 //    }
 //}
-//
-//private fun AudioObject.toMediaMetadata(): MediaMetadataCompat {
-//    return MediaMetadataCompat.Builder()
-//            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, this.url.asKey())
-//            .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, this.largeIcon)
-//            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, this.largeIconUrl)
-//            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, this.title)
-//            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, this.subTitle)
-//            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, this.url)
-//            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, this.duration)
-//            .build()
-//}
-//
-//private fun Collection<AudioObject>?.toMediaMetadata(): List<MediaMetadataCompat> {
-//    if (this.isNullOrEmpty()) return emptyList()
-//    return this.map { it.toMediaMetadata() }
-//}
-//
-//private fun String.asKey(): String = this.toLowerCase(Locale.US)

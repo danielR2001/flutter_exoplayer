@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.annotation.DrawableRes
 import androidx.core.graphics.drawable.toBitmap
 import coil.ImageLoader
 import coil.request.CachePolicy
@@ -21,24 +22,17 @@ import kotlinx.coroutines.launch
 const val NOW_PLAYING_CHANNEL_ID = "com.example.android.uamp.media.NOW_PLAYING"
 const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to identify our notification
 
-/**
- * A wrapper class for ExoPlayer's PlayerNotificationManager. It sets up the notification shown to
- * the user during audio playback and provides track metadata, such as track title and icon image.
- */
-class UampNotificationManager(
+class AudioNotificationManager(
         private val context: Context,
-        smallIconFileName: String,
+        @DrawableRes private val smallIcon: Int,
         sessionToken: MediaSessionCompat.Token,
         notificationListener: PlayerNotificationManager.NotificationListener
 ) {
-
-    private var player: Player? = null
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val notificationManager: PlayerNotificationManager
 
     init {
-        val icon = context.resources.getIdentifier(smallIconFileName, "drawable", context.packageName)
         val mediaController = MediaControllerCompat(context, sessionToken)
 
         notificationManager = PlayerNotificationManager.createWithNotificationChannel(
@@ -51,7 +45,7 @@ class UampNotificationManager(
                 notificationListener
         ).apply {
             setMediaSessionToken(sessionToken)
-            setSmallIcon(icon)
+            setSmallIcon(smallIcon)
             setRewindIncrementMs(0)
             setFastForwardIncrementMs(0)
         }

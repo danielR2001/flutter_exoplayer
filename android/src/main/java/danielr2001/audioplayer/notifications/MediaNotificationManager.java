@@ -72,8 +72,8 @@ public class MediaNotificationManager {
         return isInitialized;
     }
 
-    public MediaNotificationManager(ForegroundAudioPlayer foregroundExoPlayer, Context context, MediaSessionCompat mediaSession, Activity activity) {
-        this.context = context;
+    public MediaNotificationManager(ForegroundAudioPlayer foregroundExoPlayer, MediaSessionCompat mediaSession, Activity activity) {
+        this.context = foregroundExoPlayer.getApplicationContext();
         this.foregroundExoPlayer = foregroundExoPlayer;
         this.mediaSession = mediaSession;
         this.activity = activity;
