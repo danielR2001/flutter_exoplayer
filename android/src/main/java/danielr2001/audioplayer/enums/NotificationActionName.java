@@ -5,6 +5,7 @@ public enum NotificationActionName {
     NEXT,
     PLAY,
     PAUSE,
+    CLOSE,
     CUSTOM1,
     CUSTOM2,
 }

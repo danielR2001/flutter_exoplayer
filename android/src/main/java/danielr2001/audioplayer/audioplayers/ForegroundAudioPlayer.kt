@@ -2,12 +2,10 @@ package danielr2001.audioplayer.audioplayers
 
 import android.app.Activity
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
@@ -21,12 +19,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 import danielr2001.audioplayer.AudioPlayerPlugin
-import danielr2001.audioplayer.audioplayers.ForegroundAudioPlayer
 import danielr2001.audioplayer.enums.NotificationActionCallbackMode
 import danielr2001.audioplayer.enums.NotificationActionName
 import danielr2001.audioplayer.enums.PlayerMode
@@ -35,8 +28,6 @@ import danielr2001.audioplayer.interfaces.AudioPlayer
 import danielr2001.audioplayer.models.AudioObject
 import danielr2001.audioplayer.notifications.MediaNotificationManager
 import danielr2001.audioplayer.utils.MediaUtils
-import java.util.*
-import kotlin.collections.ArrayList
 
 class ForegroundAudioPlayer : Service(), AudioPlayer {
     private val binder: IBinder = LocalBinder()
@@ -92,10 +83,12 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
 
     override fun onCreate() {
         super.onCreate()
+        Log.i("ForegroundService", "ID: $playerId => onCreate")
         mediaSession = MediaSessionCompat(this, "playback")
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.i("ForegroundService", "ID: $playerId => onStartCommand")
         if (intent.action != null) {
             val currentAudioObject: AudioObject? = if (playerMode == PlayerMode.PLAYLIST) {
                 audioObjects[player.currentWindowIndex]
@@ -131,29 +124,32 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
                 } else {
                     ref?.handleNotificationActionCallback(foregroundAudioPlayer, NotificationActionName.NEXT)
                 }
+                MediaNotificationManager.CLOSE_ACTION -> if (currentAudioObject!!.notificationActionCallbackMode == NotificationActionCallbackMode.DEFAULT) {
+                    release()
+                } else {
+                    ref?.handleNotificationActionCallback(foregroundAudioPlayer, NotificationActionName.CLOSE)
+                }
                 MediaNotificationManager.CUSTOM1_ACTION -> ref?.handleNotificationActionCallback(foregroundAudioPlayer, NotificationActionName.CUSTOM1)
                 MediaNotificationManager.CUSTOM2_ACTION -> ref?.handleNotificationActionCallback(foregroundAudioPlayer, NotificationActionName.CUSTOM2)
-                MediaNotificationManager.CLOSE_ACTION -> stop()
             }
         }
         return START_STICKY
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
-        super.onTaskRemoved(rootIntent)
+        Log.i("ForegroundService", "ID: $playerId => onTaskRemoved")
         release()
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
+        Log.i("ForegroundService", "ID: $playerId => onDestroy")
         super.onDestroy()
         mediaSession?.run {
             isActive = false
             release()
         }
-
-        player.removeListener(playerListener)
-        player.removeAnalyticsListener(playerAnalyticsListenerListener)
-        player.release()
+        release()
     }
 
     override fun setAudioObjects(audioObjects: ArrayList<AudioObject>) {
@@ -302,6 +298,9 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
             released = true
             completed = false
             audioObjects.clear()
+
+            player.removeListener(playerListener)
+            player.removeAnalyticsListener(playerAnalyticsListenerListener)
             player.release()
             ref?.handleStateChange(this, PlayerState.RELEASED)
             stopSelf()
