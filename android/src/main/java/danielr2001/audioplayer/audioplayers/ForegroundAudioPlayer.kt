@@ -77,7 +77,12 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         }
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    private fun requestFocusIfNeed() {
+        if (!respectAudioFocus) return
+        player.setAudioAttributes(uAmpAudioAttributes, true)
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
         return binder
     }
 
@@ -136,7 +141,7 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         return START_STICKY
     }
 
-    override fun onTaskRemoved(rootIntent: Intent) {
+    override fun onTaskRemoved(rootIntent: Intent?) {
         Log.i("ForegroundService", "ID: $playerId => onTaskRemoved")
         release()
         super.onTaskRemoved(rootIntent)
@@ -152,41 +157,41 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         release()
     }
 
-    override fun setAudioObjects(audioObjects: ArrayList<AudioObject>) {
-        if (this.audioObjects.isNotEmpty()) {
-            for (i in this.audioObjects.indices) {
-                audioObjects[i].url = this.audioObjects[i].url
-                audioObjects[i].isLocal = this.audioObjects[i].isLocal
-            }
+    override fun setAudioObjects(audioObjects: ArrayList<AudioObject>?) {
+        if (!audioObjects.isNullOrEmpty()) {
             this.audioObjects = audioObjects.clone() as ArrayList<AudioObject>
             mediaNotificationManager?.makeNotification(this.audioObjects[player.currentWindowIndex], playing)
         }
     }
 
-    override fun setAudioObject(audioObject: AudioObject) {
-        if (this.audioObjects.isNotEmpty()) {
-            audioObject.url = this.audioObjects.first().url
-            audioObject.isLocal = this.audioObjects.first().isLocal
-            this.audioObjects[0] = audioObject
+    override fun setAudioObject(audioObject: AudioObject?) {
+        if (this.audioObjects.isNotEmpty() && audioObject != null) {
+            val index = audioObjects.indexOf(audioObject)
+            if (index > -1) {
+                this.audioObjects[index] = audioObject
+            } else {
+                this.audioObjects.clear()
+                this.audioObjects.add(audioObject)
+            }
             mediaNotificationManager?.makeNotification(this.audioObjects.firstOrNull(), playing)
         }
     }
 
-    override fun setSpecificAudioObject(audioObject: AudioObject, index: Int) {
-        if (audioObjects.isNotEmpty()) {
-            audioObject.url = audioObjects[index].url
-            audioObject.isLocal = audioObjects[index].isLocal
-            audioObjects[index] = audioObject
+    override fun setSpecificAudioObject(audioObject: AudioObject?, index: Int) {
+        if (this.audioObjects.isNotEmpty() && audioObjects.size > index) {
+            if (audioObject != null)
+                audioObjects[index] = audioObject
             if (currentPlayingAudioIndex == index) mediaNotificationManager?.makeNotification(audioObjects[player.currentWindowIndex], playing)
         }
     }
 
-    override fun initAudioPlayer(ref: AudioPlayerPlugin, activity: Activity, playerId: String) {
+    override fun initAudioPlayer(ref: AudioPlayerPlugin?, activity: Activity?, playerId: String?) {
+        foregroundAudioPlayer = this
         initialized = true
         this.playerId = playerId
         this.ref = ref
+        if (mediaSession == null) return
         mediaNotificationManager = MediaNotificationManager(this, mediaSession, activity)
-        foregroundAudioPlayer = this
     }
 
     override fun initExoPlayer(index: Int, position: Int) {
@@ -210,16 +215,15 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
             player.seekTo(0, position.toLong())
         }
         // handle audio focus
-        if (respectAudioFocus) { // ! TODO catch duck pause!
-            player.setAudioAttributes(uAmpAudioAttributes, true)
-        }
+        requestFocusIfNeed()
         // set repeat mode
         if (repeatMode) {
             player.repeatMode = Player.REPEAT_MODE_ALL
         }
     }
 
-    override fun play(audioObject: AudioObject, position: Int) {
+    override fun play(audioObject: AudioObject?, position: Int) {
+        if (audioObject == null) return
         if (completed) {
             resume()
         } else {
@@ -231,12 +235,13 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         }
     }
 
-    override fun playAll(audioObjects: ArrayList<AudioObject>, index: Int, position: Int) {
+    override fun playAll(audioObjects: ArrayList<AudioObject>?, index: Int, position: Int) {
         if (completed || stopped) {
             resume()
         } else {
             released = false
-            this.audioObjects = audioObjects
+            this.audioObjects.clear()
+            this.audioObjects.addAll(audioObjects.orEmpty())
             initExoPlayer(index, position)
             initEventListeners()
             player.playWhenReady = true
@@ -371,7 +376,7 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         return speed
     }
 
-    override fun setPlayerAttributes(repeatMode: Boolean, respectAudioFocus: Boolean, playerMode: PlayerMode) {
+    override fun setPlayerAttributes(repeatMode: Boolean, respectAudioFocus: Boolean, playerMode: PlayerMode?) {
         this.repeatMode = repeatMode
         this.respectAudioFocus = respectAudioFocus
         this.playerMode = playerMode

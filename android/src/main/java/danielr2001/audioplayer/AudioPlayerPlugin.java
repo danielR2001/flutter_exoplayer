@@ -39,7 +39,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 public class AudioPlayerPlugin implements MethodCallHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(AudioPlayerPlugin.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(AudioPlayerPlugin.class.getSimpleName());
 
     private final MethodChannel channel;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -82,7 +82,11 @@ public class AudioPlayerPlugin implements MethodCallHandler {
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             if (!isMyServiceRunning()) return;
-            context.stopService(new Intent(context, ForegroundAudioPlayer.class));
+            try {
+                context.stopService(new Intent(context, ForegroundAudioPlayer.class));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -205,6 +209,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                     final int index = call.argument("index");
                     final int position = call.argument("position");
 
+                    this.audioObjects.clear();
                     this.playerMode = PlayerMode.PLAYLIST;
                     if (isBackground) {
                         // init player as BackgroundAudioPlayer instance
@@ -281,23 +286,28 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                     break;
                 }
                 case "next": {
-                    player.next();
+                    if (player != null)
+                        player.next();
                     break;
                 }
                 case "previous": {
-                    player.previous();
+                    if (player != null)
+                        player.previous();
                     break;
                 }
                 case "resume": {
-                    player.resume();
+                    if (player != null)
+                        player.resume();
                     break;
                 }
                 case "pause": {
-                    player.pause();
+                    if (player != null)
+                        player.pause();
                     break;
                 }
                 case "stop": {
-                    player.stop();
+                    if (player != null)
+                        player.stop();
                     break;
                 }
                 case "release": {
@@ -306,29 +316,34 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                 }
                 case "seekPosition": {
                     final int position = call.argument("position");
-                    player.seekPosition(position);
+                    if (player != null)
+                        player.seekPosition(position);
                     break;
                 }
                 case "seekIndex": {
                     final int index = call.argument("index");
-                    player.seekIndex(index);
+                    if (player != null)
+                        player.seekIndex(index);
                     break;
                 }
                 case "setVolume": {
                     final double vol = call.argument("volume");
                     final float volume = (float) vol;
-                    player.setVolume(volume);
+                    if (player != null)
+                        player.setVolume(volume);
                     break;
                 }
                 case "setRepeatMode": {
                     final boolean repeatMode = call.argument("repeatMode");
-                    player.setRepeatMode(repeatMode);
+                    if (player != null)
+                        player.setRepeatMode(repeatMode);
                     break;
                 }
                 case "setPlaybackSpeed": {
                     final double spd = call.argument("speed");
                     final float speed = (float) spd;
-                    player.setPlaybackSpeed(speed);
+                    if (player != null)
+                        player.setPlaybackSpeed(speed);
                     break;
                 }
                 case "setAudioObject": {
@@ -370,7 +385,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                     this.audioObject = new AudioObject(smallIconFileName, title, subTitle, largeIconUrl, notificationDefaultActions,
                             notificationActionCallbackMode, notificationCustomActions);
 
-                    player.setAudioObject(this.audioObject);
+                    if (player != null)
+                        player.setAudioObject(this.audioObject);
                     return;
                 }
                 case "setAudioObjects": {
@@ -415,7 +431,8 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                                         notificationDefaultActions, notificationActionCallbackMode, notificationCustomActions));
                     }
 
-                    player.setAudioObjects(this.audioObjects);
+                    if (player != null)
+                        player.setAudioObjects(this.audioObjects);
                     return;
                 }
                 case "setSpecificAudioNotification": {
@@ -458,27 +475,33 @@ public class AudioPlayerPlugin implements MethodCallHandler {
                     this.audioObject = new AudioObject(smallIconFileName, title, subTitle, largeIconUrl, notificationDefaultActions,
                             notificationActionCallbackMode, notificationCustomActions);
 
-                    player.setSpecificAudioObject(this.audioObject, index);
+                    if (player != null)
+                        player.setSpecificAudioObject(this.audioObject, index);
                     return;
                 }
                 case "getVolume": {
-                    response.success(player.getVolume());
+                    if (player != null)
+                        response.success(player.getVolume());
                     return;
                 }
                 case "getDuration": {
-                    response.success(player.getDuration());
+                    if (player != null)
+                        response.success(player.getDuration());
                     return;
                 }
                 case "getCurrentPosition": {
-                    response.success(player.getCurrentPosition());
+                    if (player != null)
+                        response.success(player.getCurrentPosition());
                     return;
                 }
                 case "getCurrentPlayingAudioIndex": {
-                    response.success(player.getCurrentPlayingAudioIndex());
+                    if (player != null)
+                        response.success(player.getCurrentPlayingAudioIndex());
                     return;
                 }
                 case "getPlaybackSpeed": {
-                    response.success(player.getPlaybackSpeed());
+                    if (player != null)
+                        response.success(player.getPlaybackSpeed());
                     return;
                 }
                 case "dispose": {
@@ -497,12 +520,16 @@ public class AudioPlayerPlugin implements MethodCallHandler {
     }
 
     private void forceRelease(AudioPlayer player) {
-        if (isMyServiceRunning()) {
-            this.context.unbindService(connection);
+        try {
+            if (isMyServiceRunning()) {
+                this.context.unbindService(connection);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            player.release();
+            audioPlayers.remove(player.getPlayerId());
         }
-        player.release();
-        audioPlayers.remove(player.getPlayerId());
-        Log.i("ForegroundService", "ID:" + player.getPlayerId() + " => release | hasService: " + isMyServiceRunning());
     }
 
     public void handleNotificationActionCallback(AudioPlayer audioplayer, NotificationActionName notificationActionName) {
@@ -645,7 +672,7 @@ public class AudioPlayerPlugin implements MethodCallHandler {
         private UpdateCallback(final Map<String, AudioPlayer> audioPlayers, final MethodChannel channel,
                                final Handler handler, final AudioPlayerPlugin audioPlayerPlugin) {
             this.audioPlayers = new WeakReference<>(audioPlayers);
-            this.channel = new WeakReference<>(channel);
+            this.channel = new WeakReference<MethodChannel>(channel);
             this.handler = new WeakReference<>(handler);
             this.audioPlayerPlugin = new WeakReference<>(audioPlayerPlugin);
         }
