@@ -135,8 +135,6 @@ public class MediaNotificationManager {
     }
 
     private void showNotification() {
-        Notification notification;
-        int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
 
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, audioObject.getTitle())
@@ -145,10 +143,18 @@ public class MediaNotificationManager {
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, audioObject.getDuration()) // 4
                 .build());
 
+        Notification notification;
         NotificationManager notificationManager = initNotificationManager();
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
-                .setSmallIcon(icon)
-                .setColorized(true)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID);
+        try {
+            int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
+            builder.setSmallIcon(icon);
+        } catch (Exception e) {
+            builder.setSmallIcon(R.drawable.ic_play);
+            e.printStackTrace();
+        }
+
+        builder.setColorized(true)
                 .setContentIntent(pNotificatioIntent);
 
         initNotificationActions(builder);

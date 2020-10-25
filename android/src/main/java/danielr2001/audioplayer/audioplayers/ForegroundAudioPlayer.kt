@@ -87,9 +87,9 @@ class ForegroundAudioPlayer : Service(), AudioPlayer {
         mediaSession = MediaSessionCompat(this, "playback")
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i("ForegroundService", "ID: $playerId => onStartCommand")
-        if (intent.action != null) {
+        if (intent?.action != null) {
             val currentAudioObject: AudioObject? = if (playerMode == PlayerMode.PLAYLIST) {
                 audioObjects[player.currentWindowIndex]
             } else {
