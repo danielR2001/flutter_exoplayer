@@ -135,28 +135,13 @@ public class MediaNotificationManager {
     }
 
     private void showNotification() {
-
-        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, audioObject.getTitle())
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, audioObject.getSubTitle())
-                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, audioObject.getLargeIcon())
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, audioObject.getDuration()) // 4
-                .build());
-
         Notification notification;
         NotificationManager notificationManager = initNotificationManager();
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID);
-        try {
-            int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
-            builder.setSmallIcon(icon);
-        } catch (Exception e) {
-            builder.setSmallIcon(R.drawable.ic_play);
-            e.printStackTrace();
-        }
-
-        builder.setColorized(true)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, CHANNEL_ID)
+                .setColorized(true)
                 .setContentIntent(pNotificatioIntent);
 
+        initNotificationContent(builder);
         initNotificationActions(builder);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -190,7 +175,34 @@ public class MediaNotificationManager {
         return notificationManager;
     }
 
+    private void initNotificationContent(NotificationCompat.Builder builder) {
+        if (audioObject == null) return;
+        try {
+            int icon = this.context.getResources().getIdentifier(audioObject.getSmallIconFileName(), "drawable", this.context.getPackageName());
+            builder.setSmallIcon(icon);
+        } catch (Exception e) {
+            builder.setSmallIcon(R.drawable.ic_play);
+            e.printStackTrace();
+        }
+
+        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, audioObject.getTitle())
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, audioObject.getSubTitle())
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, audioObject.getLargeIcon())
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, audioObject.getDuration()) // 4
+                .build());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) return;
+
+        builder.setLargeIcon(audioObject.getLargeIcon())
+                .setContentTitle(audioObject.getTitle())
+                .setContentInfo(audioObject.getTitle())
+                .setLocalOnly(audioObject.getIsLocal());
+    }
+
     private void initNotificationActions(NotificationCompat.Builder builder) {
+        if (audioObject == null) return;
+
         int customIcon1 = this.context.getResources().getIdentifier("ic_custom1", "drawable", // ! TODO maybe change to custom file name
                 this.context.getPackageName());
         int customIcon2 = this.context.getResources().getIdentifier("ic_custom2", "drawable",
@@ -240,20 +252,17 @@ public class MediaNotificationManager {
 
     private void loadImageFromUrl(String imageUrl, boolean isLocal) {
         try {
-            new LoadImageFromUrl(imageUrl, isLocal, new AsyncResponse() {
-                @Override
-                public void processFinish(Map<String, Bitmap> bitmapMap) {
-                    if (bitmapMap != null) {
-                        if (bitmapMap.get(audioObject.getLargeIconUrl()) != null) {
-                            audioObject.setLargeIcon(bitmapMap.get(audioObject.getLargeIconUrl()));
-                            showNotification();
-                        } else {
-                            Log.e("ExoPlayerPlugin", "canceled showing notification!");
-                        }
-                    } else {
+            new LoadImageFromUrl(imageUrl, isLocal, bitmapMap -> {
+                if (bitmapMap != null) {
+                    if (bitmapMap.get(audioObject.getLargeIconUrl()) != null) {
+                        audioObject.setLargeIcon(bitmapMap.get(audioObject.getLargeIconUrl()));
                         showNotification();
-                        Log.e("ExoPlayerPlugin", "Failed loading image!");
+                    } else {
+                        Log.e("ExoPlayerPlugin", "canceled showing notification!");
                     }
+                } else {
+                    showNotification();
+                    Log.e("ExoPlayerPlugin", "Failed loading image!");
                 }
             }).execute();
         } catch (Exception e) {
