@@ -595,7 +595,7 @@ class AudioPlayer {
 
   static void _log(String param) {
     if (logEnabled) {
-      print(param);
+      //print(param);
     }
   }
 

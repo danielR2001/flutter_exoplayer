@@ -366,6 +366,7 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                         ref.handleStateChange(backgroundAudioPlayer, PlayerState.COMPLETED);
                     } else if (buffering) {
                         // playing
+                        updateDuration();
                         buffering = false;
                         if (playWhenReady) {
                             playing = true;
@@ -412,5 +413,15 @@ public class BackgroundAudioPlayer implements AudioPlayer {
                 Log.e(TAG, error.getMessage());
             }
         });
+    }
+
+    private void updateDuration() {
+        AudioObject currentAudioObject;
+        if (this.playerMode == PlayerMode.PLAYLIST) {
+            currentAudioObject = this.audioObjects.get(player.getCurrentWindowIndex());
+        } else {
+            currentAudioObject = this.audioObject;
+        }
+        currentAudioObject.setDuration(getDuration());
     }
 }
