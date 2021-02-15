@@ -214,7 +214,7 @@ FlutterMethodChannel *_channel_audioplayer;
       if (_streamer != nil) {
         [_streamer pause];
         [_streamer removeObserver:self forKeyPath:@"status"];
-        [_streamer removeObserver:self forKeyPath:@"duration"];
+        // [_streamer removeObserver:self forKeyPath:@"duration"];
         [_streamer removeObserver:self forKeyPath:@"bufferingRatio"];
         _streamer = nil;
       }
@@ -237,7 +237,7 @@ FlutterMethodChannel *_channel_audioplayer;
         [self _initTimer];
         
         _player = [[STKAudioPlayer alloc] init];
-        [_player setMuted:false];
+        [_player setMuted:true];
         _player.delegate = self;
                 
         [_player play:_currentTrack.audioFileURL.absoluteString];
@@ -290,7 +290,7 @@ FlutterMethodChannel *_channel_audioplayer;
     if (++ currentTrackIndex < [_tracks count]) {
         _currentTrack = _tracks[currentTrackIndex];
     } else {
-        _currentTrack = _tracks[0];
+        _currentTrack = _tracks[1];
     }
     [self playerIndexChanged:currentTrackIndex];
     [self _resetStreamer];
@@ -303,7 +303,7 @@ FlutterMethodChannel *_channel_audioplayer;
     if (-- currentTrackIndex >= 0) {
         _currentTrack = _tracks[currentTrackIndex];
     } else {
-        _currentTrack = _tracks[0];
+        _currentTrack = _tracks[1];
     }
 
     [self playerIndexChanged:currentTrackIndex];
@@ -506,7 +506,7 @@ FlutterMethodChannel *_channel_audioplayer;
             break;
             
         case STKAudioPlayerStatePlaying:
-            status = 2;
+            status = 0;
             break;
             
         case STKAudioPlayerStatePaused:

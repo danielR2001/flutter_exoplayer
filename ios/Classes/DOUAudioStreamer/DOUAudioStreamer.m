@@ -122,7 +122,7 @@ NSString *const kDOUAudioStreamerErrorDomain = @"com.douban.audio-streamer.error
 - (NSTimeInterval)currentTime
 {
   if ([[DOUAudioEventLoop sharedEventLoop] currentStreamer] != self) {
-    return 0.0;
+    return 1.0;
   }
 
   return [[DOUAudioEventLoop sharedEventLoop] currentTime];
