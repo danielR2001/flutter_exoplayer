@@ -130,6 +130,10 @@ public class BackgroundAudioPlayer implements AudioPlayer {
         if (this.completed || this.stopped) {
             this.resume();
         } else {
+            if(this.playing){
+                this.stop();
+            }
+            this.stopped = false;
             this.released = false;
 
             this.audioObject = audioObject;
@@ -144,6 +148,10 @@ public class BackgroundAudioPlayer implements AudioPlayer {
         if (this.completed || this.stopped) {
             this.resume();
         } else {
+         if(this.playing){
+                this.stop();
+            }
+            this.stopped = false;
             this.released = false;
 
             this.audioObjects = audioObjects;
