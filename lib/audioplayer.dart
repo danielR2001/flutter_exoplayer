@@ -23,6 +23,48 @@ enum Result {
   ERROR,
 }
 
+const PlayerStateMap = {
+  -1: PlayerState.RELEASED,
+  0: PlayerState.STOPPED,
+  1: PlayerState.BUFFERING,
+  2: PlayerState.PLAYING,
+  3: PlayerState.PAUSED,
+  4: PlayerState.COMPLETED,
+};
+
+const ResultMap = {
+  0: Result.ERROR,
+  1: Result.FAIL,
+  2: Result.SUCCESS,
+};
+
+const NotificationDefaultActionsMap = {
+  NotificationDefaultActions.NONE: 0,
+  NotificationDefaultActions.NEXT: 1,
+  NotificationDefaultActions.PREVIOUS: 2,
+  NotificationDefaultActions.ALL: 3,
+};
+
+const NotificationCustomActionsMap = {
+  NotificationCustomActions.DISABLED: 0,
+  NotificationCustomActions.ONE: 1,
+  NotificationCustomActions.TWO: 2,
+};
+
+const NotificationActionNameMap = {
+  0: NotificationActionName.PREVIOUS,
+  1: NotificationActionName.NEXT,
+  2: NotificationActionName.PLAY,
+  3: NotificationActionName.PAUSE,
+  4: NotificationActionName.CUSTOM1,
+  5: NotificationActionName.CUSTOM2,
+};
+
+const NotificationActionCallbackModeMap = {
+  NotificationActionCallbackMode.DEFAULT: 0,
+  NotificationActionCallbackMode.CUSTOM: 1,
+};
+
 class AudioPlayer {
   static MethodChannel _channel = const MethodChannel('danielr2001/audioplayer')
     ..setMethodCallHandler(platformCallHandler);
@@ -31,50 +73,8 @@ class AudioPlayer {
   static bool logEnabled = false;
   static final players = Map<String, AudioPlayer>();
 
-  static const PlayerStateMap = {
-    -1: PlayerState.RELEASED,
-    0: PlayerState.STOPPED,
-    1: PlayerState.BUFFERING,
-    2: PlayerState.PLAYING,
-    3: PlayerState.PAUSED,
-    4: PlayerState.COMPLETED,
-  };
-
-  static const ResultMap = {
-    0: Result.ERROR,
-    1: Result.FAIL,
-    2: Result.SUCCESS,
-  };
-
-  static const NotificationDefaultActionsMap = {
-    NotificationDefaultActions.NONE: 0,
-    NotificationDefaultActions.NEXT: 1,
-    NotificationDefaultActions.PREVIOUS: 2,
-    NotificationDefaultActions.ALL: 3,
-  };
-
-  static const NotificationCustomActionsMap = {
-    NotificationCustomActions.DISABLED: 0,
-    NotificationCustomActions.ONE: 1,
-    NotificationCustomActions.TWO: 2,
-  };
-
-  static const NotificationActionNameMap = {
-    0: NotificationActionName.PREVIOUS,
-    1: NotificationActionName.NEXT,
-    2: NotificationActionName.PLAY,
-    3: NotificationActionName.PAUSE,
-    4: NotificationActionName.CUSTOM1,
-    5: NotificationActionName.CUSTOM2,
-  };
-
-  static const NotificationActionCallbackModeMap = {
-    NotificationActionCallbackMode.DEFAULT: 0,
-    NotificationActionCallbackMode.CUSTOM: 1,
-  };
-
-  String _playerId;
-  PlayerState _playerState;
+  late String _playerId;
+  late PlayerState _playerState;
 
   String get playerId => _playerId;
 
@@ -154,9 +154,9 @@ class AudioPlayer {
   Stream<int> get onCurrentAudioIndexChanged =>
       _currentPlayingIndexController.stream;
 
-  PlayerState _audioPlayerState;
+  // PlayerState _audioPlayerState;
 
-  PlayerState get state => _audioPlayerState;
+  // PlayerState get state => _audioPlayerState;
 
   /// Initializes AudioPlayer
   ///
@@ -176,58 +176,31 @@ class AudioPlayer {
     bool respectAudioFocus = false,
     Duration position = const Duration(milliseconds: 0),
     PlayerMode playerMode = PlayerMode.BACKGROUND,
-    AudioNotification audioNotification,
+    AudioNotification? audioNotification,
   }) async {
-    if (audioNotification == null && playerMode == PlayerMode.FOREGROUND)
+    if (playerMode == PlayerMode.FOREGROUND && audioNotification == null)
       return Result.ERROR;
 
-    playerMode ??= PlayerMode.BACKGROUND;
-    repeatMode ??= false;
-    respectAudioFocus ??= false;
-    position ??= Duration(milliseconds: 0);
-
-    bool isBackground = true;
-    String smallIconFileName;
-    String title;
-    String subTitle;
-    String largeIconUrl;
-    bool isLocal;
-    int notificationDefaultActions;
-    int notificationActionCallbackMode = 0;
-    int notificationCustomActions;
-    if (playerMode == PlayerMode.FOREGROUND) {
-      smallIconFileName = audioNotification.smallIconFileName;
-      title = audioNotification.title;
-      subTitle = audioNotification.subTitle;
-      largeIconUrl = audioNotification.largeIconUrl;
-      isLocal = audioNotification.isLocal;
-
-      notificationDefaultActions = NotificationDefaultActionsMap[
-          audioNotification.notificationDefaultActions];
-      notificationCustomActions = NotificationCustomActionsMap[
-          audioNotification.notificationCustomActions];
-      notificationActionCallbackMode = NotificationActionCallbackModeMap[
-          audioNotification.notificationActionCallbackMode];
-
-      isBackground = false;
-    }
-
     return ResultMap[await _invokeMethod('play', {
-      'url': url,
-      'isLocal': isLocal,
-      'repeatMode': repeatMode,
-      'isBackground': isBackground,
-      'respectAudioFocus': respectAudioFocus,
-      'position': position.inMilliseconds,
-      // audio notification object
-      'smallIconFileName': smallIconFileName,
-      'title': title,
-      'subTitle': subTitle,
-      'largeIconUrl': largeIconUrl,
-      'notificationDefaultActions': notificationDefaultActions,
-      'notificationActionCallbackMode': notificationActionCallbackMode,
-      'notificationCustomActions': notificationCustomActions,
-    }) as int];
+          'url': url,
+          'repeatMode': repeatMode,
+          'isBackground': playerMode == PlayerMode.BACKGROUND,
+          'respectAudioFocus': respectAudioFocus,
+          'position': position.inMilliseconds,
+          // audio notification object
+          'smallIconFileName': audioNotification?.smallIconFileName,
+          'title': audioNotification?.title,
+          'subTitle': audioNotification?.subTitle,
+          'largeIconUrl': audioNotification?.largeIconUrl,
+          'isLocal': audioNotification?.isLocal,
+          'notificationDefaultActions':
+              audioNotification?.notificationDefaultActions,
+          'notificationActionCallbackMode':
+              audioNotification?.notificationActionCallbackMode,
+          'notificationCustomActions':
+              audioNotification?.notificationCustomActions,
+        }) as int] ??
+        Result.ERROR;
   }
 
   /// Plays your playlist.
@@ -241,64 +214,37 @@ class AudioPlayer {
     bool respectAudioFocus = false,
     Duration position = const Duration(milliseconds: 0),
     PlayerMode playerMode = PlayerMode.BACKGROUND,
-    List<AudioNotification> audioNotifications,
+    List<AudioNotification> audioNotifications = const [],
   }) async {
-    if (audioNotifications == null && playerMode == PlayerMode.FOREGROUND)
-      return Result.ERROR;
-
-    playerMode ??= PlayerMode.BACKGROUND;
-    repeatMode ??= false;
-    respectAudioFocus ??= false;
-    position ??= Duration(milliseconds: 0);
-    index ??= 0;
-
-    bool isBackground = true;
-    final List<String> smallIconFileNames = List();
-    final List<String> titles = List();
-    final List<String> subTitles = List();
-    final List<String> largeIconUrls = List();
-    final List<bool> isLocals = List();
-    final List<int> notificationDefaultActionsList = List();
-    final List<int> notificationActionCallbackModes = List();
-    final List<int> notificationCustomActionsList = List();
-
-    if (playerMode == PlayerMode.FOREGROUND) {
-      for (AudioNotification audioNotification in audioNotifications) {
-        smallIconFileNames.add(audioNotification.smallIconFileName);
-        titles.add(audioNotification.title);
-        subTitles.add(audioNotification.subTitle);
-        largeIconUrls.add(audioNotification.largeIconUrl);
-        isLocals.add(audioNotification.isLocal);
-
-        notificationDefaultActionsList.add(NotificationDefaultActionsMap[
-            audioNotification.notificationDefaultActions]);
-        notificationCustomActionsList.add(NotificationCustomActionsMap[
-            audioNotification.notificationCustomActions]);
-
-        notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
-            audioNotification.notificationActionCallbackMode]);
-      }
-
-      isBackground = false;
-    }
+    if (audioNotifications.length != urls.length &&
+        playerMode == PlayerMode.FOREGROUND) return Result.ERROR;
 
     return ResultMap[await _invokeMethod('playAll', {
-      'urls': urls,
-      'isLocals': isLocals,
-      'repeatMode': repeatMode,
-      'isBackground': isBackground,
-      'respectAudioFocus': respectAudioFocus,
-      'position': position.inMilliseconds,
-      'index': index,
-      // audio notification objects
-      'smallIconFileNames': smallIconFileNames,
-      'titles': titles,
-      'subTitles': subTitles,
-      'largeIconUrls': largeIconUrls,
-      'notificationDefaultActionsList': notificationDefaultActionsList,
-      'notificationActionCallbackModes': notificationActionCallbackModes,
-      'notificationCustomActionsList': notificationCustomActionsList,
-    }) as int];
+          'urls': urls,
+          'repeatMode': repeatMode,
+          'isBackground': playerMode == PlayerMode.BACKGROUND,
+          'respectAudioFocus': respectAudioFocus,
+          'position': position.inMilliseconds,
+          'index': index,
+          // audio notification objects
+          'smallIconFileNames':
+              audioNotifications.map((e) => e.smallIconFileName).toList(),
+          'titles': audioNotifications.map((e) => e.title).toList(),
+          'subTitles': audioNotifications.map((e) => e.subTitle).toList(),
+          'largeIconUrls':
+              audioNotifications.map((e) => e.largeIconUrl).toList(),
+          'isLocals': audioNotifications.map((e) => e.isLocal).toList(),
+          'notificationDefaultActionsList': audioNotifications
+              .map((e) => e.notificationDefaultActions)
+              .toList(),
+          'notificationActionCallbackModes': audioNotifications
+              .map((e) => e.notificationActionCallbackMode)
+              .toList(),
+          'notificationCustomActionsList': audioNotifications
+              .map((e) => e.notificationCustomActions)
+              .toList(),
+        }) as int] ??
+        Result.ERROR;
   }
 
   /// Pauses the audio that is currently playing.
@@ -306,21 +252,21 @@ class AudioPlayer {
   /// If you call [resume] later, the audio will resume from the point that it
   /// has been paused.
   Future<Result> pause() async {
-    return ResultMap[await _invokeMethod('pause') as int];
+    return ResultMap[await _invokeMethod('pause') as int] ?? Result.ERROR;
   }
 
   /// Plays the next song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> next() async {
-    return ResultMap[await _invokeMethod('next') as int];
+    return ResultMap[await _invokeMethod('next') as int] ?? Result.ERROR;
   }
 
   /// Plays the previous song.
   ///
   /// If playing only single audio it will restart the current.
   Future<Result> previous() async {
-    return ResultMap[await _invokeMethod('previous') as int];
+    return ResultMap[await _invokeMethod('previous') as int] ?? Result.ERROR;
   }
 
   /// Stops the audio that is currently playing.
@@ -328,29 +274,32 @@ class AudioPlayer {
   /// The position is going to be reset and you will no longer be able to resume
   /// from the last point.
   Future<Result> stop() async {
-    return ResultMap[await _invokeMethod('stop') as int];
+    return ResultMap[await _invokeMethod('stop') as int] ?? Result.ERROR;
   }
 
   /// Resumes the audio that has been paused.
   Future<Result> resume() async {
-    return ResultMap[await _invokeMethod('resume') as int];
+    return ResultMap[await _invokeMethod('resume') as int] ?? Result.ERROR;
   }
 
   /// Releases the resources associated with this audio player.
   ///
   Future<Result> release() async {
-    return ResultMap[await _invokeMethod('release') as int];
+    return ResultMap[await _invokeMethod('release') as int] ?? Result.ERROR;
   }
 
   /// Moves the cursor to the desired position.
   Future<Result> seekPosition(Duration position) async {
     return ResultMap[await _invokeMethod(
-        'seekPosition', {'position': position.inMilliseconds}) as int];
+            'seekPosition', {'position': position.inMilliseconds}) as int] ??
+        Result.ERROR;
   }
 
   /// Switches to the desired index in playlist.
   Future<Result> seekIndex(int index) async {
-    return ResultMap[await _invokeMethod('seekIndex', {'index': index}) as int];
+    return ResultMap[
+            await _invokeMethod('seekIndex', {'index': index}) as int] ??
+        Result.ERROR;
   }
 
   /// Gets audio duration after setting url.
@@ -358,8 +307,7 @@ class AudioPlayer {
   /// It will be available as soon as the audio duration is available
   /// (it might take a while to download or buffer it if file is not local).
   Future<Duration> getDuration() async {
-    int milliseconds = await _invokeMethod('getDuration') as int;
-    return Duration(milliseconds: milliseconds);
+    return Duration(milliseconds: await _invokeMethod('getDuration') as int);
   }
 
   /// Gets audio volume
@@ -396,14 +344,16 @@ class AudioPlayer {
   /// interpolated.
   Future<Result> setVolume(double volume) async {
     return ResultMap[
-        await _invokeMethod('setVolume', {'volume': volume}) as int];
+            await _invokeMethod('setVolume', {'volume': volume}) as int] ??
+        Result.ERROR;
   }
 
   // Sets the repeat mode.
   Future<Result> setRepeatMode(bool repeatMode) async {
     return ResultMap[
-        await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})
-            as int];
+            await _invokeMethod('setRepeatMode', {'repeatMode': repeatMode})
+                as int] ??
+        Result.ERROR;
   }
 
   // Sets the playback speed.
@@ -412,122 +362,69 @@ class AudioPlayer {
   /// 1 is regular speed.
   Future<Result> setPlaybackSpeed(double speed) async {
     return ResultMap[
-        await _invokeMethod('setPlaybackSpeed', {'speed': speed})
-            as int];
+            await _invokeMethod('setPlaybackSpeed', {'speed': speed}) as int] ??
+        Result.ERROR;
   }
 
   /// Sets the [AudioNotification] for the single player, if you want to change specific
   /// notification in [AudioNotification]s list use [setSpecificAudioNotification].
-  Future<void> setAudioNotification(AudioNotification audioNotification) async {
-    if (audioNotification == null) return Result.ERROR;
-
-    String smallIconFileName;
-    String title;
-    String subTitle;
-    String largeIconUrl;
-
-    int notificationDefaultActions;
-    int notificationActionCallbackMode = 0;
-    int notificationCustomActions;
-
-    smallIconFileName = audioNotification.smallIconFileName;
-    title = audioNotification.title;
-    subTitle = audioNotification.subTitle;
-    largeIconUrl = audioNotification.largeIconUrl;
-
-    notificationDefaultActions = NotificationDefaultActionsMap[
-        audioNotification.notificationDefaultActions];
-    notificationCustomActions = NotificationCustomActionsMap[
-        audioNotification.notificationCustomActions];
-    notificationActionCallbackMode = NotificationActionCallbackModeMap[
-        audioNotification.notificationActionCallbackMode];
-
+  Future<Result> setAudioNotification(
+      AudioNotification audioNotification) async {
     return ResultMap[await _invokeMethod('setAudioObject', {
-      'smallIconFileName': smallIconFileName,
-      'title': title,
-      'subTitle': subTitle,
-      'largeIconUrl': largeIconUrl,
-      'notificationDefaultActions': notificationDefaultActions,
-      'notificationActionCallbackMode': notificationActionCallbackMode,
-      'notificationCustomActions': notificationCustomActions,
-    }) as int];
+          'smallIconFileName': audioNotification.smallIconFileName,
+          'title': audioNotification.title,
+          'subTitle': audioNotification.subTitle,
+          'largeIconUrl': audioNotification.largeIconUrl,
+          'notificationDefaultActions':
+              audioNotification.notificationDefaultActions,
+          'notificationActionCallbackMode':
+              audioNotification.notificationActionCallbackMode,
+          'notificationCustomActions':
+              audioNotification.notificationCustomActions,
+        }) as int] ??
+        Result.ERROR;
   }
 
   /// Sets the [AudioNotification]s for the playlist player.
-  Future<void> setAudioNotifications(
+  Future<Result> setAudioNotifications(
       List<AudioNotification> audioNotifications) async {
-    if (audioNotifications == null) return Result.ERROR;
-
-    final List<String> smallIconFileNames = List();
-    final List<String> titles = List();
-    final List<String> subTitles = List();
-    final List<String> largeIconUrls = List();
-    final List<int> notificationDefaultActionsList = List();
-    final List<int> notificationActionCallbackModes = List();
-    final List<int> notificationCustomActionsList = List();
-
-    for (AudioNotification audioNotification in audioNotifications) {
-      smallIconFileNames.add(audioNotification.smallIconFileName);
-      titles.add(audioNotification.title);
-      subTitles.add(audioNotification.subTitle);
-      largeIconUrls.add(audioNotification.largeIconUrl);
-
-      notificationDefaultActionsList.add(NotificationDefaultActionsMap[
-          audioNotification.notificationDefaultActions]);
-      notificationCustomActionsList.add(NotificationCustomActionsMap[
-          audioNotification.notificationCustomActions]);
-
-      notificationActionCallbackModes.add(NotificationActionCallbackModeMap[
-          audioNotification.notificationActionCallbackMode]);
-    }
-
     return ResultMap[await _invokeMethod('setAudioObjects', {
-      'smallIconFileNames': smallIconFileNames,
-      'titles': titles,
-      'subTitles': subTitles,
-      'largeIconUrls': largeIconUrls,
-      'notificationDefaultActionsList': notificationDefaultActionsList,
-      'notificationActionCallbackModes': notificationActionCallbackModes,
-      'notificationCustomActionsList': notificationCustomActionsList,
-    }) as int];
+          'smallIconFileNames':
+              audioNotifications.map((e) => e.smallIconFileName).toList(),
+          'titles': audioNotifications.map((e) => e.title).toList(),
+          'subTitles': audioNotifications.map((e) => e.subTitle).toList(),
+          'largeIconUrls':
+              audioNotifications.map((e) => e.largeIconUrl).toList(),
+          'notificationDefaultActionsList': audioNotifications
+              .map((e) => e.notificationDefaultActions)
+              .toList(),
+          'notificationActionCallbackModes': audioNotifications
+              .map((e) => e.notificationActionCallbackMode)
+              .toList(),
+          'notificationCustomActionsList': audioNotifications
+              .map((e) => e.notificationCustomActions)
+              .toList(),
+        }) as int] ??
+        Result.ERROR;
   }
 
   /// Sets a sepcific [AudioNotification] in the [AudioNotification]s for the playlist player.
-  Future<void> setSpecificAudioNotification(
+  Future<Result> setSpecificAudioNotification(
       AudioNotification audioNotification, int index) async {
-    if (audioNotification == null) return Result.ERROR;
-
-    String smallIconFileName;
-    String title;
-    String subTitle;
-    String largeIconUrl;
-
-    int notificationDefaultActions;
-    int notificationActionCallbackMode = 0;
-    int notificationCustomActions;
-
-    smallIconFileName = audioNotification.smallIconFileName;
-    title = audioNotification.title;
-    subTitle = audioNotification.subTitle;
-    largeIconUrl = audioNotification.largeIconUrl;
-
-    notificationDefaultActions = NotificationDefaultActionsMap[
-        audioNotification.notificationDefaultActions];
-    notificationCustomActions = NotificationCustomActionsMap[
-        audioNotification.notificationCustomActions];
-    notificationActionCallbackMode = NotificationActionCallbackModeMap[
-        audioNotification.notificationActionCallbackMode];
-
     return ResultMap[await _invokeMethod('setSpecificAudioNotification', {
-      'smallIconFileName': smallIconFileName,
-      'title': title,
-      'subTitle': subTitle,
-      'largeIconUrl': largeIconUrl,
-      'notificationDefaultActions': notificationDefaultActions,
-      'notificationActionCallbackMode': notificationActionCallbackMode,
-      'notificationCustomActions': notificationCustomActions,
-      'index': index,
-    }) as int];
+          'smallIconFileName': audioNotification.smallIconFileName,
+          'title': audioNotification.title,
+          'subTitle': audioNotification.subTitle,
+          'largeIconUrl': audioNotification.largeIconUrl,
+          'notificationDefaultActions':
+              audioNotification.notificationDefaultActions,
+          'notificationActionCallbackMode':
+              audioNotification.notificationActionCallbackMode,
+          'notificationCustomActions':
+              audioNotification.notificationCustomActions,
+          'index': index,
+        }) as int] ??
+        Result.ERROR;
   }
 
   static Future<void> platformCallHandler(MethodCall call) async {
@@ -540,10 +437,8 @@ class AudioPlayer {
 
   Future<dynamic> _invokeMethod(
     String method, [
-    Map<String, dynamic> arguments,
+    Map<String, dynamic> arguments = const {},
   ]) {
-    arguments ??= const {};
-
     final Map<String, dynamic> withPlayerId = Map.of(arguments)
       ..['playerId'] = playerId;
 
@@ -557,7 +452,7 @@ class AudioPlayer {
     _log('_platformCallHandler call ${call.method} $callArgs');
 
     final playerId = callArgs['playerId'] as String;
-    final AudioPlayer player = players[playerId];
+    final AudioPlayer player = players[playerId]!;
     final value = callArgs['value'];
 
     switch (call.method) {
@@ -570,7 +465,7 @@ class AudioPlayer {
         player._positionController.add(newDuration);
         break;
       case 'audio.onStateChanged':
-        player._playerState = PlayerStateMap[value];
+        player._playerState = PlayerStateMap[value]!;
         player._playerStateController.add(player._playerState);
         break;
       case 'audio.onCurrentPlayingAudioIndexChange':
@@ -582,7 +477,7 @@ class AudioPlayer {
         break;
       case 'audio.onNotificationActionCallback':
         player._notificationActionController
-            .add(NotificationActionNameMap[value]);
+            .add(NotificationActionNameMap[value]!);
         break;
       case 'audio.onError':
         player._playerState = PlayerState.RELEASED;
@@ -594,38 +489,25 @@ class AudioPlayer {
   }
 
   static void _log(String param) {
-    if (logEnabled) {
-      print(param);
-    }
+    if (logEnabled) print(param);
   }
 
   Future<void> dispose() async {
     List<Future> futures = [];
     await _invokeMethod('dispose');
-    if (!_playerStateController.isClosed) {
+    if (!_playerStateController.isClosed)
       futures.add(_playerStateController.close());
-    }
-    if (!_positionController.isClosed) {
-      futures.add(_positionController.close());
-    }
-    if (!_durationController.isClosed) {
-      futures.add(_durationController.close());
-    }
-    if (!_completionController.isClosed) {
+    if (!_positionController.isClosed) futures.add(_positionController.close());
+    if (!_durationController.isClosed) futures.add(_durationController.close());
+    if (!_completionController.isClosed)
       futures.add(_completionController.close());
-    }
-    if (!_errorController.isClosed) {
-      futures.add(_errorController.close());
-    }
-    if (!_currentPlayingIndexController.isClosed) {
+    if (!_errorController.isClosed) futures.add(_errorController.close());
+    if (!_currentPlayingIndexController.isClosed)
       futures.add(_currentPlayingIndexController.close());
-    }
-    if (!_audioSessionIdController.isClosed) {
+    if (!_audioSessionIdController.isClosed)
       futures.add(_audioSessionIdController.close());
-    }
-    if (!_notificationActionController.isClosed) {
+    if (!_notificationActionController.isClosed)
       futures.add(_notificationActionController.close());
-    }
     await Future.wait(futures);
   }
 }

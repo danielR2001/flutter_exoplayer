@@ -28,61 +28,27 @@ enum NotificationCustomActions {
 }
 
 class AudioNotification {
-  String _smallIconFileName;
-  String _title;
-  String _subTitle;
-  String _largeIconUrl;
-  bool _isLocal;
-  NotificationDefaultActions _notificationDefaultActions;
-  NotificationActionCallbackMode _notificationActionCallbackMode;
-  NotificationCustomActions _notificationCustomActions;
-  //! TODO add background color!
-  //! TODO notification importance!
-  //! TODO set timeout!
+  final String smallIconFileName;
+  final String? title;
+  final String? subTitle;
+  final String? largeIconUrl;
+  final bool isLocal;
+  final NotificationDefaultActions notificationDefaultActions;
+  final NotificationActionCallbackMode notificationActionCallbackMode;
+  final NotificationCustomActions notificationCustomActions;
+  // TODO add background color!
+  // TODO notification importance!
+  // TODO set timeout!
 
   AudioNotification({
-    @required String smallIconFileName,
-    String title,
-    String subTitle,
-    String largeIconUrl,
-    bool isLocal = false,
-    NotificationDefaultActions notificationDefaultActions =
-        NotificationDefaultActions.ALL,
-    NotificationActionCallbackMode notificationActionCallbackMode =
+    required this.smallIconFileName,
+    this.title,
+    this.subTitle = "",
+    this.largeIconUrl = "",
+    this.isLocal = false,
+    this.notificationDefaultActions = NotificationDefaultActions.ALL,
+    this.notificationActionCallbackMode =
         NotificationActionCallbackMode.DEFAULT,
-    NotificationCustomActions notificationCustomActions =
-        NotificationCustomActions.DISABLED,
-  }) {
-    isLocal ??= false;
-    notificationDefaultActions ??= NotificationDefaultActions.ALL;
-    notificationActionCallbackMode ??= NotificationActionCallbackMode.DEFAULT;
-
-    this._smallIconFileName = smallIconFileName;
-    this._title = title;
-    this._subTitle = subTitle;
-    this._largeIconUrl = largeIconUrl;
-    this._isLocal = isLocal;
-    this._notificationDefaultActions = notificationDefaultActions;
-    this._notificationActionCallbackMode = notificationActionCallbackMode;
-    this._notificationCustomActions = notificationCustomActions;
-  }
-
-  String get smallIconFileName => _smallIconFileName;
-
-  String get title => _title;
-
-  String get subTitle => _subTitle;
-
-  String get largeIconUrl => _largeIconUrl;
-
-  bool get isLocal => _isLocal;
-
-  NotificationDefaultActions get notificationDefaultActions =>
-      _notificationDefaultActions;
-
-  NotificationActionCallbackMode get notificationActionCallbackMode =>
-      _notificationActionCallbackMode;
-
-  NotificationCustomActions get notificationCustomActions =>
-      _notificationCustomActions;
+    this.notificationCustomActions = NotificationCustomActions.DISABLED,
+  });
 }
