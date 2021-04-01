@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+
+- **[Update]** Updated example app.
+- **[Update]** Added AndroidX properties and pre 1.12 Android to example app (thanks, @Yeikel200).
+
 ## 0.6.0
 
 - **[Add]** Added Support to Null Safety.
@@ -18,7 +23,7 @@
 
 ## 0.5.2
 
-- **[Fix]** minor bugs (thanks, @btanarola)
+- **[Fix]** minor bugs (thanks, @btanarola).
 
 ## 0.5.1
 
@@ -83,10 +88,8 @@
 ## 0.0.2
 
 - **[Change]** class name, Exoplayer => Audioplayer.
-- **[Feature]** custom notification callback via stream (Dart side) in addition to the default (only Java side). 
+- **[Feature]** custom notification callback via stream (Dart side) in addition to the default (only Java side).
 
 ## 0.0.1
 
 - Initial Open Source release.
-
-
