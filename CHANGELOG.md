@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- **[Add]** Added Support to Null Safety.
+
 ## 0.5.5
 
 - **[Add]** + **[Fix]** Added start from certain position (In Dart side was already implemented but not in Java side).
