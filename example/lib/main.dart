@@ -23,7 +23,7 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  String localFilePath;
+  String localFilePath = "";
 
   Widget _tab(List<Widget> children) {
     return Center(
@@ -114,7 +114,7 @@ class _ExampleAppState extends State<ExampleApp> {
   }
 
   Future<void> _loadFile() async {
-    final bytes = await readBytes(kUrl1);
+    final bytes = await readBytes(Uri(path: kUrl1));
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/audio.mp3');
 

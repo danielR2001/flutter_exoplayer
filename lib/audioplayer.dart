@@ -193,12 +193,12 @@ class AudioPlayer {
           'subTitle': audioNotification?.subTitle,
           'largeIconUrl': audioNotification?.largeIconUrl,
           'isLocal': audioNotification?.isLocal,
-          'notificationDefaultActions':
-              audioNotification?.notificationDefaultActions,
-          'notificationActionCallbackMode':
-              audioNotification?.notificationActionCallbackMode,
-          'notificationCustomActions':
-              audioNotification?.notificationCustomActions,
+          'notificationDefaultActions': NotificationDefaultActionsMap[
+              audioNotification?.notificationDefaultActions],
+          'notificationActionCallbackMode': NotificationActionCallbackModeMap[
+              audioNotification?.notificationActionCallbackMode],
+          'notificationCustomActions': NotificationCustomActionsMap[
+              audioNotification?.notificationCustomActions],
         }) as int] ??
         Result.ERROR;
   }
@@ -235,13 +235,16 @@ class AudioPlayer {
               audioNotifications.map((e) => e.largeIconUrl).toList(),
           'isLocals': audioNotifications.map((e) => e.isLocal).toList(),
           'notificationDefaultActionsList': audioNotifications
-              .map((e) => e.notificationDefaultActions)
+              .map((e) =>
+                  NotificationDefaultActionsMap[e.notificationDefaultActions])
               .toList(),
           'notificationActionCallbackModes': audioNotifications
-              .map((e) => e.notificationActionCallbackMode)
+              .map((e) => NotificationActionCallbackModeMap[
+                  e.notificationActionCallbackMode])
               .toList(),
           'notificationCustomActionsList': audioNotifications
-              .map((e) => e.notificationCustomActions)
+              .map((e) =>
+                  NotificationCustomActionsMap[e.notificationCustomActions])
               .toList(),
         }) as int] ??
         Result.ERROR;
@@ -375,12 +378,12 @@ class AudioPlayer {
           'title': audioNotification.title,
           'subTitle': audioNotification.subTitle,
           'largeIconUrl': audioNotification.largeIconUrl,
-          'notificationDefaultActions':
-              audioNotification.notificationDefaultActions,
-          'notificationActionCallbackMode':
-              audioNotification.notificationActionCallbackMode,
-          'notificationCustomActions':
-              audioNotification.notificationCustomActions,
+          'notificationDefaultActions': NotificationDefaultActionsMap[
+              audioNotification.notificationDefaultActions],
+          'notificationActionCallbackMode': NotificationActionCallbackModeMap[
+              audioNotification.notificationActionCallbackMode],
+          'notificationCustomActions': NotificationCustomActionsMap[
+              audioNotification.notificationCustomActions],
         }) as int] ??
         Result.ERROR;
   }
@@ -396,13 +399,16 @@ class AudioPlayer {
           'largeIconUrls':
               audioNotifications.map((e) => e.largeIconUrl).toList(),
           'notificationDefaultActionsList': audioNotifications
-              .map((e) => e.notificationDefaultActions)
+              .map((e) =>
+                  NotificationDefaultActionsMap[e.notificationDefaultActions])
               .toList(),
           'notificationActionCallbackModes': audioNotifications
-              .map((e) => e.notificationActionCallbackMode)
+              .map((e) => NotificationActionCallbackModeMap[
+                  e.notificationActionCallbackMode])
               .toList(),
           'notificationCustomActionsList': audioNotifications
-              .map((e) => e.notificationCustomActions)
+              .map((e) =>
+                  NotificationCustomActionsMap[e.notificationCustomActions])
               .toList(),
         }) as int] ??
         Result.ERROR;

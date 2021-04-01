@@ -1,16 +1,17 @@
 name: flutter_exoplayer_example
 description: Demonstrates how to use the flutter_exoplayer plugin.
 
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.11.3+17
-  path_provider: ^1.2.0
+  http: ^0.13.1
+  path_provider: ^2.0.1
   flutter_exoplayer:
     path: ../
 
 flutter:
   uses-material-design: true
-
-environment:
-  sdk: ">=2.0.0-dev.50.0 <3.0.0"

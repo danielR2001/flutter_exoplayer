@@ -10,35 +10,35 @@ const imageUrl2 = "https://www.bensound.com/bensound-img/epic.jpg";
 const imageUrl3 = "https://www.bensound.com/bensound-img/onceagain.jpg";
 
 class PlayerWidget extends StatefulWidget {
-  final String url;
-  final List<String> urls;
+  final String? url;
+  final List<String>? urls;
 
   PlayerWidget({this.url, this.urls});
 
   @override
   State<StatefulWidget> createState() {
-    return _PlayerWidgetState(url, urls);
+    return _PlayerWidgetState(url: url, urls: urls);
   }
 }
 
 class _PlayerWidgetState extends State<PlayerWidget> {
-  String url;
-  List<String> urls;
+  final String? url;
+  final List<String>? urls;
 
-  AudioPlayer _audioPlayer;
-  Duration _duration;
-  Duration _position;
+  late AudioPlayer _audioPlayer;
+  Duration? _duration;
+  Duration? _position;
   int _currentIndex = 0;
 
   PlayerState _playerState = PlayerState.RELEASED;
-  StreamSubscription _durationSubscription;
-  StreamSubscription _positionSubscription;
-  StreamSubscription _playerCompleteSubscription;
-  StreamSubscription _playerErrorSubscription;
-  StreamSubscription _playerStateSubscription;
-  StreamSubscription _playerIndexSubscription;
-  StreamSubscription _playerAudioSessionIdSubscription;
-  StreamSubscription _notificationActionCallbackSubscription;
+  StreamSubscription? _durationSubscription;
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _playerCompleteSubscription;
+  StreamSubscription? _playerErrorSubscription;
+  StreamSubscription? _playerStateSubscription;
+  StreamSubscription? _playerIndexSubscription;
+  StreamSubscription? _playerAudioSessionIdSubscription;
+  StreamSubscription? _notificationActionCallbackSubscription;
 
   final List<AudioNotification> audioNotifications = [
     AudioNotification(
@@ -67,10 +67,10 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   ];
 
   get _isPlaying => _playerState == PlayerState.PLAYING;
-  get _durationText => _duration?.toString()?.split('.')?.first ?? '';
-  get _positionText => _position?.toString()?.split('.')?.first ?? '';
+  get _durationText => _duration?.toString().split('.').first ?? '';
+  get _positionText => _position?.toString().split('.').first ?? '';
 
-  _PlayerWidgetState(this.url, this.urls);
+  _PlayerWidgetState({this.url, this.urls});
 
   @override
   void initState() {
@@ -214,11 +214,9 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               overlayColor: Colors.transparent,
             ),
             child: Slider(
-              value:
-                  _position != null ? _position.inMilliseconds.toDouble() : 0.0,
+              value: _position?.inMilliseconds.toDouble() ?? 0.0,
               min: 0.0,
-              max:
-                  _duration != null ? _duration.inMilliseconds.toDouble() : 0.0,
+              max: _duration?.inMilliseconds.toDouble() ?? 0.0,
               onChanged: (double value) async {
                 final Result result = await _audioPlayer
                     .seekPosition(Duration(milliseconds: value.toInt()));
@@ -239,7 +237,9 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             Text(
               _position != null
                   ? '${_positionText ?? ''} / ${_durationText ?? ''}'
-                  : _duration != null ? _durationText : '',
+                  : _duration != null
+                      ? _durationText
+                      : '',
               style: TextStyle(fontSize: 24.0),
             ),
           ],
@@ -307,17 +307,18 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   Future<void> _play() async {
     if (url != null) {
       final Result result = await _audioPlayer.play(
-        url,
+        url!,
         repeatMode: true,
         respectAudioFocus: false,
-        playerMode: PlayerMode.BACKGROUND,
+        playerMode: PlayerMode.FOREGROUND,
+        audioNotification: audioNotifications[0],
       );
       if (result == Result.ERROR) {
         print("something went wrong in play method :(");
       }
-    } else {
+    } else if (urls != null) {
       final Result result = await _audioPlayer.playAll(
-        urls,
+        urls!,
         repeatMode: false,
         respectAudioFocus: true,
         playerMode: PlayerMode.FOREGROUND,
