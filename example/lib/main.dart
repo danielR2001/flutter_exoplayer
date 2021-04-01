@@ -77,7 +77,7 @@ class _ExampleAppState extends State<ExampleApp> {
       Text('File: $kUrl1'),
       _btn('Download File to your Device', () => _loadFile()),
       Text('Current local file path: $localFilePath'),
-      localFilePath == null ? Container() : PlayerWidget(url: localFilePath),
+      PlayerWidget(url: localFilePath),
       Text(
         "Credit to www.bensound.com for the music and images",
         style: TextStyle(
@@ -92,9 +92,7 @@ class _ExampleAppState extends State<ExampleApp> {
     return _tab([
       Text('File: $kUrl1'),
       _btn('Download File to your Device', () => _loadFile()),
-      localFilePath == null
-          ? Container()
-          : PlayerWidget(urls: [localFilePath, kUrl2, kUrl3]),
+      PlayerWidget(urls: [localFilePath, kUrl2, kUrl3]),
       Text(
         "Credit to www.bensound.com for the music and images",
         style: TextStyle(
@@ -108,7 +106,7 @@ class _ExampleAppState extends State<ExampleApp> {
   Widget _btn(String txt, VoidCallback onPressed) {
     return ButtonTheme(
       minWidth: 48.0,
-      child: RaisedButton(child: Text(txt), onPressed: onPressed),
+      child: TextButton(child: Text(txt), onPressed: onPressed),
       buttonColor: Colors.pink,
     );
   }
